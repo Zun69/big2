@@ -27,8 +27,9 @@ class Card {
     }
 }
 
+//map all values to each suit and return them as a card, eventually creating a fresh deck
 function freshDeck() {
-    return SUITS.flatMap(suit => { //map all values to each suit and return them as a card, eventually creating a fresh deck
+    return SUITS.flatMap(suit => { //use flatMap otherwise it will create 4 seperate arrays for each suit
         return VALUES.map(value => {
             return new Card(suit, value) 
         })
