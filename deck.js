@@ -18,6 +18,31 @@ export default class Deck{
             this.cards[i] = oldValue //loop through deck and swap card with randomly selected card creating a random deck
         }
     }
+
+    getSuitAndValue(cards, index){
+            let value = cards[index].value;
+            let suit = cards[index].suit;
+            return [suit, value]; //return suit and value in array
+            
+            /*if(isNaN(value) || value == 2){
+                if(value == 'J'){
+                    return 10;
+                }
+                else if(value == 'Q'){
+                    return 11;
+                }
+                else if(value == 'K'){
+                    return 12;
+                }
+                else if(value == 'A'){
+                    return 13;
+                }
+                else if(value == '2'){
+                    return 14;
+                }
+            }
+            return value; //if card is not j, q, k, a, 2 return value*/
+    }
 }
 
 class Card {
@@ -29,9 +54,10 @@ class Card {
 
 //map all values to each suit and return them as a card, eventually creating a fresh deck
 function freshDeck() {
-    return SUITS.flatMap(suit => { //use flatMap otherwise it will create 4 seperate arrays for each suit
+    return SUITS.flatMap(suit => { //use flatMap otherwise it will create 4 seperate arrays for each suit, instead of one large deck(array)
         return VALUES.map(value => {
             return new Card(suit, value) 
         })
     })
 }
+

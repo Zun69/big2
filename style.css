@@ -2,14 +2,31 @@
     box-sizing: border-box;
 }
 
-.deck {
-    height: 100%;
-    width: 100%;
-    border: 1px solid black;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 3rem;
-    border-radius: .5rem;
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+}
 
+#deck img {
+    height: 150px;
+    width: 105px;
+    margin: 1px;
+    margin-top: 200px;
+    margin-bottom: 200px;
+}
+
+#player1 img {
+    height: 150px;
+    width: 105px;
+    margin: 1px;
+}
+
+#player2 img {
+    height: 150px;
+    width: 105px;
+    margin: 1px;
+}
+
+#play-hand {
+    margin-top: 50px;
 }
