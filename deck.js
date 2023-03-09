@@ -6,7 +6,8 @@ export default class Deck{
         this.cards = cards
     }
 
-    get numberOfCards() { //getter for deck length
+    //getter for deck length
+    get numberOfCards() { 
         return this.cards.length
     }
 
@@ -43,6 +44,7 @@ export default class Deck{
             }
             return value; //if card is not j, q, k, a, 2 return value*/
     }
+
 }
 
 class Card {
@@ -54,7 +56,7 @@ class Card {
 
 //map all values to each suit and return them as a card, eventually creating a fresh deck
 function freshDeck() {
-    return SUITS.flatMap(suit => { //use flatMap otherwise it will create 4 seperate arrays for each suit, instead of one large deck(array)
+    return SUITS.flatMap(suit => { //use flatMap otherwise it will create 4 seperate arrays for each suit, instead of one large deck with all the suits included
         return VALUES.map(value => {
             return new Card(suit, value) 
         })

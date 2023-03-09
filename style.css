@@ -2,18 +2,23 @@
     box-sizing: border-box;
 }
 
+
 body {
     font-family: Arial, Helvetica, sans-serif;
     text-align: center;
 }
 
+
+
 #deck img {
     height: 150px;
     width: 105px;
     margin: 1px;
-    margin-top: 200px;
-    margin-bottom: 200px;
+    margin-top: 100px;
+    margin-bottom: 100px;
 }
+
+
 
 #player1 img {
     height: 150px;
@@ -21,10 +26,51 @@ body {
     margin: 1px;
 }
 
+#player1 img:hover {
+    border: 1px solid black;
+}
+
+#player2{
+    display: inline-block;
+    line-height:50px;
+}
+
 #player2 img {
+    orientation: vertical;
     height: 150px;
     width: 105px;
     margin: 1px;
+}
+
+#player2 img:hover {
+    border: 1px solid black;
+}
+
+#player3 img {
+    height: 150px;
+    width: 105px;
+    margin: 1px;
+}
+
+#player3 img:hover {
+    border: 1px solid black;
+}
+
+#player4{
+    display: inline-block;
+    line-height:50px;
+    
+}
+
+#player4 img {
+    orientation: horizontal;
+    height: 150px;
+    width: 105px;
+    margin: 1px;
+}
+
+#player4 img:hover {
+    border: 1px solid black;
 }
 
 #play-hand {

@@ -21,7 +21,8 @@ export default class Player{
             document.getElementById("player" + playerNum).append(cardImg);
         }
         else{ //else print out back card because you dont want to see other player's cards
-            cardImg.src = "./cards/BACK.png";
+            //cardImg.src = "./cards/BACK.png"; //need to see everyones card because i need to test the game logic out 
+            cardImg.src = "./cards/" + card[0] + card[1] + ".png";
             document.getElementById("player" + playerNum).append(cardImg);
         }
     }
@@ -32,6 +33,10 @@ export default class Player{
 
     pass() {
         //player can pass logic
+    }
+
+    sortHand(){
+        //sort hand logic, probably will use a bubble sort, loop through this.cards and sort
     }
 
 }

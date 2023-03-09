@@ -11,18 +11,23 @@
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
-        <h3>Player 2</h3>
+        <h5>Player 3</h5>
+        <div id="player3"></div>
+        
+        <h5>Player 4</h5>
+        <div id="player4"></div>
+        <div id="deck"><img src="./cards/BACK.png"></div>  <!--use grid to do 4 way css-->
+        <h5>Player 2</h5>
         <div id="player2"></div>
-        <div id="deck">
-            <img id="deck" src="./cards/BACK.png">
-        </div>
+   
+        <h5>Player 1</h5>
+        <div id="player1" onclick="Player1.playHand()"></div>
+      
 
-        <div id="player1"></div>
-
-        <h3>Player 1</h3>
-        <div id="play-hand"></div>
-        <button id="play">Play Hand</button>
         <button id="pass">Pass</button>
+        <button id="play">Play Hand</button>
+        <button id="sort">Sort Hand</button>
+     
         
         <script src="" async defer></script>
     </body>
