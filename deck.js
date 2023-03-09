@@ -1,8 +1,8 @@
-const SUITS = ["♠", "♥", "♦", "♣"]
-const VALUES = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
+const SUITS = ["♦", "♣", "♥", "♠"]
+const VALUES = ["3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A", "2"]
 
 export default class Deck{ 
-    constructor(cards = freshDeck()){ //every time deck is called construct deck with freshly mapped cards, export Deck class to script file
+    constructor(cards = freshDeck()){ //every time deck is called construct deck with freshly mapped cards in ascending big 2 order (3♦ to 2♠)
         this.cards = cards
     }
 
@@ -10,6 +10,15 @@ export default class Deck{
     get numberOfCards() { 
         return this.cards.length
     }
+
+    addCard(card){
+        this.cards += card
+    }
+
+    clearDeck(){
+        this.cards = []
+    }
+
 
     shuffle() {
         for(let i = this.numberOfCards - 1; i > 0 ; i--){
@@ -20,31 +29,37 @@ export default class Deck{
         }
     }
 
-    getSuitAndValue(cards, index){
-            let value = cards[index].value;
-            let suit = cards[index].suit;
-            return [suit, value]; //return suit and value in array
-            
-            /*if(isNaN(value) || value == 2){
-                if(value == 'J'){
-                    return 10;
-                }
-                else if(value == 'Q'){
-                    return 11;
-                }
-                else if(value == 'K'){
-                    return 12;
-                }
-                else if(value == 'A'){
-                    return 13;
-                }
-                else if(value == '2'){
-                    return 14;
-                }
-            }
-            return value; //if card is not j, q, k, a, 2 return value*/
+    getCard(cards, index){
+            let value = cards[index].value
+            let suit = cards[index].suit
+            return this.cards[index]
     }
 
+    cardHash(){
+        let i = 0
+        //var //cardValueMap = {}
+        var cardValueMap = new Map()
+        let deck = freshDeck()
+        
+        while(i<13){ //diamond cards, insert suit + value and order value (out of 52) into map, used for sorting in player class
+            cardValueMap.set(deck[i].suit + deck[i].value, i*4+1)
+            i++
+        }
+        while(i<26){ //club cards
+            cardValueMap.set(deck[i].suit + deck[i].value, (i%13)*4+2) 
+            i++
+        }
+        while(i<39){ //heart cards
+            cardValueMap.set(deck[i].suit + deck[i].value, (i%13)*4+3) 
+            i++
+        }
+        while(i<52){ //spade cards
+            cardValueMap.set(deck[i].suit + deck[i].value, (i%13)*4+4) 
+            i++
+        }
+
+        return cardValueMap
+    }
 }
 
 class Card {
