@@ -21,8 +21,6 @@ export default class Deck{
     }
 
     getCard(cards, index){
-            let value = cards[index].value
-            let suit = cards[index].suit
             return this.cards[index]
     }
 
