@@ -11,15 +11,6 @@ export default class Deck{
         return this.cards.length
     }
 
-    addCard(card){
-        this.cards += card
-    }
-
-    clearDeck(){
-        this.cards = []
-    }
-
-
     shuffle() {
         for(let i = this.numberOfCards - 1; i > 0 ; i--){
             const newIndex = Math.floor(Math.random() * (i + 1)) //return index of new card that is guaranteed to have not been accessed before, selecting a truly random card
