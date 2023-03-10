@@ -20,15 +20,16 @@ export default class Deck{
         }
     }
 
-    getCard(cards, index){
-            return this.cards[index]
-    }
+    /*getCard(cards, index){
+            return cards[index]
+            //remove cards from deck here if i want to implement it
+    }*/
 
     cardHash(){
-        let i = 0
-        //var //cardValueMap = {}
+        var i = 0
+
         var cardValueMap = new Map()
-        let deck = freshDeck()
+        var deck = freshDeck()
         
         while(i<13){ //diamond cards, insert suit + value and order value (out of 52) into map, used for sorting in player class
             cardValueMap.set(deck[i].suit + deck[i].value, i*4+1)
