@@ -7,7 +7,7 @@ const Player3 = new Player();
 const Player4 = new Player();
 const players = [ Player1, Player2, Player3, Player4 ];
 const deck = new Deck();
-const playingDeck = []; //playing deck will be empty array, will be filled with card objects
+const gameDeck = []; //playing deck will be empty array, will be filled with card objects
 
 
 //function to deal cards to all 4 players(2 for now, implement the other 2 later)
@@ -34,25 +34,54 @@ function sortHand(players){
 
 function updateCards(players){
     for(let i = 0; i < players.length; i++){
-        players[i].printCards(i+1);
+        players[i].printCards(i+1); //+1 because div ids are named player1-4 instead of 0-3
     }
 }
 
-function selectCards(players){
-    for(let i = 0; i < players.length; i++){
-        document.getElementById(players[i].cards.suit + players[i].cards.value).onclick = console.log("fuck cunt");
-    }
+
+function playHand(selectedHand, gameDeck){
+
+
 }
 
-//start game by dealing cards to all 4 players
-dealCards(deck, players);
+function printGameDeck(gameDeck){
+    console.log(gameDeck[0].suit + gameDeck[0].value);
+}
 
-//game loop runs until all cards are placed down
-do{
+
+window.onload = function () {
+    //start game by dealing cards to all 4 players
+    dealCards(deck, players);
+    //if player has 3of diamonds he goes first (function to loop through all players and check cards)
+
     sortHand(players);
     updateCards(players);
-    selectCards(players);
-} while (playingDeck.length < 51)
+    var hand = players[0].selectCard();
+    //console.log(hand);
+    players[0].playCard(hand, gameDeck);
+
+    console.log(gameDeck);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+    
+
 
 
 
