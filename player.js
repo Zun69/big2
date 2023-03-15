@@ -3,8 +3,9 @@ import Deck from "./deck.js"
 const selectedHand = [];
 
 export default class Player{ 
-    constructor(cards = []){ //initialise player with an empty array of cards, will fill array with card objects
+    constructor(cards = [], turn){ //initialise player with an empty array of cards, will fill array with card objects
         this.cards = cards;
+        this.turn = turn;
     }
 
     get numberOfCards() { 
@@ -28,17 +29,16 @@ export default class Player{
         for(let i = 0; i < this.numberOfCards; i++){
             let cardImg = document.createElement("img");
 
-            if(playerNum == 1){
+            if(playerNum == 0){
                 cardImg.src = "./cards/" + this.cards[i].suit + this.cards[i].value + ".png"; //returns suit and value e.g ♠2.png
-                //cardImg.id = this.cards[i].suit + this.cards[i].value
                 cardImg.setAttribute("id", this.cards[i].suit + this.cards[i].value);
-                document.getElementById("player" + playerNum).append(cardImg); //insert card image in player div
+                document.getElementById(playerNum).append(cardImg); //insert card image in player div
             }
             else{ //else print out back card because you dont want to see other player's cards
                 //cardImg.src = "./cards/BACK.png"; //need to see everyones card because i need to test the game logic out
                 cardImg.src = "./cards/" + this.cards[i].suit + this.cards[i].value + ".png";
                 cardImg.id = this.cards[i].suit + this.cards[i].value;
-                document.getElementById("player" + playerNum).append(cardImg);
+                document.getElementById(playerNum).append(cardImg);
             }
         }
     }
@@ -89,7 +89,7 @@ export default class Player{
     }
 
     playCard(hand, gameDeck){
-        var playButton = document.getElementById("play");
+        var playButton = document.getElementById("play"); //set player class to active if its their turn
 
         playButton.addEventListener("click", function(){
             //convert hand array into cards, insert cards into game deck, remove cards from player cards

@@ -26,6 +26,18 @@ function dealCards(deck, players){
     }
 }
 
+function determineTurn(players){
+
+    //loop through all player's cards to check for 3 of diamonds, if they have 3 of diamond they have 1st turn
+    for(let i = 0; i < players.length; i++){
+        for(let j = 0 ; i < players[i].numberOfCards; j++){
+            if(player[i].cards[j].suit + player[i].cards[j].value == "♦", "3"){
+                player[i].turn = 1;
+            }
+        }
+    }
+}
+
 function sortHand(players){
     for(let i = 0; i < players.length; i++){
         players[i].sortHand();
@@ -34,7 +46,7 @@ function sortHand(players){
 
 function updateCards(players){
     for(let i = 0; i < players.length; i++){
-        players[i].printCards(i+1); //+1 because div ids are named player1-4 instead of 0-3
+        players[i].printCards(i); 
     }
 }
 
@@ -45,7 +57,7 @@ function playHand(selectedHand, gameDeck){
 }
 
 function printGameDeck(gameDeck){
-    console.log(gameDeck[0].suit + gameDeck[0].value);
+
 }
 
 
@@ -59,8 +71,8 @@ window.onload = function () {
     var hand = players[0].selectCard();
     //console.log(hand);
     players[0].playCard(hand, gameDeck);
-
-    console.log(gameDeck);
+    console.log(gameDeck.length);
+    //printGameDeck(gameDeck);
 }
 
 
