@@ -1,32 +1,3 @@
-*, *::after, *::before {
-    box-sizing: border-box;
-}
-
-
-body {
-    font-family: Arial, Helvetica, sans-serif;
-    text-align: center;
-    background-color: silver;
-}
-
-.main-container {
-    width: 1200px;
-    height: 960px;
-    background-color: green;
-    text-align: center;
-    font-size: 0.8rem;
-    position: relative;
-    margin-left: 18%;
-}
-
-
-#gameDeck img {
-    height: 90px;
-    width: 65px;
-    margin-top: 400px;
-    margin-bottom: 400px;
-}
-
 .player {
     float: left;
 }
@@ -46,7 +17,7 @@ body {
 
 /*player 3, starts from top left*/
 .player:nth-child(1){
-    background-color: red;
+    margin-top: 10px;
     position: absolute;
     top: 0;
     left: 0;
@@ -54,9 +25,14 @@ body {
     height: 90px;
 }
 
+.player:nth-child(1) img{
+    margin-right: 1px;
+}
+
 /*player 4, starts from top right*/
 .player:nth-child(2){
-    background-color: orange;
+    margin-right: 10px;
+    margin-top: 40px;
     position: absolute;
     top: 0;
     right: 0;
@@ -71,7 +47,8 @@ body {
 
 /*player 2, starts from left top*/
 .player:nth-child(3){
-    background-color: yellow;
+    margin-left: 10px;
+    margin-top: 40px;
     position: absolute;
     left: 0;
     top: 0;
@@ -86,7 +63,7 @@ body {
 
 /*player 1, starts from right bottom*/
 .player:nth-child(4){
-    background-color: blue;
+    margin-bottom: 10px;
     position: absolute;
     right: 0;
     bottom: 0;
@@ -94,13 +71,6 @@ body {
     height: 90px;
 }
 
-.button {
-    margin-top: 10px;
-    transition-duration: 0.4s;
-    font-size: 15px;
-}
-  
-.button:hover {
-    background-color: #4CAF50; /* Green */
-    color: white;
+.player:nth-child(4) img{
+    margin-right: 1px;
 }

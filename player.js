@@ -22,7 +22,9 @@ export default class Player{
     }
 
     removeCard(index){
-        this.cards.delete(index);
+        if (this.cards > -1){
+            this.cards.splice(index,1);
+        }
     }
 
     printCards(playerNum){
@@ -73,18 +75,25 @@ export default class Player{
             
             card.addEventListener("click", function(){
                 if(hand.length < 5){
-                    this.style.border = "thick solid black";
+                    this.style.border = "thin solid black";
                     this.setAttribute("class", "selected");
                     
                     //if selected card is in user hand then add to hand array
                     if(this.id == self.cards[i].suit + self.cards[i].value){ 
                         hand.push(self.cards[i]); 
                     }
-                    
+                }
+                else{
+                    hand.splice(i,1);
+                    //self.removeCard(i); //remove from hand hand instead of player card whoops
+                    this.style.border = "none";
+                    this.removeAttribute("class", "selected");
+                    i = 0;
                 }
             }, false) //adding bind here creates a bug for unknown reason, using hacky var self = this instead
         }
         //console.log(hand)
+        console.log(hand);
         return hand;
     }
 
