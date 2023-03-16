@@ -32,7 +32,7 @@ function determineTurn(players){
     for(let i = 0; i < players.length; i++){
         for(let j = 0 ; i < players[i].numberOfCards; j++){
             if(player[i].cards[j].suit + player[i].cards[j].value == "♦", "3"){
-                player[i].turn = 1;
+                player[i].turn = 0;
             }
         }
     }
@@ -50,30 +50,35 @@ function updateCards(players){
     }
 }
 
-
-function playHand(selectedHand, gameDeck){
-
+async function selectCard(){
 
 }
 
-function printGameDeck(gameDeck){
-
+async function playCard(){
+    //await selectCard
 }
 
+dealCards(deck, players);
+sortHand(players);
+updateCards(players);
 
-window.onload = function () {
-    //start game by dealing cards to all 4 players
-    dealCards(deck, players);
-    //if player has 3of diamonds he goes first (function to loop through all players and check cards)
+  
 
-    sortHand(players);
-    updateCards(players);
-    var hand = players[0].selectCard();
-    //console.log(hand);
-    players[0].playCard(hand, gameDeck);
-    console.log(gameDeck.length);
-    //printGameDeck(gameDeck);
-}
+
+//start game by dealing cards to all 4 players
+
+
+//window.requestAnimationFrame(loop);
+
+
+//if player has 3of diamonds he goes first (function to loop through all players and check cards)
+
+
+
+//var hand = players[0].selectCard();
+//players[0].playCard(hand, gameDeck);
+//console.log(gameDeck.length);
+//printGameDeck(gameDeck);
 
 
 
