@@ -32,12 +32,13 @@
 /*player 4, starts from top right*/
 .player:nth-child(2){
     margin-right: 10px;
-    margin-top: 40px;
+    margin-bottom: 50px;
     position: absolute;
     top: 0;
     right: 0;
     width: 90px;
     height: 100%;
+    transform: rotate(180deg);
 }
 
 .player:nth-child(2) img{

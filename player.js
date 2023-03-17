@@ -45,6 +45,16 @@ export default class Player{
         }
     }
 
+    printDeck(gameDeck){
+        for(let i = 0; i < gameDeck.length; i++){
+            let cardImg = document.createElement("img");
+
+            var card = gameDeck[i].suit + gameDeck[i].suit
+            document.getElementById(gameDeck).append(cardImg);
+
+        }
+    }
+
 
     pass() {
         //player can pass logic
@@ -111,6 +121,7 @@ export default class Player{
                 }
             }
         }.bind(this), false) //only execute bind to player class when event is called
+        return gameDeck;
     }
 }
 

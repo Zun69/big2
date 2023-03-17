@@ -10,6 +10,7 @@ const deck = new Deck();
 const gameDeck = []; //playing deck will be empty array, will be filled with card objects
 
 
+
 //function to deal cards to all 4 players(2 for now, implement the other 2 later)
 function dealCards(deck, players){
     deck.shuffle();
@@ -27,7 +28,6 @@ function dealCards(deck, players){
 }
 
 function determineTurn(players){
-
     //loop through all player's cards to check for 3 of diamonds, if they have 3 of diamond they have 1st turn
     for(let i = 0; i < players.length; i++){
         for(let j = 0 ; i < players[i].numberOfCards; j++){
@@ -44,13 +44,41 @@ function sortHand(players){
     }
 }
 
-function updateCards(players){
+async function updateCards(players){
     for(let i = 0; i < players.length; i++){
         players[i].printCards(i); 
     }
+    let myPromise = new Promise(function(updateCards) {
+
+    });
+}
+
+async function endGame() {
+    var stopGame = document.getElementById("stopGame");
+
+    let myPromise = new Promise(function(myResolve, myReject) {
+        stopGame.addEventListener("click", function(){
+            myResolve("STOP");
+        }.bind(this), false)
+    });
+
+    return myPromise;
+}
+
+async function startGame() {
+    var startGame = document.getElementById("startGame");
+
+    let myPromise = new Promise(function(myResolve, myReject) {
+        startGame.addEventListener("click", function(){
+            myResolve("START");
+        }.bind(this), false)
+    });
+
+    return myPromise;
 }
 
 async function selectCard(){
+    
 
 }
 
@@ -58,29 +86,38 @@ async function playCard(){
     //await selectCard
 }
 
+var stopped = false; //stop while loop when true
+
+
 dealCards(deck, players);
-sortHand(players);
-updateCards(players);
+
+(async () => {
+    while(!stopped) {
+    
+    console.log("dealed");
+    updateCards(players);
+    console.log("printed");
+    sortHand(players);
+    console.log("sorted");
+
+
+    let res = await endGame();
+    if (res == "STOP") stopped = true;
+}
+})().catch(e => { console.error(e) })
+
+
+
+
+
+
+
+//let hand = players[0].selectCard();
+//var array = players[0].playCard(hand, gameDeck);/*
+
+
 
   
-
-
-//start game by dealing cards to all 4 players
-
-
-//window.requestAnimationFrame(loop);
-
-
-//if player has 3of diamonds he goes first (function to loop through all players and check cards)
-
-
-
-//var hand = players[0].selectCard();
-//players[0].playCard(hand, gameDeck);
-//console.log(gameDeck.length);
-//printGameDeck(gameDeck);
-
-
 
 
 
