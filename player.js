@@ -77,14 +77,16 @@ export default class Player{
         }
     }
 
-    selectCard(){
+    async selectCard(gameDeck){
         for(let i = 0; i < this.numberOfCards; i++){
             var card = document.getElementById(this.cards[i].suit + this.cards[i].value);
             var hand = [];
             var self = this; //assign player to self
+            //await turn finished result
+            
             
             card.addEventListener("click", function(){
-                if(hand.length < 5){
+                if(gameDeck.length == 0 && hand.length < 5){ //if hand.length < gameDeck.length
                     this.style.border = "thin solid black";
                     this.setAttribute("class", "selected");
                     
@@ -96,19 +98,46 @@ export default class Player{
                 else{
                     hand.splice(i,1);
                     //self.removeCard(i); //remove from hand hand instead of player card whoops
-                    this.style.border = "none";
+                    this.style.border = "";
                     this.removeAttribute("class", "selected");
                     i = 0;
                 }
             }, false) //adding bind here creates a bug for unknown reason, using hacky var self = this instead
         }
         //console.log(hand)
-        console.log(hand);
-        return hand;
+     
+        return hand; //return promise
     }
 
-    playCard(hand, gameDeck){
+    async playCard(hand, gameDeck, turn){
         var playButton = document.getElementById("play"); //set player class to active if its their turn
+        var audio = new Audio('sound/flipcard.mp3');
+        var hand = [];
+
+        for(let i = 0; i < this.numberOfCards; i++){
+            var card = document.getElementById(this.cards[i].suit + this.cards[i].value);
+            var self = this; //assign player to self
+            //await turn finished result
+            
+            card.addEventListener("click", function(){
+                if(hand.length < 5){ //if hand.length < gameDeck.length
+                    this.style.border = "thin solid black";
+                    this.setAttribute("class", "selected");
+                    
+                    //if selected card is in user hand then add to hand array
+                    if(this.id == self.cards[i].suit + self.cards[i].value){ 
+                        hand.push(self.cards[i]); 
+                    }
+                }
+                else{
+                    hand.splice(i,1);
+                    //self.removeCard(i); //remove from hand hand instead of player card whoops
+                    this.style.border = "";
+                    this.removeAttribute("class", "selected");
+                    i = 0;
+                }
+            }, false) //adding bind here creates a bug for unknown reason, using hacky var self = this instead
+        }
 
         playButton.addEventListener("click", function(){
             //convert hand array into cards, insert cards into game deck, remove cards from player cards
@@ -116,12 +145,15 @@ export default class Player{
                 for(let j = 0; j < this.numberOfCards; j++){ //compare selected cards with player's current cards
                     if(hand[i] == this.cards[j]){
                         gameDeck.push(this.cards[j]);
+                        audio.play();
                         //this.removeCard(j); //remove player card at this index
                     }
                 }
             }
         }.bind(this), false) //only execute bind to player class when event is called
+        //const result = await playHand()
         return gameDeck;
     }
+
 }
 

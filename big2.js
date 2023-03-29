@@ -27,15 +27,20 @@ function dealCards(deck, players){
     }
 }
 
-function determineTurn(players){
+async function determineTurn(players){
     //loop through all player's cards to check for 3 of diamonds, if they have 3 of diamond they have 1st turn
-    for(let i = 0; i < players.length; i++){
-        for(let j = 0 ; i < players[i].numberOfCards; j++){
-            if(player[i].cards[j].suit + player[i].cards[j].value == "♦", "3"){
-                player[i].turn = 0;
+    let myPromise = new Promise(function(myResolve, myReject) {
+        for(let i = 0; i < players.length; i++){
+            for(let j = 0 ; j < players[i].numberOfCards; j++){
+                if(players[i].cards[j].suit == "♦" && players[i].cards[j].value == "3"){
+                    console.log(i);
+                    myResolve(i);
+                }
             }
         }
-    }
+    });
+
+    return myPromise;
 }
 
 function sortHand(players){
@@ -53,13 +58,15 @@ async function updateCards(players){
     });
 }
 
-async function endGame() {
-    var stopGame = document.getElementById("stopGame");
-
+async function endGame(players) {
     let myPromise = new Promise(function(myResolve, myReject) {
-        stopGame.addEventListener("click", function(){
-            myResolve("STOP");
-        }.bind(this), false)
+        for(let i = 0; i < players.length; i++){
+            if(players[i].numberOfCards > 0){
+                myResolve("continue");
+            }else{
+                myReject("stop");
+            }
+        }
     });
 
     return myPromise;
@@ -86,25 +93,47 @@ async function playCard(){
     //await selectCard
 }
 
-var stopped = false; //stop while loop when true
 
-
-dealCards(deck, players);
-
-(async () => {
-    while(!stopped) {
-    
-    console.log("dealed");
-    updateCards(players);
-    console.log("printed");
+const forLoop = async _ => {
+    console.log('Start');
     sortHand(players);
-    console.log("sorted");
+    updateCards(players);
+    var turn = await determineTurn(players);
+    console.log(turn);
+   
 
-
-    let res = await endGame();
-    if (res == "STOP") stopped = true;
+    //less than 51 cards put down
+    for(let i = 0; i < 51; i++){
+        sortHand(players); //should await promise from play hand because updating after playing hand or just leave it at start of loop
+        var hand = players[turn].selectCard(gameDeck); //pass in turn as well
+        players[turn].playCard(hand, gameDeck, turn); //playCard var res = await selectCard, if res == selected how ever many cards
+        //turn += 1;
+        //if (turn >= 3) turn = 0
+        //await playCard , if play card then increment i by hand.length and print gamedeck
+    }
 }
-})().catch(e => { console.error(e) })
+
+var res = await startGame();
+var audio = new Audio('sound/shuffling-cards-1.wav');
+
+if(res == "START"){
+    audio.play();
+    dealCards(deck, players);
+    forLoop();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
