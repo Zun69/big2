@@ -21,16 +21,11 @@ export default class Player{
         return this.cards[index];
     }
 
-    removeCard(index){
-        if (this.cards > -1){
-            this.cards.splice(index,1);
-        }
-    }
 
     printCards(playerNum){
         for(let i = 0; i < this.numberOfCards; i++){
             let cardImg = document.createElement("img");
-
+            
             if(playerNum == 0){
                 cardImg.src = "./cards/" + this.cards[i].suit + this.cards[i].value + ".png"; //returns suit and value e.g ♠2.png
                 cardImg.setAttribute("id", this.cards[i].suit + this.cards[i].value);
@@ -42,16 +37,6 @@ export default class Player{
                 cardImg.id = this.cards[i].suit + this.cards[i].value;
                 document.getElementById(playerNum).append(cardImg);
             }
-        }
-    }
-
-    printDeck(gameDeck){
-        for(let i = 0; i < gameDeck.length; i++){
-            let cardImg = document.createElement("img");
-
-            var card = gameDeck[i].suit + gameDeck[i].suit
-            document.getElementById(gameDeck).append(cardImg);
-
         }
     }
 
@@ -109,18 +94,19 @@ export default class Player{
         return hand; //return promise
     }
 
-    async playCard(hand, gameDeck, turn){
+    async playCard(gameDeck){
         var playButton = document.getElementById("play"); //set player class to active if its their turn
         var audio = new Audio('sound/flipcard.mp3');
         var hand = [];
+        var self = this; //assign player to self
 
         for(let i = 0; i < this.numberOfCards; i++){
             var card = document.getElementById(this.cards[i].suit + this.cards[i].value);
-            var self = this; //assign player to self
+            //var self = this; //assign player to self
             //await turn finished result
             
             card.addEventListener("click", function(){
-                if(hand.length < 5){ //if hand.length < gameDeck.length
+                if(hand.length < 5){ //if hand.length < gameDeck.length ** if this.id == "3diamonds"
                     this.style.border = "thin solid black";
                     this.setAttribute("class", "selected");
                     
@@ -139,20 +125,24 @@ export default class Player{
             }, false) //adding bind here creates a bug for unknown reason, using hacky var self = this instead
         }
 
-        playButton.addEventListener("click", function(){
-            //convert hand array into cards, insert cards into game deck, remove cards from player cards
-            for(let i = 0; i < hand.length; i++){
-                for(let j = 0; j < this.numberOfCards; j++){ //compare selected cards with player's current cards
-                    if(hand[i] == this.cards[j]){
-                        gameDeck.push(this.cards[j]);
-                        audio.play();
-                        //this.removeCard(j); //remove player card at this index
+        
+        let myPromise = new Promise(function(myResolve, myReject) {
+            playButton.addEventListener("click", function(){
+                //convert hand array into cards, insert cards into game deck, remove cards from player cards
+                for(let i = 0; i < hand.length; i++){
+                    for(let j = 0; j < self.numberOfCards; j++){ //compare selected cards with player's current cards
+                        if(hand[i] == self.cards[j]){
+                            gameDeck.push(self.cards[j]);
+                            self.cards.splice(j,1); //remove player card at this index
+                            myResolve("played hand"); //should return amount of cards played, to move forward for loop
+                        }
                     }
                 }
-            }
-        }.bind(this), false) //only execute bind to player class when event is called
-        //const result = await playHand()
-        return gameDeck;
+            }, false) 
+            //return promise, lets print game deck function run, turn += 1  
+        });
+        
+        return myPromise;   
     }
 
 }
