@@ -25,7 +25,9 @@ body {
     width: 65px;
     margin-top: 400px;
     margin-bottom: 400px;
+    margin-right: 1px;
 }
+
 
 .button {
     margin-top: 10px;

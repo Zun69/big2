@@ -39,6 +39,7 @@ async function determineTurn(players){
         }
     });
 
+    //return id of player who has 3 of diamonds
     return myPromise;
 }
 
@@ -51,21 +52,20 @@ function sortHand(players){
 async function updateCards(players){
     for(let i = 0; i < players.length; i++){
         document.getElementById(i).innerHTML = "";
-        players[i].printCards(i); 
+        players[i].printCards(i); //print cards for each player
     }
-    let myPromise = new Promise(function(updateCards) {
-
-    });
 }
 
-async function updateGameDeck(gameDeck){
+async function updateGameDeck(gameDeck, playedHand){
     document.getElementById("gameDeck").innerHTML = "";
-    var cardImg = document.createElement("img");
+    console.log("game deck length: " + gameDeck.length);
 
-    for(let i = 0; i < gameDeck.length; i++){ //should loop using last played hand length
-        cardImg.src = "./cards/" + gameDeck[i].suit + gameDeck[i].value + ".png"; //returns suit and value e.g ♠2.png
-        console.log(gameDeck[i].suit + gameDeck[i].value);
-        cardImg.setAttribute("id", gameDeck[i].suit + gameDeck[i].value);
+    //decrementing for loop that prints out last played hand from the game deck
+    for(let i = gameDeck.length; i > gameDeck.length - playedHand; i--){ 
+        var cardImg = document.createElement("img");
+        cardImg.src = "./cards/" + gameDeck[i-1].suit + gameDeck[i-1].value + ".png"; //returns suit and value e.g ♠2.png
+        console.log(gameDeck[i-1].suit + gameDeck[i-1].value);
+        cardImg.setAttribute("id", gameDeck[i-1].suit + gameDeck[i-1].value);
         document.getElementById("gameDeck").append(cardImg);
     }
 }
@@ -99,31 +99,30 @@ async function startGame() {
 
 
 const forLoop = async _ => {
-    console.log('Start');
     sortHand(players);
     updateCards(players);
     var turn = await determineTurn(players); //player with 3 of diamonds has first turn
-    console.log(turn);
-   
+    var playedHand;
 
     //less than 51 cards put down
     for(let i = 0; i < 51; i++){
-        var playedHand = "unplayed";
+        console.log("turn: " + turn);
         sortHand(players); 
-        var playedHand = await players[turn].playCard(gameDeck, turn); //playCard var res = await selectCard, if res == selected how ever many cards
-        turn += 1; //let next player play their hand
-      
-        if(playedHand == "played hand"){ //should resolve length of hand, use that  length to print gameDeck
-            console.log(turn);
-            console.log(gameDeck);
-            updateGameDeck(gameDeck);
+        playedHand = await players[turn].playCard(gameDeck); //playCard var res = await selectCard, if res == selected how ever many cards
+        var lastPlayedHand = playedHand;
+        
+        if(playedHand >= 1 && playedHand <= 5){ //if player played more than 0 cards || player has passed
+            console.log("played hand length: " + playedHand);
+            turn += 1; //let next player play their hand, await pass
+            updateGameDeck(gameDeck, playedHand);
             updateCards(players);
             if (turn > 3) turn = 0;
-            //console.log(players[turn].cards);
         }
-        //turn += 1;
-        //
-        //await playCard , if play card then increment i by hand.length and print gamedeck
+        else if(playedHand == 0){ //else if player passed
+            turn += 1;
+            console.log("player passed");
+            if (turn > 3) turn = 0;
+        }
     }
 }
 
@@ -135,29 +134,6 @@ if(res == "START"){
     dealCards(deck, players);
     forLoop();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//let hand = players[0].selectCard();
-//var array = players[0].playCard(hand, gameDeck);/*
-
 
 
   
