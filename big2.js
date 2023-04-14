@@ -10,7 +10,6 @@ const deck = new Deck();
 const gameDeck = []; //playing deck will be empty array, will be filled with card objects
 
 
-
 //function to deal cards to all 4 players(2 for now, implement the other 2 later)
 function dealCards(deck, players){
     deck.shuffle();
@@ -60,31 +59,19 @@ async function updateGameDeck(gameDeck, playedHand){
     document.getElementById("gameDeck").innerHTML = "";
     console.log("game deck length: " + gameDeck.length);
 
-    //decrementing for loop that prints out last played hand from the game deck
-    for(let i = gameDeck.length; i > gameDeck.length - playedHand; i--){ 
+    //print last played cards, starting from lowest valued card (because its already sorted)
+    //loop starts from index of first played card until end of the gameDeck
+    for(let i = gameDeck.length - playedHand; i < gameDeck.length; i++){ 
         var cardImg = document.createElement("img");
-        cardImg.src = "./cards/" + gameDeck[i-1].suit + gameDeck[i-1].value + ".png"; //returns suit and value e.g ♠2.png
-        console.log(gameDeck[i-1].suit + gameDeck[i-1].value);
-        cardImg.setAttribute("id", gameDeck[i-1].suit + gameDeck[i-1].value);
+        cardImg.src = "./cards/" + gameDeck[i].suit + gameDeck[i].value + ".png"; //returns suit and value e.g ♠2.png
+        console.log("gamedeck" + gameDeck[i].suit + gameDeck[i].value);
+        cardImg.setAttribute("id", gameDeck[i].suit + gameDeck[i].value);
         document.getElementById("gameDeck").append(cardImg);
     }
 }
 
-async function endGame(players) {
-    let myPromise = new Promise(function(myResolve, myReject) {
-        for(let i = 0; i < players.length; i++){
-            if(players[i].numberOfCards > 0){
-                myResolve("continue");
-            }else{
-                myReject("stop");
-            }
-        }
-    });
 
-    return myPromise;
-}
-
-async function startGame() {
+async function startPromise() {
     var startGame = document.getElementById("startGame");
 
     let myPromise = new Promise(function(myResolve, myReject) {
@@ -96,6 +83,18 @@ async function startGame() {
     return myPromise;
 }
 
+async function startGame() {
+    var res = await startPromise();
+    var audio = new Audio('sound/shuffling-cards-1.wav');
+
+    if(res == "START"){
+        audio.play();
+        dealCards(deck, players);
+        var winner = await forLoop();
+        console.log(winner);
+    }
+}
+
 
 
 const forLoop = async _ => {
@@ -104,19 +103,26 @@ const forLoop = async _ => {
     var turn = await determineTurn(players); //player with 3 of diamonds has first turn
     var playedHand;
 
-    //less than 51 cards put down
+    //i < amount of turns (should set high number)
     for(let i = 0; i < 51; i++){
         console.log("turn: " + turn);
         sortHand(players); 
         playedHand = await players[turn].playCard(gameDeck); //playCard var res = await selectCard, if res == selected how ever many cards
+        console.log("played hand debug: " + playedHand);
         var lastPlayedHand = playedHand;
         
-        if(playedHand >= 1 && playedHand <= 5){ //if player played more than 0 cards || player has passed
-            console.log("played hand length: " + playedHand);
-            turn += 1; //let next player play their hand, await pass
+        if(playedHand >= 1 && playedHand <= 5){ //if player played a valid hand
             updateGameDeck(gameDeck, playedHand);
             updateCards(players);
-            if (turn > 3) turn = 0;
+
+            if (players[turn].numberOfCards == 0){ //if player has 0 cards left, print out winner message
+                return new Promise(resolve => {
+                    resolve("Player " + turn + " won!");
+                });
+            }
+
+            turn += 1; 
+            if (turn > 3) turn = 0; //go back to player 1's turn after player 4's turn
         }
         else if(playedHand == 0){ //else if player passed
             turn += 1;
@@ -126,14 +132,9 @@ const forLoop = async _ => {
     }
 }
 
-var res = await startGame();
-var audio = new Audio('sound/shuffling-cards-1.wav');
-
-if(res == "START"){
-    audio.play();
-    dealCards(deck, players);
-    forLoop();
-}
+//main program starts here
+startGame();
+//restartGame
 
 
   

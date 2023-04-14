@@ -55,6 +55,7 @@ export default class Player{
         return myPromise;
     }
 
+    //sort player's cards
     sortHand(){
         let deck = new Deck()
         let cardMap = deck.cardHash()
@@ -72,22 +73,59 @@ export default class Player{
         }
     }
 
-    async cardLogic(gameDeck, hand){
+    //sort hand that user has played
+    sortHandArray(hand){
+        let deck = new Deck();
+        let cardMap = deck.cardHash();
+
+        //bubble sort using cardMap to compare card values
+        for(var i = 0; i < hand.length; i++){
+            for(var j = 0; j < (hand.length - i - 1); j++){
+                //use current card as a key to cardMap using position value to compare and sort the cards, cant use object as a key
+                if(cardMap.get(hand[j].suit + hand[j].value) > cardMap.get(hand[j + 1].suit + hand[j+1].value)){ 
+                    let temp = hand[j];
+                    hand[j] = hand[j+1];
+                    hand[j+1] = temp;
+                }
+            }
+        }
+        console.log("sorted");
+        console.log(hand);
+    }
+
+    async cardLogic(gameDeck, hand){ //return promise if played card is valid, else dont progress and play invalid sound effect(WIP)
+        let deck = new Deck();
+        let cardMap = deck.cardHash();
+
+        //switch case using hand length
+        switch(hand.length) {
+            case 1: //validate single card
+                break;
+            case 2: //validate doubles
+                break;
+            case 3: //validate triples
+                break;
+            case 4: //validate quads? i dont know if these are allowed (leaning towards not allowed for the moment)
+                break;
+            case 5: //validate straights, flushes, full houses, 4 of a kinds + kickers, straight flushes
+                break;
+        }
 
     }
 
 
     async playCard(gameDeck){
         var playButton = document.getElementById("play"); //set player class to active if its their turn
-        var passButton = document.getElementById("pass"); 
+        var passButton = document.getElementById("pass");
+        var restartGameButton = document.getElementById("restartGame"); 
         var audio = new Audio('sound/flipcard.mp3');
         var hand = [];
         var self = this; //assign player to self
         
 
         for(let i = 0; i < this.numberOfCards; i++){
+            
             var card = document.getElementById(this.cards[i].suit + this.cards[i].value);
-            //var self = this; //assign player to self
             //await turn finished result
             
             card.addEventListener("click", function(){
@@ -97,22 +135,25 @@ export default class Player{
                     
                     //if selected card is in user hand then add to hand array
                     if(this.id == self.cards[i].suit + self.cards[i].value){ 
-                        hand.push(self.cards[i]); 
+                        hand.push(self.cards[i]);
                     }
                 }
                 else{
                     hand.splice(i,1);
-                    //self.removeCard(i); //remove from hand hand instead of player card whoops
+                    //self.removeCard(i); //remove from hand instead of player card whoops
                     this.style.border = "";
                     this.removeAttribute("class", "selected");
                     i = 0;
                 }
+                //self.sortHandArray(hand);
             }, false) //adding bind here creates a bug for unknown reason, using hacky var self = this instead
         }
 
-
         let myPromise = new Promise(function(myResolve, myReject) {
             playButton.addEventListener("click", function(){
+                self.sortHandArray(hand); //sort selected hand so cardLogic function can tell whether its a combo, single, double or triple
+                self.cardLogic(gameDeck, hand); //await valid move, otherwise user has to pass
+
                 //convert hand array into cards, insert cards into game deck, remove cards from player cards
                 for(let i = 0; i < hand.length; i++){
                     for(let j = 0; j < self.numberOfCards; j++){ //compare selected cards with player's current cards
@@ -121,9 +162,11 @@ export default class Player{
                             self.cards.splice(j,1); //remove player card at this index
                             audio.play();
                             myResolve(hand.length); //return amount of cards played, to move forward for loop
+                            console.log("hand length: " + hand.length);
                         }
                     }
                 }
+                
             }, false)
 
             passButton.addEventListener("click", function(){
@@ -131,7 +174,11 @@ export default class Player{
             }, false)
         });
 
-  
+        //refresh page if restart game button is clicked
+        restartGameButton.addEventListener("click", function(){
+            location.reload();
+        }, false)
+
         return myPromise;
     }
 

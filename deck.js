@@ -20,11 +20,6 @@ export default class Deck{
         }
     }
 
-    /*getCard(cards, index){
-            return cards[index]
-            //remove cards from deck here if i want to implement it
-    }*/
-
     cardHash(){
         var i = 0
 
