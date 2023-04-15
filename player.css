@@ -1,3 +1,7 @@
+.checked {
+    border: thin solid black;
+}
+
 .player {
     float: left;
 }

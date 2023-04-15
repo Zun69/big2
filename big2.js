@@ -83,20 +83,6 @@ async function startPromise() {
     return myPromise;
 }
 
-async function startGame() {
-    var res = await startPromise();
-    var audio = new Audio('sound/shuffling-cards-1.wav');
-
-    if(res == "START"){
-        audio.play();
-        dealCards(deck, players);
-        var winner = await forLoop();
-        console.log(winner);
-    }
-}
-
-
-
 const forLoop = async _ => {
     sortHand(players);
     updateCards(players);
@@ -104,10 +90,10 @@ const forLoop = async _ => {
     var playedHand;
 
     //i < amount of turns (should set high number)
-    for(let i = 0; i < 51; i++){
+    for(let i = 0; i < 100; i++){
         console.log("turn: " + turn);
         sortHand(players); 
-        playedHand = await players[turn].playCard(gameDeck); //playCard var res = await selectCard, if res == selected how ever many cards
+        playedHand = await players[turn].playCard(gameDeck, turn); //playCard var res = await selectCard, if res == selected how ever many cards
         console.log("played hand debug: " + playedHand);
         var lastPlayedHand = playedHand;
         
@@ -131,6 +117,20 @@ const forLoop = async _ => {
         }
     }
 }
+
+
+async function startGame() {
+    var res = await startPromise();
+    var audio = new Audio('sound/shuffling-cards-1.wav');
+
+    if(res == "START"){
+        audio.play();
+        dealCards(deck, players);
+        var winner = await forLoop();
+        console.log(winner);
+    }
+}
+
 
 //main program starts here
 startGame();
