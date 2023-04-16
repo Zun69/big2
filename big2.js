@@ -61,7 +61,7 @@ async function updateGameDeck(gameDeck, playedHand){
 
     //print last played cards, starting from lowest valued card (because its already sorted)
     //loop starts from index of first played card until end of the gameDeck
-    for(let i = gameDeck.length - playedHand; i < gameDeck.length; i++){ 
+    for(let i = gameDeck.length - playedHand; i < gameDeck.length; i++){
         var cardImg = document.createElement("img");
         cardImg.src = "./cards/" + gameDeck[i].suit + gameDeck[i].value + ".png"; //returns suit and value e.g ♠2.png
         console.log("gamedeck" + gameDeck[i].suit + gameDeck[i].value);
@@ -87,15 +87,14 @@ const forLoop = async _ => {
     sortHand(players);
     updateCards(players);
     var turn = await determineTurn(players); //player with 3 of diamonds has first turn
-    var playedHand;
+    var playedHand = 0;
 
     //i < amount of turns (should set high number)
     for(let i = 0; i < 100; i++){
         console.log("turn: " + turn);
         sortHand(players); 
-        playedHand = await players[turn].playCard(gameDeck, turn); //playCard var res = await selectCard, if res == selected how ever many cards
+        playedHand = await players[turn].playCard(gameDeck, turn, playedHand); //playCard var res = await selectCard, if res == selected how ever many cards
         console.log("played hand debug: " + playedHand);
-        var lastPlayedHand = playedHand;
         
         if(playedHand >= 1 && playedHand <= 5){ //if player played a valid hand
             updateGameDeck(gameDeck, playedHand);

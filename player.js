@@ -18,6 +18,7 @@ export default class Player{
         this.cards.push(card);
     }
 
+    //return card from given card image id
     searchCard(cardId){
         for(let i = 0; i < this.numberOfCards; i++){
             if(cardId == this.cards[i].suit + this.cards[i].value){
@@ -25,7 +26,6 @@ export default class Player{
             }
         }
     }
-
 
     printCards(playerNum){
         for(let i = 0; i < this.numberOfCards; i++){
@@ -45,20 +45,6 @@ export default class Player{
                 document.getElementById(playerNum).append(cardImg);
             }
         }
-    }
-
-
-    async pass() {
-        var passButton = document.getElementById("pass");
-
-        let myPromise = new Promise(function(myResolve, myReject) {
-            passButton.addEventListener("click", function(){
-               myResolve(true);
-            }, false)
-            //return promise, lets print game deck function run, turn += 1  
-        });
-
-        return myPromise;
     }
 
     //sort player's cards
@@ -83,12 +69,13 @@ export default class Player{
     sortHandArray(hand){
         let deck = new Deck();
         let cardMap = deck.cardHash();
+        console.log("HAND" + hand.length);
 
         //bubble sort using cardMap to compare card values
         for(var i = 0; i < hand.length; i++){
             for(var j = 0; j < (hand.length - i - 1); j++){
                 //use current card as a key to cardMap using position value to compare and sort the cards, cant use object as a key
-                if(cardMap.get(hand[j].suit + hand[j].value) > cardMap.get(hand[j + 1].suit + hand[j+1].value)){ 
+                if(cardMap.get(hand[j]) > cardMap.get(hand[j + 1])){ 
                     let temp = hand[j];
                     hand[j] = hand[j+1];
                     hand[j+1] = temp;
@@ -96,25 +83,47 @@ export default class Player{
             }
         }
         console.log("sorted");
-        console.log(hand);
     }
 
-    cardLogic(gameDeck, hand){ //return promise if played card is valid, else dont progress and play invalid sound effect(WIP)
+    //return promise if played card is valid, else dont progress and play invalid sound effect(WIP)
+    cardLogic(gameDeck, hand, playedHand){ 
         let deck = new Deck();
         let cardMap = deck.cardHash();
         let cardArr = []; //card array holds the hand that we will use to validate
+        let lastPlayedHandIndex = gameDeck.length - playedHand;
+
+        //loop from last hand played until end of gamedeck
+        for(let i = lastPlayedHandIndex; i < gameDeck.length; i++){ 
+            cardArr.push(gameDeck[i]); //insert last played cards into card array
+        }
 
         //switch case using hand length
 
         switch(hand.length) {
             //validate single card
+            case 0:
+                return "invalid";
             case 1:
                 //if gamedeck is empty
                 if(gameDeck.length == 0){ 
                     if(hand[0].suit == "♦" && hand[0].value == 3){
                         return "valid";
                     }
-                } 
+                    else{
+                        return "invalid";
+                    } 
+                }
+                
+                if(gameDeck.length > 0){
+                    //if single card is larger value than last played card
+                    console.log("card array card: " + cardArr[0].suit + cardArr[0].value);
+                    if(cardMap.get(hand[0].suit + hand[0].value) > cardMap.get(cardArr[0].suit + cardArr[0].value)){
+                        return "valid";
+                    }
+                    else{
+                        return "invalid";
+                    }
+                }
                 break;
             //validate doubles
             case 2: 
@@ -129,8 +138,12 @@ export default class Player{
 
     }
 
+    selectCard(){
+        
+    }
 
-    async playCard(gameDeck, playerNum){
+    //function takes care of selecting cards and inserting cards into hand, sorting the hand, validating move and inserting the hand onto the game deck, and returning promise
+    async playCard(gameDeck, turn, playedHand){
         var playButton = document.getElementById("play"); //set player class to active if its their turn
         var passButton = document.getElementById("pass");
         var restartGameButton = document.getElementById("restartGame"); 
@@ -138,65 +151,70 @@ export default class Player{
         var invalidAudio = new Audio('sound/invalid.mp3');
         var hand = []; //hand array holds selected cards
         var self = this; //assign player to self
-        console.log("playerNum" + playerNum);
+        var turnElement = document.getElementById(turn);
         
-
-        //JQuery select card function
+        
         $(document).ready(function() {
-            $('#' + playerNum).on('click', ".card", function() { //on click listener for player's cards
-                var selectedCard = $(this);
-                console.log(selectedCard);
-
-                if(!selectedCard.is('.checked')){
-                    selectedCard.addClass('checked');
-        
-                    var returnedCard = self.searchCard(this.id);
-
-                    hand.push(returnedCard); //push on the card instead of id
-                    
-                } else {
-                    selectedCard.removeClass('checked');
-
-                    var index = hand.indexOf(this.id);
-                    if(index >- 1){
-                        hand.splice(index, 1);
-                        console.log(hand);
-                    }
+            $('#' + turn).on('click', ".card", function(event) { //on click listener for current turn player's cards
+              event.stopImmediatePropagation(); // Prevent event propagation
+              var selectedCard = $(this);
+              console.log("current player: " + turn);
+          
+              //if card selected does not have checked class and hand does not already contain 5 cards
+              if(!selectedCard.hasClass('checked') && hand.length < 5){
+                selectedCard.addClass('checked'); //add checked class, can style in css
+                //var returnedCard = self.searchCard(this.id);
+                hand.push(this.id); //push on the card instead of id
+                console.log(hand);
+              } else {
+                selectedCard.removeClass('checked'); //remove class and styling
+                //var returnedCard = self.searchCard(this.id); //return card that is clicked on
+                var index = hand.indexOf(this.id); //get index of card that is going to be removed from hand
+          
+                if(index >- 1){
+                  hand.splice(index, 1); //remove card from hand
                 }
+              }
             })
         })
-            
 
+       
+            
+        //promise resolves hand length or 0 if player passes
         let myPromise = new Promise(function(myResolve, myReject) {
-            playButton.addEventListener("click", function(){
+            var playButtonClickHandler = playButton.addEventListener("click", function(){
                 self.sortHandArray(hand); //sort selected hand so cardLogic function can tell whether its a combo, single, double or triple
-                let cardValidate = self.cardLogic(gameDeck, hand); //return valid if played card meets requirements
+               // let cardValidate = self.cardLogic(gameDeck, hand, playedHand); //return valid if played card meets requirements
 
                 //if played card is valid
-                if(cardValidate == "valid"){
+                //if(cardValidate == "valid"){
                     //convert hand array into cards, insert cards into game deck, remove cards from player cards
                     for(let i = 0; i < hand.length; i++){
                         for(let j = 0; j < self.numberOfCards; j++){ //compare selected cards with player's current cards
-                            if(hand[i] == self.cards[j]){
+                            if(hand[i] == self.cards[j].suit + self.cards[j].value){
                                 gameDeck.push(self.cards[j]);
+                                console.log("card inserted: " + self.cards[j].suit + self.cards[j].value);
                                 self.cards.splice(j,1); //remove player card at this index
                                 placeCardAudio.play();
-                                myResolve(hand.length); //return amount of cards played, to move forward for loop
-                                console.log("hand length: " + hand.length);
                             }
                         }
                     }
-                }
+                    myResolve(5); //return amount of cards played, to move forward for loop
+                    hand.length = 0; //clear hand after playing it
+                //}
                 //else play invalid sound, user has to either pass or play a valid card
-                else{
-                    hand = [];
-                    invalidAudio.play();
-                }
+                //else if(cardValidate == "invalid"){
+               //     console.log("invalid card played")
+                    //invalidAudio.play();
+                //}
             }, false)
+            playButton.removeEventListener("click", playButtonClickHandler);
+            
 
-            passButton.addEventListener("click", function(){
+            var passButtonClickHandler = passButton.addEventListener("click", function(){
                 myResolve(0); //if player passes, return 0 cards played
             }, false)
+            passButton.removeEventListener("click", passButtonClickHandler);
         });
 
         //refresh page if restart game button is clicked
@@ -204,6 +222,8 @@ export default class Player{
             location.reload();
         }, false)
 
+        console.log("returned promise");
+        
         return myPromise;
     }
 
