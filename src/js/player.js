@@ -85,7 +85,7 @@ export default class Player{
         console.log("sorted");
     }
 
-    //return promise if played card is valid, else dont progress and play invalid sound effect(WIP)
+    //return promise if played card is valid, else dont progress and play invalid audio effect(WIP)
     cardLogic(gameDeck, hand, playedHand){ 
         let deck = new Deck();
         let cardMap = deck.cardHash();
@@ -135,11 +135,6 @@ export default class Player{
             case 5: //validate straights, flushes, full houses, 4 of a kinds + kickers, straight flushes
                 break;
         }
-
-    }
-
-    selectCard(){
-        
     }
 
     //function takes care of selecting cards and inserting cards into hand, sorting the hand, validating move and inserting the hand onto the game deck, and returning promise
@@ -147,8 +142,8 @@ export default class Player{
         var playButton = document.getElementById("play"); //set player class to active if its their turn
         var passButton = document.getElementById("pass");
         var restartGameButton = document.getElementById("restartGame"); 
-        var placeCardAudio = new Audio('sound/flipcard.mp3');
-        var invalidAudio = new Audio('sound/invalid.mp3');
+        var placeCardAudio = new Audio('audio/flipcard.mp3');
+        var invalidAudio = new Audio('audio/invalid.mp3');
         var hand = []; //hand array holds selected cards
         var self = this; //assign player to self
         var turnElement = document.getElementById(turn);
@@ -158,7 +153,7 @@ export default class Player{
             $('#' + turn).on('click', ".card", function(event) { //on click listener for current turn player's cards
               event.stopImmediatePropagation(); // Prevent event propagation
               var selectedCard = $(this);
-              console.log("current player: " + turn);
+              console.log("current turn: " + turn);
           
               //if card selected does not have checked class and hand does not already contain 5 cards
               if(!selectedCard.hasClass('checked') && hand.length < 5){
@@ -173,13 +168,12 @@ export default class Player{
           
                 if(index >- 1){
                   hand.splice(index, 1); //remove card from hand
+                  console.log(hand);
                 }
               }
             })
         })
 
-       
-            
         //promise resolves hand length or 0 if player passes
         let myPromise = new Promise(function(myResolve, myReject) {
             var playButtonClickHandler = playButton.addEventListener("click", function(){
@@ -202,7 +196,7 @@ export default class Player{
                     myResolve(5); //return amount of cards played, to move forward for loop
                     hand.length = 0; //clear hand after playing it
                 //}
-                //else play invalid sound, user has to either pass or play a valid card
+                //else play invalid audio, user has to either pass or play a valid card
                 //else if(cardValidate == "invalid"){
                //     console.log("invalid card played")
                     //invalidAudio.play();

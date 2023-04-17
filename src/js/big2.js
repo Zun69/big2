@@ -120,7 +120,7 @@ const forLoop = async _ => {
 
 async function startGame() {
     var res = await startPromise();
-    var audio = new Audio('sound/shuffling-cards-1.wav');
+    var audio = new Audio('audio/shuffling-cards-1.wav');
 
     if(res == "START"){
         audio.play();
