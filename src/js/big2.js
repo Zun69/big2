@@ -10,10 +10,10 @@ const deck = new Deck();
 const gameDeck = []; //playing deck will be empty array, will be filled with card objects
 
 
-//function to deal cards to all 4 players(2 for now, implement the other 2 later)
+  //function to deal cards to all 4 players
 function dealCards(deck, players){
     deck.shuffle();
-
+  
     for(let i = 0; i < deck.numberOfCards; i++)
     {
         players[0].addCard(deck.cards[i]); //add card to player1 hand
@@ -27,19 +27,16 @@ function dealCards(deck, players){
 }
 
 async function determineTurn(players){
-    //loop through all player's cards to check for 3 of diamonds, if they have 3 of diamond they have 1st turn
-    let myPromise = new Promise(function(myResolve, myReject) {
-        for(let i = 0; i < players.length; i++){
-            for(let j = 0 ; j < players[i].numberOfCards; j++){
-                if(players[i].cards[j].suit == "♦" && players[i].cards[j].value == "3"){
-                    myResolve(i);
-                }
-            }
+    // loop through all player's cards to check for 3 of diamonds, if they have 3 of diamond they have 1st turn
+    let promise = new Promise((resolve, reject) => {
+      players.some((player, index) => {
+        if (player.cards.some(card => card.suit === "♦" && card.value === "3")) {
+          resolve(index);
+          return true; // stop looping once the first player with 3 of diamonds is found
         }
+      });
     });
-
-    //return id of player who has 3 of diamonds
-    return myPromise;
+    return await promise;
 }
 
 function sortHand(players){
@@ -88,11 +85,12 @@ const forLoop = async _ => {
     updateCards(players);
     var turn = await determineTurn(players); //player with 3 of diamonds has first turn
     var playedHand = 0;
+    var selectedCards = [];
 
     //i < amount of turns (should set high number)
     for(let i = 0; i < 100; i++){
         console.log("turn: " + turn);
-        sortHand(players); 
+        sortHand(players);
         playedHand = await players[turn].playCard(gameDeck, turn, playedHand); //playCard var res = await selectCard, if res == selected how ever many cards
         console.log("played hand debug: " + playedHand);
         
@@ -134,38 +132,3 @@ async function startGame() {
 //main program starts here
 startGame();
 //restartGame
-
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

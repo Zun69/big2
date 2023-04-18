@@ -49,6 +49,7 @@ export default class Deck{
     }
 }
 
+
 //map all values to each suit and return them as a card, eventually creating a fresh deck
 function freshDeck() {
     return SUITS.flatMap(suit => { //use flatMap otherwise it will create 4 seperate arrays for each suit, instead of one large deck with all the suits included
