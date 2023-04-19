@@ -40,9 +40,9 @@ async function determineTurn(players){
 }
 
 function sortHand(players){
-    for(let i = 0; i < players.length; i++){
-        players[i].sortHand();
-    }
+    players.forEach(function(player){
+        player.sortHand();
+    });
 }
 
 async function updateCards(players){
@@ -92,6 +92,7 @@ const forLoop = async _ => {
         console.log("turn: " + turn);
         sortHand(players);
         playedHand = await players[turn].playCard(gameDeck, turn, playedHand); //playCard var res = await selectCard, if res == selected how ever many cards
+
         console.log("played hand debug: " + playedHand);
         
         if(playedHand >= 1 && playedHand <= 5){ //if player played a valid hand
