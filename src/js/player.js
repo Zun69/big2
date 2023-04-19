@@ -85,18 +85,15 @@ export default class Player{
     cardLogic(gameDeck, hand, lastValidHand){ 
         let deck = new Deck();
         let cardMap = deck.cardHash();
-        let cardArr = []; //card array holds the hand that we will use to validate
-        let laIndex = gameDeck.length - lastValidHand;
+        let lastPlayedHand = []; //card array holds the hand that we will use to validate
+        let lastPlayedHandIndex = gameDeck.length - lastValidHand;
 
         //loop from last hand played until end of gamedeck
-        for(let i = laIndex; i < gameDeck.length; i++){ 
-            cardArr.push(gameDeck[i].suit + gameDeck[i].value); //insert last played cards into card array (as a an id string, to directly match with hand arr)
+        for(let i = lastPlayedHandIndex; i < gameDeck.length; i++){ 
+            lastPlayedHand.push(gameDeck[i]); //insert last played cards into array (as a card to make it easier to validate doubles, triples, and combos)
         }
-        
-        //bug if someone passed then cardArr is empty, maybe fix it with i = 0 + 1
 
         //switch case using hand length
-
         switch(hand.length) {
             //validate single card
             case 1:
@@ -109,13 +106,16 @@ export default class Player{
                     } 
                 }
 
+                //if gamedeck not empty and last played hand was also 1 card
                 if(gameDeck.length > 0){
-                    //if single card is larger value than last played card, using deck hash to compare card values
-                    console.log("card array card: " + cardArr[0]);
-                    if(cardMap.get(hand[0]) > cardMap.get(cardArr[0])) { 
-                        return true;
-                    } else{
-                        return false;
+                    if(lastPlayedHand.length == 1){
+                        //if single card is larger value than last played card, using deck hash to compare card values
+                        console.log("last played card: " + lastPlayedHand[0]);
+                        if(cardMap.get(hand[0]) > cardMap.get(lastPlayedHand[0].suit + lastPlayedHand[0].value)) { 
+                            return true;
+                        } else{
+                            return false;
+                        }
                     }
                 }
                 break;
@@ -131,19 +131,75 @@ export default class Player{
                 }
 
                 if(gameDeck.length > 0){
-                    console.log("card array card: " + cardArr[0] + cardArr[1]);
-                    if(cardMap.get(hand[1]) > cardMap.get(cardArr[1])){
+                    if(lastPlayedHand.length == 2){
+                        console.log("last played double card: " + lastPlayedHand[0] + lastPlayedHand[1]);
+                        var splitCard1 = hand[0].split(''); //output: splitCard1[0] = suit | splitCard[1] = value
+                        var splitCard2 = hand[1].split(''); 
+
+                        //if hand cards have same value AND first card in hand has same value as first last played card 
+                        //AND second card in hand is greater than last played second card return true
+                        //OR if first hand and second card values have same value AND if first card in hand is greater than first card in last playedHand 
+                        //AND second hand card is greater than 2nd card in last played hand return true
+                        if((splitCard1[1] == splitCard2[1] && splitCard1[1] == lastPlayedHand.value  && cardMap.get(hand[1]) > cardMap.get(lastPlayedHand[1]) ||
+                           (splitCard1[1] == splitCard2[1] && cardMap.get(hand[0]) > cardMap.get(lastPlayedHand[0].suit + lastPlayedHand[0].value) && cardMap.get(hand[1]) > cardMap.get(lastPlayedHand[1].suit + lastPlayedHand[1].value)))){
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
+                }
+                break;
+            //validate triples
+            case 3:
+                if(gameDeck.length == 0){
+                    //if gamedeck is empty and hand contains a 3 of diamonds and two other 3 cards, return valid as its a valid triple to start game with
+                    if(hand[0] == "♦3" && hand[1].includes("3") && hand[2].includes("3")){
                         return true;
                     } else {
                         return false;
                     }
                 }
+
+                if(gameDeck.length > 0){
+                    if(lastPlayedHand.length == 3){
+                        console.log("last played triple card: " + lastPlayedHand[0] + lastPlayedHand[1] + lastPlayedHand[2]);
+                        var splitCard1 = hand[0].split(''); //output: splitCard1[0] = suit | splitCard[1] = value
+                        var splitCard2 = hand[1].split('');
+                        var splitCard3 = hand[2].split('');
+
+                        //if all 3 hand cards have same value AND first card is greater than last played first card AND second card is greater than second last played card
+                        //AND third card is greater than last played third card return true
+                        if(splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard1[1] == splitCard3[1] && cardMap.get(hand[0]) > cardMap.get(lastPlayedHand[0].suit + lastPlayedHand[0].value) 
+                            && cardMap.get(hand[1]) > cardMap.get(lastPlayedHand[1].suit + lastPlayedHand[1].value) && cardMap.get(hand[2]) > cardMap.get(lastPlayedHand[2].suit + lastPlayedHand[2].value)){
+                            return true;
+                        } else {
+                        return false;
+                        }
+                    }
+                }
                 break;
-            case 3: //validate triples
+            //validate quads? i dont know if these are allowed (leaning towards not allowed for the moment)
+            case 4:
+                return false;
                 break;
-            case 4: //validate quads? i dont know if these are allowed (leaning towards not allowed for the moment)
-                break;
-            case 5: //validate straights, flushes, full houses, 4 of a kinds + kickers, straight flushes
+            //validate straights, flushes, full houses, 4 of a kinds + kickers, straight flushes
+            case 5:
+                console.log("last played triple card: " + lastPlayedHand[0] + lastPlayedHand[1] + lastPlayedHand[2] + lastPlayedHand[3] + lastPlayedHand[4]);
+                var splitCard1 = hand[0].split(''); //output: splitCard1[0] = suit | splitCard[1] = value
+                var splitCard2 = hand[1].split('');
+                var splitCard3 = hand[2].split('');
+                var splitCard4 = hand[3].split('');
+                var splitCard5 = hand[4].split('');
+
+                if(gameDeck.length == 0){
+                    //full house, if you have triple 3 (including 3 of D) and 4th and 5th cards have the same value (triple and a double), return true
+                    if(hand[0] == "♦3" && hand[1].includes("3") && hand[2].includes("3") && splitCard4[1] == splitCard5[1]){
+                        return true;
+                    }
+                    //flush
+                    //straight
+
+                }
                 break;
         }
     }
@@ -196,12 +252,8 @@ export default class Player{
 
 
         //promise resolves hand length or 0 if player passes
-        var myPromise = new Promise((resolve, reject) => {
-            //if card valid add event listener, else make button disabled
+        var myPromise = new Promise((resolve) => {
             playButton.addEventListener("click", function(){
-                
- 
-                //if played card is valid
                 hand.forEach(cardId => {
                     var cardIndex = self.cards.findIndex(card => card.suit + card.value === cardId); //return index of player's card that matches a cardId in hand array
     
@@ -213,9 +265,7 @@ export default class Player{
                         placeCardAudio.play();
                     }
                 })
-                console.log("resolving number = " + hand.length)
-    
-                console.log("HAND" + hand.length);
+        
                 resolve(hand.length); //return amount of cards played, to move forward for loop
                 hand.length = 0; //clear hand after playing it
             }, { once: true });
@@ -231,7 +281,6 @@ export default class Player{
             location.reload();
         }, { once: true });
 
-        console.log("returned promise");
         return myPromise;
     }
 }
