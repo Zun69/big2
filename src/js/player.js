@@ -82,18 +82,18 @@ export default class Player{
     }
 
     //return promise if played card is valid, else dont progress and play invalid audio effect(WIP)
-    cardLogic(gameDeck, hand, playedHand){ 
+    cardLogic(gameDeck, hand, lastValidHand){ 
         let deck = new Deck();
         let cardMap = deck.cardHash();
         let cardArr = []; //card array holds the hand that we will use to validate
-        let lastPlayedHandIndex = gameDeck.length - playedHand;
+        let laIndex = gameDeck.length - lastValidHand;
 
         //loop from last hand played until end of gamedeck
-        for(let i = lastPlayedHandIndex; i < gameDeck.length; i++){ 
+        for(let i = laIndex; i < gameDeck.length; i++){ 
             cardArr.push(gameDeck[i].suit + gameDeck[i].value); //insert last played cards into card array (as a an id string, to directly match with hand arr)
         }
         
-        //bug if someone passed then cardArr is empty, maybe fix it with if playedHand = 0 + 1
+        //bug if someone passed then cardArr is empty, maybe fix it with i = 0 + 1
 
         //switch case using hand length
 
@@ -149,10 +149,11 @@ export default class Player{
     }
 
     //function takes care of selecting cards and inserting cards into hand, sorting the hand, validating move and inserting the hand onto the game deck, and returning promise
-    async playCard(gameDeck, turn, playedHand){
+    async playCard(gameDeck, turn, lastValidHand){
         var playButton = document.getElementById("play"); //set player class to active if its their turn
-        playButton.disabled = true; //disable play button because no card is selected which is an invalid move
         var passButton = document.getElementById("pass");
+        playButton.disabled = true; //disable play button because no card is selected which is an invalid move
+        //passButton.disabled = true; //disable pass button because you can't pass on first move
         var restartGameButton = document.getElementById("restartGame"); 
         var placeCardAudio = new Audio('audio/flipcard.mp3');
         var self = this; //assign player to self
@@ -168,7 +169,7 @@ export default class Player{
                     hand = hand.filter(id => id !== card.id); //filter through hand array and remove card id
                     self.sortHandArray(hand); //sort selected hand so cardLogic function can tell whether its a combo, single, double or triple
                     card.classList.remove('checked');
-                    cardValidate = self.cardLogic(gameDeck, hand, playedHand); //return valid if played card meets requirements
+                    cardValidate = self.cardLogic(gameDeck, hand, lastValidHand); //return valid if played card meets requirements
                     console.log(cardValidate);
 
                     //if current hand is validated, enable play button, else disable it because its an invalid move
@@ -181,7 +182,7 @@ export default class Player{
                     hand.push(card.id); //insert clicked on card into hand
                     self.sortHandArray(hand); 
                     card.classList.add('checked');
-                    cardValidate = self.cardLogic(gameDeck, hand, playedHand); //return valid if played card meets requirements
+                    cardValidate = self.cardLogic(gameDeck, hand, lastValidHand); //return valid if played card meets requirements
                     console.log(cardValidate);
 
                     if(cardValidate) {

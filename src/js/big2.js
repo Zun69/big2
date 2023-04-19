@@ -46,6 +46,7 @@ function sortHand(players){
 }
 
 async function updateCards(players){
+    //change it to update just one player at a time, makes it more efficient and less laggy when hosted on github pages
     for(let i = 0; i < players.length; i++){
         document.getElementById(i).innerHTML = "";
         players[i].printCards(i); //print cards for each player
@@ -85,19 +86,22 @@ const forLoop = async _ => {
     updateCards(players);
     var turn = await determineTurn(players); //player with 3 of diamonds has first turn
     var playedHand = 0;
-    var selectedCards = [];
+    var lastValidHand;
+    var passTracker; //track number of passes, if there are 3 passes that means player has won the round and game deck should be cleared
 
-    //i < amount of turns (should set high number)
+    //TO DO: implement a way to identify when a player has won a round and reset the gameDeck
+    //each loop represents a single turn
     for(let i = 0; i < 100; i++){
         console.log("turn: " + turn);
         sortHand(players);
-        playedHand = await players[turn].playCard(gameDeck, turn, playedHand); //playCard var res = await selectCard, if res == selected how ever many cards
+        playedHand = await players[turn].playCard(gameDeck, turn, lastValidHand); //playCard var res = await selectCard, if res == selected how ever many cards
 
         console.log("played hand debug: " + playedHand);
         
         if(playedHand >= 1 && playedHand <= 5){ //if player played a valid hand
             updateGameDeck(gameDeck, playedHand);
-            updateCards(players);
+            updateCards(players); //change this to update just the current turn player's cards
+            lastValidHand = playedHand; //store last played hand length, even after a player passes (so I dont pass 0 into the card validate function in player class)
 
             if (players[turn].numberOfCards == 0){ //if player has 0 cards left, print out winner message
                 return new Promise(resolve => {
@@ -110,6 +114,7 @@ const forLoop = async _ => {
         }
         else if(playedHand == 0){ //else if player passed
             turn += 1;
+            passTracker += 1;
             console.log("player passed");
             if (turn > 3) turn = 0;
         }
