@@ -87,14 +87,24 @@ const forLoop = async _ => {
     var turn = await determineTurn(players); //player with 3 of diamonds has first turn
     var playedHand = 0;
     var lastValidHand;
-    var passTracker; //TO DO: track number of passes, if there are 3 passes that means player has won the round and game deck should be cleared
+    var passTracker = 0; //TO DO: track number of passes, if there are 3 passes that means player has won the round and game deck should be cleared
+    var wonHand = false;
 
     //TO DO: implement a way to identify when a player has won a round and reset the gameDeck
     //each loop represents a single turn
     for(let i = 0; i < 100; i++){
         console.log("Current turn: Player " + turn);
+        wonHand = false; //reset wonHand to false, its only true if 3 players have passed
+
+        if(passTracker == 3){
+            wonHand = true; //return wonHand as true
+            console.log("Player " + turn + " has won the round, has a free turn");
+            gameDeck.length = 0; //reset gameDeck because player has won round, like in real life
+            updateGameDeck(gameDeck, playedHand);
+            passTracker = 0; //reset passTracker value
+        }
         sortHand(players);
-        playedHand = await players[turn].playCard(gameDeck, turn, lastValidHand); //playCard var res = await selectCard, if res == selected how ever many cards
+        playedHand = await players[turn].playCard(gameDeck, turn, lastValidHand, wonHand); //resolve hand.length, function also validates turn
 
         console.log("played hand debug: " + playedHand);
         
@@ -114,7 +124,8 @@ const forLoop = async _ => {
         }
         else if(playedHand == 0){ //else if player passed
             turn += 1;
-            passTracker += 1; //TO DO: if passTracker > 3 gameDeck.length = 0, updateGameDeck
+            passTracker += 1; //keeps track of number of passes
+            console.log(passTracker);
             console.log("player passed");
             if (turn > 3) turn = 0;
         }
