@@ -111,6 +111,7 @@ const forLoop = async _ => {
         console.log("played hand debug: " + playedHand);
         
         if(playedHand >= 1 && playedHand <= 5){ //if player played a valid hand
+            passTracker = 0; //reset passTracker if hand has been played
             updateGameDeck(gameDeck, playedHand);
             updateCards(players); //change this to update just the current turn player's cards
             lastValidHand = playedHand; //store last played hand length, even after a player passes (so I dont pass 0 into the card validate function in player class)
@@ -126,7 +127,7 @@ const forLoop = async _ => {
         }
         else if(playedHand == 0){ //else if player passed
             turn += 1;
-            passTracker += 1; //keeps track of number of passes
+            passTracker += 1; //keeps track of number of passes to track if anyone has won round
             console.log("pass tracker: " + passTracker);
             console.log("player passed");
             if (turn > 3) turn = 0;

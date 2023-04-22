@@ -1,6 +1,14 @@
 import Deck from "./deck.js"
 
-//hash to identify a straight
+const FIVE_HAND_COMBOS = {
+    "straight": 1,
+    "flush": 2,
+    "fullHouse": 3, 
+    "fok": 4,
+    "straightFlush": 5
+}
+
+//lookup table to identify a straight
 const cardRankLookupTable = {
     "3": 1,
     "4": 2,
@@ -17,7 +25,8 @@ const cardRankLookupTable = {
     "2": 13
 };
 
-//create hashmap for suits == 1,diamond 2,clubs, 3,hearts, 4,spades
+//TO DO: lookup table for straight hands, flush hands, full house hands, four of a kind hands, straight flush hands will be LOOONG, thinking of a better method to compare combos
+//might be able to just do everything using multiple if statements in cardLogic function (straigh logic already finished)
 
 export default class Player{ 
     constructor(cards = [], turn){ //initialise player with an empty array of cards, will fill array with card objects
@@ -44,7 +53,7 @@ export default class Player{
 
     printCards(playerNum){
         for(let i = 0; i < this.numberOfCards; i++){
-            let cardImg = document.createElement("img");
+            var cardImg = document.createElement("img");
             
             if(playerNum == 0){
                 cardImg.src = "./cards/" + this.cards[i].suit + this.cards[i].value + ".png"; //returns suit and value e.g ♠2.png
@@ -63,7 +72,7 @@ export default class Player{
 
     //sort player's cards
     sortHand(){
-        let deck = new Deck()
+        var deck = new Deck()
         let cardMap = deck.cardHash()
 
         //bubble sort using cardMap to compare card values
@@ -81,8 +90,8 @@ export default class Player{
 
     //sort hand that user has played
     sortHandArray(hand){
-        let deck = new Deck();
-        let cardMap = deck.cardHash();
+        var deck = new Deck();
+        var cardMap = deck.cardHash();
         
         //bubble sort using cardMap to compare card values
         for(var i = 0; i < hand.length; i++){
@@ -97,16 +106,117 @@ export default class Player{
         }
     }
 
-    //return promise if played card is valid, else dont progress and play invalid audio effect(WIP)
+    //TO DO: validateCombo function, return string of combo detected, use that string as a key to combo look up e.g FIVE_HAND_COMBO['fullHouse'] = 3
+    validateCombo(hand, wonRound){
+        var splitCard1 = hand[0].split(''); //output: splitCard1[0] = suit | splitCard[1] = value
+        var splitCard2 = hand[1].split('');
+        var splitCard3 = hand[2].split('');
+        var splitCard4 = hand[3].split('');
+        var splitCard5 = hand[4].split('');
+        var straight = true;
+
+        for(let i = 3; i >= 0; i--){
+            var currentRank = cardRankLookupTable[hand[i].slice(-1)]; //return value from lookup table, using hand ranks as the key
+            var nextRank = cardRankLookupTable[hand[i+1].slice(-1)];
+            var numericalValue = nextRank - currentRank;
+            console.log("nextRank value: " + nextRank);
+            console.log("currentRank value: " + currentRank);
+            console.log("numerical value: " + numericalValue);
+
+            //if nextRank - currentRank value not 1, means card values are not exactly one rank higher
+            if(nextRank - currentRank != 1){
+                //if i == 2 (5 card) AND currentRank = 3 (5 rank card) AND nextRank = 12 (A rank card), means hand is 3,4,5,A,2 (lowest straight), continue to 4 rank card
+                //straight is lowest as it is A,2,3,4,5
+                if(i == 2 && currentRank == cardRankLookupTable['5'] && nextRank === cardRankLookupTable['A']){
+                    continue;
+                }
+                //if i == 3 (6 card) AND currentRank = 4 (6 rank card) AND nextRank = 13 (2 rank card), means hand is 3,4,5,6,2 (second lowest straight), continue to 5 rank card
+                //straight is second lowests as it is 2,3,4,5,6
+                if(i == 3 && currentRank == cardRankLookupTable['6'] && nextRank === cardRankLookupTable['2']){
+                    continue;
+                }
+                straight = false; //if hand of 5 does not contain a straight break out of for loop
+                break; 
+            }
+        }
+        
+        //if hand contains 3 4 5 6 7 straight beginning with a 3 of diamonds, return this first because if(straight) is first it will return "straight", same for all other combos
+        if(hand[0] == "♦3" && straight){
+            return "straight3d";
+        }
+        //if player won round and hand contains a straight 
+        if(wonRound && straight){
+            return "straightWonRound";
+        }
+        //if hand contains straight
+        if(straight){
+            return "straight";
+        }
+        //if first card is 3 of diamonds and every card in hand has the same suit as the first card in hand
+        if(hand[0] == "♦3" && hand.every(card => card.slice(0, 1) === hand[0].slice(0,1))){ 
+            return "flush3d";
+        }
+        //if player has won previous round and plays flush
+        if(wonRound && hand.every(card => card.slice(0, 1) === hand[0].slice(0,1))){
+            return "flushWonRound";
+        }
+        //if hand contains flush
+        if(hand.every(card => card.slice(0, 1) === hand[0].slice(0,1))){
+            return "flush";
+        }
+        //if hand is 333 55, or 33 555 format
+        if((hand[0] == "♦3" && hand[1].includes("3") && hand[2].includes("3") && splitCard4[1] == splitCard5[1] 
+            || hand[0] == "♦3" && hand[1].includes("3") && splitCard3[1] == splitCard4[1] && splitCard3[1] == splitCard5[1] && splitCard4[1] == splitCard5[1])){
+            return "fullHouse3d";
+        }
+        //if player has won previous round and plays fullhouse(in either 44 222 or 333 22 format) 
+        if((wonRound && splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard1[1] == splitCard3[1] && splitCard4[1] == splitCard5[1] 
+            || wonRound && splitCard1[1] == splitCard2[1] && splitCard3[1] == splitCard4[1] && splitCard3[1] == splitCard5[1] && splitCard4[1] == splitCard5[1])) { 
+            return "fullHouseWonRound";
+        }
+        //if hand contains full house
+        if((splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard1[1] == splitCard3[1] && splitCard4[1] == splitCard5[1] 
+            || splitCard1[1] == splitCard2[1] && splitCard3[1] == splitCard4[1] && splitCard3[1] == splitCard5[1] && splitCard4[1] == splitCard5[1])){
+            return "fullHouse";
+        } 
+        //(four of a kind + kicker) if 3 of diamonds and first 4 cards are the same, then last card doesnt matter
+        if(hand[0] == "♦3" && splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard3[1] == splitCard4[1]){ 
+            return "fok3d";
+        }
+        //if prev round won and fok
+        if(wonRound && splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard3[1] == splitCard4[1]){
+            return "fokWonRound";
+        }
+        //if hand contains fok
+        if(splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard3[1] == splitCard4[1]){
+            return "fok";
+        }
+        //if straight flush with 3 of diamonds 3d 4d 5d 6d 7d
+        if(hand[0] == "♦3" && straight && hand.every(card => card.slice(0, 1) === hand[0].slice(0,1))){
+            return "straightFlush3d"
+        }
+        //if player has won previous round and plays a straight flush
+        if(wonRound && straight && hand.every(card => card.slice(0, 1) === hand[0].slice(0,1))){
+            return "straightFlushWonRound";
+        }
+        if(straight && hand.every(card => card.slice(0, 1) === hand[0].slice(0,1))){
+            return "straightFlush";
+        }
+        else{
+            return "invalid combo";
+        }
+    }
+
+    //return true if played card || combo is valid, else return false
     cardLogic(gameDeck, hand, lastValidHand, wonRound){ 
-        let deck = new Deck();
-        let cardMap = deck.cardHash();
-        let lastPlayedHand = []; //card array holds the hand that we will use to validate
-        let lastPlayedHandIndex = gameDeck.length - lastValidHand;
+        var deck = new Deck();
+        var cardMap = deck.cardHash();
+        var lastPlayedHand = []; //card array holds the hand that we will use to validate
+        var lastPlayedHandIndex = gameDeck.length - lastValidHand;
 
         //loop from last hand played until end of gamedeck
         for(let i = lastPlayedHandIndex; i < gameDeck.length; i++){ 
-            lastPlayedHand.push(gameDeck[i]); //insert last played cards into array (as a card to make it easier to validate doubles, triples, and combos)
+            lastPlayedHand.push(gameDeck[i].suit + gameDeck[i].value); //insert last played cards into array (as a string to use with comboValidate function)
         }
 
         //switch case using hand length
@@ -131,7 +241,7 @@ export default class Player{
                 if(gameDeck.length > 0){
                     if(lastPlayedHand.length == 1){
                         //if single card is larger value than last played card, using deck hash to compare card values
-                        if(cardMap.get(hand[0]) > cardMap.get(lastPlayedHand[0].suit + lastPlayedHand[0].value)) { 
+                        if(cardMap.get(hand[0]) > cardMap.get(lastPlayedHand[0])) { 
                             return true;
                         } 
                         else{
@@ -164,7 +274,7 @@ export default class Player{
                         //OR if first hand and second card values have same value AND if first card in hand is greater than first card in last playedHand 
                         //AND second hand card is greater than 2nd card in last played hand return true
                         if((splitCard1[1] == splitCard2[1] && splitCard1[1] == lastPlayedHand.value  && cardMap.get(hand[1]) > cardMap.get(lastPlayedHand[1]) ||
-                           (splitCard1[1] == splitCard2[1] && cardMap.get(hand[0]) > cardMap.get(lastPlayedHand[0].suit + lastPlayedHand[0].value) && cardMap.get(hand[1]) > cardMap.get(lastPlayedHand[1].suit + lastPlayedHand[1].value)))){
+                           (splitCard1[1] == splitCard2[1] && cardMap.get(hand[0]) > cardMap.get(lastPlayedHand[0]) && cardMap.get(hand[1]) > cardMap.get(lastPlayedHand[1])))){
                             return true;
                         } 
                         else {
@@ -197,8 +307,8 @@ export default class Player{
                     if(lastPlayedHand.length == 3){
                         //if all 3 hand cards have same value AND first card is greater than last played first card AND second card is greater than second last played card
                         //AND third card is greater than last played third card return true
-                        if(splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard1[1] == splitCard3[1] && cardMap.get(hand[0]) > cardMap.get(lastPlayedHand[0].suit + lastPlayedHand[0].value) 
-                            && cardMap.get(hand[1]) > cardMap.get(lastPlayedHand[1].suit + lastPlayedHand[1].value) && cardMap.get(hand[2]) > cardMap.get(lastPlayedHand[2].suit + lastPlayedHand[2].value)){
+                        if(splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard1[1] == splitCard3[1] && cardMap.get(hand[0]) > cardMap.get(lastPlayedHand[0]) 
+                            && cardMap.get(hand[1]) > cardMap.get(lastPlayedHand[1]) && cardMap.get(hand[2]) > cardMap.get(lastPlayedHand[2])){
                             return true;
                         } else {
                         return false;
@@ -212,73 +322,49 @@ export default class Player{
                 break;
             //validate straights, flushes, full houses, 4 of a kinds + kickers, straight flushes (in order of least to most valuable)
             case 5:
-                var splitCard1 = hand[0].split(''); //output: splitCard1[0] = suit | splitCard[1] = value
-                var splitCard2 = hand[1].split('');
-                var splitCard3 = hand[2].split('');
-                var splitCard4 = hand[3].split('');
-                var splitCard5 = hand[4].split('');
-                var straight = true;
-
-                for(let i = 3; i >= 0; i--){
-                    var currentRank = cardRankLookupTable[hand[i].slice(-1)]; //return value from lookup table, using hand ranks as the key
-                    var nextRank = cardRankLookupTable[hand[i+1].slice(-1)];
-                    var numericalValue = nextRank - currentRank;
-                    console.log("nextRank value: " + nextRank);
-                    console.log("currentRank value: " + currentRank);
-                    console.log("numerical value: " + numericalValue);
-
-                    //if nextRank - currentRank value not 1, means card values are not exactly one rank higher
-                    if(nextRank - currentRank != 1){
-                        //if i == 2 (5 card) AND currentRank = 3 (5 rank card) AND nextRank = 12 (A rank card), means hand is 3,4,5,A,2 (lowest straight), continue to 4 rank card
-                        //straight is lowest as it is A,2,3,4,5
-                        if(i == 2 && currentRank == cardRankLookupTable['5'] && nextRank === cardRankLookupTable['A']){
-                            continue;
-                        }
-                        //if i == 3 (6 card) AND currentRank = 4 (6 rank card) AND nextRank = 13 (2 rank card), means hand is 3,4,5,6,2 (second lowest straight), continue to 5 rank card
-                        //straight is second lowests as it is 2,3,4,5,6
-                        if(i == 3 && currentRank == cardRankLookupTable['6'] && nextRank === cardRankLookupTable['2']){
-                            continue;
-                        }
-                        straight = false;
-                        break; //if hand of 5 does not contain a straight break out of loop
-                    }
-                }
-
-                if (straight) {
-                    console.log("That's a straight!");
-                  } else {
-                    console.log("Not a straight.");
-                  }
-                
-                //create a hash with all the combos and rank them in order, TO DO, assign a boolean such as hasFullHouse = true, to determine which combo is ranked higher
+                //return player's current combo
+                var combo = this.validateCombo(hand, wonRound);
+                console.log("combo: " + combo);
 
                 if(gameDeck.length == 0){
-                    //full house, if you have triple 3 (including 3 of D) and 4th and 5th cards have the same value (triple and a double), return true
-                    if(hand[0] == "♦3" && hand[1].includes("3") && hand[2].includes("3") && splitCard4[1] == splitCard5[1]){
+                    //else if 3 of diamonds and hand contains a straight
+                    if(combo == "straight3d"){
                         return true;
                     }
-                    //else if player has won previous round and plays fullhouse(in either 44 222 or 333 22 format) 
-                    else if((wonRound && splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard1[1] == splitCard3[1] && splitCard4[1] == splitCard5[1] ||
-                        wonRound && splitCard1[1] == splitCard2[1] && splitCard3[1] == splitCard4[1] && splitCard3[1] == splitCard5[1] && splitCard4[1] == splitCard5[1])) { 
+                    //else if player has won round and hand contains a straight
+                    else if(combo == "straightWonRound"){
                         return true;
                     }
                     //(flush) else if every card in hand has the same suit as the first card in hand, return true
-                    else if(hand[0] == "♦3" && hand.every(card => card.slice(0, 1) === hand[0].slice(0,1))){ 
+                    else if(combo == "flush3d"){ 
                         return true;
                     }
                     //else if player has won previous round and plays flush
-                    else if(wonRound && hand.every(card => card.slice(0, 1) === hand[0].slice(0,1))){
+                    else if(combo == "flushWonRound"){
                         return true;
                     } 
-                    //(FoK + kicker) else if first 4 cards are the same, then last card doesnt matter
-                    else if(hand[0] == "♦3" && splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard3[1] == splitCard4[1]){ 
+                    //full house, if you have triple 3 (including 3 of D) and 4th and 5th cards have the same value (triple and a double), return true
+                    else if(combo == "fullHouse3d"){
+                        return true;
+                    }
+                    //else if player has won previous round and plays fullhouse(in either 44 222 or 333 22 format) 
+                    else if(combo == "fullHouseWonRound") { 
+                        return true;
+                    }
+                    //(FoK + kicker) else if 3 of diamonds AND first 4 cards are the same, then last card does not matter
+                    else if(combo == "fok3d"){ 
                         return true;
                     }
                     //else if prev round won and fok
-                    else if(wonRound && splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard3[1] == splitCard4[1]){
+                    else if(combo == "fokWonRound"){
                         return true;
                     }
-                    else if(straight){
+                    //else if player hand contains straight flush starting from 3d
+                    else if(combo == "straightFlush3d"){
+                        return true;
+                    }
+                    //else if player won round and hand contains a straight flush
+                    else if(combo == "straightFlushWonRound"){
                         return true;
                     }
                     else {
@@ -288,7 +374,17 @@ export default class Player{
 
                 if(gameDeck.length > 0){
                     if(lastPlayedHand.length == 5){
-                        //if last played hand is straight and playedhand is higher straight or flush, or full house, or fok, or straight flush
+                        var lastPlayedCombo = this.validateCombo(lastPlayedHand, wonRound);
+                        console.log("last played combo: " + lastPlayedCombo);
+                        //if last played combo is straight (all variants) and hand combo is higher straight(done) or flush(done), or full house(done), or fok(done), or straight flush(done)
+                        if(lastPlayedCombo == "straight3d" && combo == "straight" && cardMap.get(hand[4]) > cardMap.get(lastPlayedHand[4]) || lastPlayedCombo == "straightWonRound" && combo == "straight" && cardMap.get(hand[4]) > cardMap.get(lastPlayedHand[4])
+                            || lastPlayedCombo == "straight" && combo == "straight" && cardMap.get(hand[4]) > cardMap.get(lastPlayedHand[4]) 
+                            || lastPlayedCombo == "straight3d" && combo == "flush" || lastPlayedCombo == "straightWonRound" && combo == "flush" || lastPlayedCombo == "straight" && combo == "flush"
+                            || lastPlayedCombo == "straight3d" && combo == "fullHouse" || lastPlayedCombo == "straightWonRound" && combo == "fullHouse" || lastPlayedCombo == "straight" && combo == "fullHouse" 
+                            || lastPlayedCombo == "straight3d" && combo == "fok" || lastPlayedCombo == "straightWonRound" && combo == "fok" || lastPlayedCombo == "straight" && combo == "fok"
+                            || lastPlayedCombo == "straight3d" && combo == "straightFlush" || lastPlayedCombo == "straightWonRound" && combo == "straightFlush" || lastPlayedCombo == "straight" && combo == "straightFlush"){
+                            return true;
+                        }
                         //if last played hand is flush and playedhand is higher flush, or full house, or fok, or straight flush
                         //if last played hand is fullhouse and playedhand is higher fullhouse, or fok, or straight flush
                         //if last played hand is fok and played hand is higher fok, or straight flush
@@ -303,14 +399,19 @@ export default class Player{
     async playCard(gameDeck, turn, lastValidHand, wonRound){
         var playButton = document.getElementById("play"); //set player class to active if its their turn
         var passButton = document.getElementById("pass");
-        playButton.disabled = true; //disable play button because no card is selected which is an invalid move
-        //passButton.disabled = true; //disable pass button because you can't pass on first move
         var restartGameButton = document.getElementById("restartGame"); 
+        playButton.disabled = true; //disable play button because no card is selected which is an invalid move
         var placeCardAudio = new Audio('audio/flipcard.mp3');
         var self = this; //assign player to self
         var hand = []; //hand array holds selected cards
         var cards = document.querySelectorAll('[id="' + turn + '"] img'); //cards are refreshed every turn, contains player's card images
         var cardValidate;
+
+        if(gameDeck.length == 0) {
+            passButton.disabled = true; //disable pass button because you can't pass on first move or on a wonRound
+        } else {
+            passButton.disabled = false;
+        }
 
         //loop through all cards and adds a click listener for each card image
         cards.forEach(card => {
