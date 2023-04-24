@@ -1,5 +1,6 @@
 import Deck from "./deck.js"
 import Player from "./player.js"
+import Card from "./card.js"
 
 const Player1 = new Player();
 const Player2 = new Player();
@@ -14,7 +15,7 @@ const gameDeck = []; //playing deck will be empty array, will be filled with car
 function dealCards(deck, players){
     deck.shuffle();
     var playerIndex = 0;
-
+    
     deck.cards.forEach((card) => {
         players[playerIndex].addCard(card); //add card to current index player's hand
         playerIndex++;
@@ -84,7 +85,7 @@ async function startPromise() {
 const forLoop = async _ => {
     sortHand(players);
     updateCards(players);
-    var turn = await determineTurn(players); //player with 3 of diamonds has first turn
+    var turn = 0;//await determineTurn(players); //player with 3 of diamonds has first turn
     var playedHand = 0;
     var lastValidHand;
     var passTracker = 0; //track number of passes, if there are 3 passes that means player has won the round and game deck should be cleared
