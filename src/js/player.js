@@ -130,7 +130,7 @@ export default class Player{
         
         //if straight flush with 3 of diamonds (3d 4d 5d 6d 7d || Ad 2d 3d 4d 5d || 2d 3d 4d 5d 6d)
         for (let i = 0; i < hand.length; i++) {
-            if(hand[i] == "♦3" && straight && hand.every(card => card.slice(0, 1) === hand[0].slice(0,1))){
+            if(hand[i] == "D3" && straight && hand.every(card => card.slice(0, 1) === hand[0].slice(0,1))){
                 return "straightFlush3d";
             }
         }
@@ -143,7 +143,7 @@ export default class Player{
         }
         //if hand contains a straight with a 3 of diamonds, return this first because if(straight) is first it will return "straight", same for all other combos
         for (let i = 0; i < hand.length; i++) {
-            if (hand[i] == "♦3" && straight) {
+            if (hand[i] == "D3" && straight) {
                 return "straight3d";
             }
         }
@@ -156,7 +156,7 @@ export default class Player{
             return "straight";
         }
         //if first card is 3 of diamonds and every card in hand has the same suit as the first card in hand
-        if(hand[0] == "♦3" && hand.every(card => card.slice(0, 1) === hand[0].slice(0,1))){ 
+        if(hand[0] == "D3" && hand.every(card => card.slice(0, 1) === hand[0].slice(0,1))){ 
             return "flush3d";
         }
         //if player has won previous round and plays flush
@@ -168,8 +168,8 @@ export default class Player{
             return "flush";
         }
         //if hand is 333 55, or 33 555 format
-        if((hand[0] == "♦3" && hand[1].includes("3") && hand[2].includes("3") && splitCard4[1] == splitCard5[1] 
-            || hand[0] == "♦3" && hand[1].includes("3") && splitCard3[1] == splitCard4[1] && splitCard3[1] == splitCard5[1] && splitCard4[1] == splitCard5[1])){
+        if((hand[0] == "D3" && hand[1].includes("3") && hand[2].includes("3") && splitCard4[1] == splitCard5[1] 
+            || hand[0] == "D3" && hand[1].includes("3") && splitCard3[1] == splitCard4[1] && splitCard3[1] == splitCard5[1] && splitCard4[1] == splitCard5[1])){
             return "fullHouse3d";
         }
         //if player has won previous round and plays fullhouse(in either 44 222 or 333 22 format) 
@@ -183,7 +183,7 @@ export default class Player{
             return "fullHouse";
         } 
         //(four of a kind + kicker) if 3 of diamonds and first 4 cards are the same, then last card doesnt matter
-        if(hand[0] == "♦3" && splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard3[1] == splitCard4[1]){ 
+        if(hand[0] == "D3" && splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard3[1] == splitCard4[1]){ 
             return "fok3d";
         }
         //if prev round won and fok
@@ -247,7 +247,7 @@ export default class Player{
             case 1:
                 //if gamedeck is empty TO DO program it to detect after round has been won, pass in passTracker
                 if(gameDeck.length == 0){ 
-                    if(hand[0] == "♦3"){
+                    if(hand[0] == "D3"){
                         return true;
                     }
                     //if player has won the previous hand, allow them to place any single card down 
@@ -278,7 +278,7 @@ export default class Player{
                 var splitCard2 = hand[1].split(''); 
                 if(gameDeck.length == 0){
                     //if gamedeck is empty and hand contains a 3 of diamonds and another 3 card, return valid as its a valid double
-                    if(hand[0] == "♦3" && hand[1].includes("3")){
+                    if(hand[0] == "D3" && hand[1].includes("3")){
                         return true;
                     }
                     //else if player has won previous round and hand contains a valid double, return true 
@@ -313,7 +313,7 @@ export default class Player{
 
                 if(gameDeck.length == 0){
                     //if gamedeck is empty and hand contains a 3 of diamonds and two other 3 cards, return valid as its a valid triple to start game with
-                    if(hand[0] == "♦3" && hand[1].includes("3") && hand[2].includes("3")){
+                    if(hand[0] == "D3" && hand[1].includes("3") && hand[2].includes("3")){
                         return true;
                     } 
                     //else if player has won previous round and hand contains a valid triple, return true

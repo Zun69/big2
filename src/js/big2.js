@@ -1,6 +1,5 @@
 import Deck from "./deck.js"
 import Player from "./player.js"
-import Card from "./card.js"
 
 const Player1 = new Player();
 const Player2 = new Player();
@@ -31,7 +30,7 @@ async function determineTurn(players){
     // loop through all player's cards to check for 3 of diamonds, if they have 3 of diamond they have 1st turn
     let promise = new Promise((resolve, reject) => {
       players.some((player, index) => {
-        if (player.cards.some(card => card.suit === "♦" && card.value === "3")) {
+        if (player.cards.some(card => card.suit === "D" && card.value === "3")) {
           resolve(index);
           return true; // stop looping once the first player with 3 of diamonds is found
         }
@@ -85,7 +84,7 @@ async function startPromise() {
 const forLoop = async _ => {
     sortHand(players);
     updateCards(players);
-    var turn = 0;//await determineTurn(players); //player with 3 of diamonds has first turn
+    var turn = await determineTurn(players); //player with 3 of diamonds has first turn
     var playedHand = 0;
     var lastValidHand;
     var passTracker = 0; //track number of passes, if there are 3 passes that means player has won the round and game deck should be cleared

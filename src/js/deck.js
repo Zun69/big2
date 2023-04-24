@@ -1,10 +1,10 @@
 import Card from "./card.js"
 
-const SUITS = ["♦", "♣", "♥", "♠"];
+const SUITS = ["D", "C", "H", "S"]; //Diamonds, Clubs, Hearts, Spades
 const VALUES = ["3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A", "2"];
 
 export default class Deck{ 
-    constructor(cards = freshDeck()){ //every time deck is called construct deck with freshly mapped cards in ascending big 2 order (3♦ to 2♠)
+    constructor(cards = freshDeck()){ //every time deck is called construct deck with freshly mapped cards in ascending big 2 order (3D to 2S)
         this.cards = cards;
     }
 
