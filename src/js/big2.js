@@ -144,7 +144,7 @@ async function startGame() {
         audio.play();
         dealCards(deck, players);
         var winner = await forLoop();
-        console.log(winner);
+        window.alert(winner);
     }
 }
 

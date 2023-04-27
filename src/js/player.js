@@ -465,7 +465,8 @@ export default class Player{
         var passButton = document.getElementById("pass");
         var restartGameButton = document.getElementById("restartGame"); 
         playButton.disabled = true; //disable play button because no card is selected which is an invalid move
-        var placeCardAudio = new Audio('audio/flipcard.mp3');
+        var placeCardAudio = new Audio("audio/flipcard.mp3");
+        var passAudio = new Audio("audio/pass.mp3");
         var self = this; //assign player to self
         var hand = []; //hand array holds selected cards
         var cards = document.querySelectorAll('[id="' + turn + '"] img'); //cards are refreshed every turn, contains player's card images
@@ -535,6 +536,7 @@ export default class Player{
 
             passButton.addEventListener("click", function(){
                 //TO DO: remove all selected cards 
+                passAudio.play();
                 resolve(0); //if player passes, return 0 cards played
             }, { once: true });
         });
