@@ -34,7 +34,7 @@ export default class Player{
         this.cards.push(card);
     }
 
-    //return card from given card card id
+    //return card from given card id
     searchCard(cardId){
         for(let i = 0; i < this.numberOfCards; i++){
             if(cardId == this.cards[i].suit + this.cards[i].value){
@@ -44,6 +44,7 @@ export default class Player{
     }
 
     printCards(playerNum){
+        document.getElementById(playerNum).innerHTML = "";
         for(let i = 0; i < this.numberOfCards; i++){
             var cardImg = document.createElement("img");
             
@@ -464,13 +465,13 @@ export default class Player{
         var playButton = document.getElementById("play"); //set player class to active if its their turn
         var passButton = document.getElementById("pass");
         var restartGameButton = document.getElementById("restartGame"); 
-        playButton.disabled = true; //disable play button because no card is selected which is an invalid move
         var placeCardAudio = new Audio("audio/flipcard.mp3");
         var passAudio = new Audio("audio/pass.mp3");
         var self = this; //assign player to self
         var hand = []; //hand array holds selected cards
         var cards = document.querySelectorAll('[id="' + turn + '"] img'); //cards are refreshed every turn, contains player's card images
         var cardValidate;
+        playButton.disabled = true; //disable play button because no card is selected which is an invalid move
 
         //disable pass button because you can't pass on first move or on a wonRound
         if(gameDeck.length == 0) {
@@ -520,6 +521,7 @@ export default class Player{
             playButton.addEventListener("click", function(){
                 hand.forEach(cardId => {
                     var cardIndex = self.cards.findIndex(card => card.suit + card.value === cardId); //return index of player's card that matches a cardId in hand array
+                    //animate cards using cardId to identify corresponding images
     
                     //if card index is valid
                     if (cardIndex !== -1) {
@@ -535,7 +537,12 @@ export default class Player{
             }, { once: true });
 
             passButton.addEventListener("click", function(){
-                //TO DO: remove all selected cards 
+                //when player passes, remove all selected cards and remove checked class from all cards
+                cards.forEach(card => {
+                    card.classList.remove('checked');
+                })
+                
+                hand.length = 0
                 passAudio.play();
                 resolve(0); //if player passes, return 0 cards played
             }, { once: true });
