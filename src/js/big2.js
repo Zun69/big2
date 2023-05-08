@@ -90,7 +90,6 @@ const forLoop = async _ => {
     var passTracker = 0; //track number of passes, if there are 3 passes that means player has won the round and game deck should be cleared
     var wonRound = false;
 
-    //TO DO: implement a way to identify when a player has won a round and reset the gameDeck
     //each loop represents a single turn
     for(let i = 0; i < 100; i++){
         console.log("Current turn: Player " + turn);
