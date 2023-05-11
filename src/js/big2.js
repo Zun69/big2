@@ -161,7 +161,7 @@ async function startGame() {
         audio.play();
         dealCards(deck, players);
         var winner = await forLoop();
-        window.alert(winner); //replace this with a popup menu allowing players to restart
+        window.alert(winner); //replace this with a popup menu allowing players to restart maybe also show winner and loser, if i make game ending condition every player running out of cards
     }
 }
 

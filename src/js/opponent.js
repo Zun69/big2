@@ -6,6 +6,25 @@ export default class Opponent extends Player {
       super(cards);
     }
 
+    findDoubles() {
+      var doubles = [];
+    
+      for (let i = 0; i < this.numberOfCards - 1; i++) {
+        var currentCard = this.cards[i];
+        var nextCard = this.cards[i + 1];
+        
+        if (currentCard.value === nextCard.value) {
+          // check if cards have the same value but different suits
+          if (currentCard.suit !== nextCard.suit) {
+            doubles.push(currentCard);
+            doubles.push(nextCard);
+          }
+        }
+      }
+      
+      return doubles;
+    }
+
     selectCard(lastValidHand, gameDeck, wonRound, players){
       var lastPlayedHandIndex = gameDeck.length - lastValidHand;
       var lastPlayedHand = [];
@@ -53,6 +72,48 @@ export default class Opponent extends Player {
             }
           }
           break;
+          //doubles logic
+          case 2:
+            //return double cards that are identified as an array of cards
+            hand = this.findDoubles();
+            
+            //if opponent has 2 pairs left
+            if(hand.length > 1){
+              //return first pair to be played (lowest pair), if lower pair higher than last played pair and not part of combo
+              if(cardMap.get(hand[0]) >  cardMap.get(lastPlayedHand[0])){
+                return [hand[0], hand[1]];
+              }
+              else {
+                console.log("pass");
+                hand.length = 0;
+                return hand;
+              }
+            }
+            //if opponent has 1 pair left
+            else if(hand.length == 2){
+                console.log("pass");
+                hand.length = 0;
+                return hand;
+            }
+            else {
+              console.log("pass");
+              hand.length = 0;
+              return hand;
+            }
+            case 3:
+              console.log("pass");
+              hand.length = 0;
+            return hand;
+            case 4:
+              console.log("pass");
+              hand.length = 0;
+              return hand;
+            case 5:
+              console.log("pass");
+              hand.length = 0;
+              return hand;
+              
+
       }
 
       //return empty hand if my future ai decides its best move is to pass
@@ -79,7 +140,7 @@ export default class Opponent extends Player {
                 passAudio.play();
               }
               hand.forEach(cardId => {
-                //return index of player's card that matches card in hand (different than player class, because hand contains card)
+                //return index of player's card that matches card in hand (different than player class, because hand contains card object)
                 var cardIndex = self.cards.findIndex(card => card === cardId);
                 
                 //animate cards using cardId to identify corresponding images
@@ -98,17 +159,17 @@ export default class Opponent extends Player {
                 var player2DeltaX = deltaX - 350; 
                 var player2DeltaY = deltaY - 50;
 
-                var player3DeltaX = deltaX - 370; 
-                var player3DeltaY = deltaY - 257;
+                var player3DeltaX = deltaX - 420; 
+                var player3DeltaY = deltaY - 255;
 
                 //animations are different, depending on current opponent
                 if(turn == 1){
-                  // Animate the image from source location to the gameDeck img element
+                  // Animate the image from source location to the gameDeck img element, rotation to spin the card
                   var animation = imageToAnimate.animate([
-                      { transform: "translate(0, 0)" },
-                      { transform: `translate(${player1DeltaX}px, ${player1DeltaY}px)` }
+                    { transform: "translate(0, 0) rotate(0deg)" },
+                    { transform: `translate(${player1DeltaX}px, ${player1DeltaY}px) rotate(360deg)` }
                   ], {
-                      duration: 250,
+                      duration: 420,
                       easing: "ease-in"
                   });
                   //the animations will be added to animationPromises array, only after the animation fully resolves
@@ -116,20 +177,20 @@ export default class Opponent extends Player {
                   }
                   else if(turn == 2){
                       var animation = imageToAnimate.animate([
-                          { transform: "translate(0, 0)" },
-                          { transform: `translate(${player2DeltaX}px, ${player2DeltaY}px)` }
+                        { transform: "translate(0, 0) rotate(0deg)" },
+                        { transform: `translate(${player2DeltaX}px, ${player2DeltaY}px) rotate(360deg)` }
                       ], {
-                          duration: 250,
+                          duration: 420,
                           easing: "ease-in"
                       });
                       animationPromises.push(animation.finished.then(() => new Promise(resolve => setTimeout(resolve, 0)))); 
                   }
                   else {
                       var animation = imageToAnimate.animate([
-                          { transform: "translate(0, 0)" },
-                          { transform: `translate(${player3DeltaX}px, ${player3DeltaY}px)` }
+                        { transform: "translate(0, 0) rotate(0deg)" },
+                        { transform: `translate(${player3DeltaX}px, ${player3DeltaY}px) rotate(360deg)` }
                       ], {
-                          duration: 250,
+                          duration: 420,
                           easing: "ease-in"
                       });
                       animationPromises.push(animation.finished.then(() => new Promise(resolve => setTimeout(resolve, 0)))); 

@@ -52,7 +52,7 @@ export default class Player{
                 cardImg.setAttribute("class", "card"); //adding card class, for JQuery card onclick listener
                 document.getElementById(turn).append(cardImg); //insert card card in player div
             } else { //else print out back card because you dont want to see other player's cards
-                //cardImg.src = "./cards/BACK.png"; //need to see everyones card because i need to test the game logic out
+                cardImg.src = "./cards/BACK.png"; //need to see everyones card because i need to test the game logic out
                 cardImg.src = "./cards/" + this.cards[i].suit + this.cards[i].value + ".png";
                 cardImg.setAttribute("id", this.cards[i].suit + this.cards[i].value);
                 cardImg.setAttribute("class", "card");
@@ -479,7 +479,7 @@ export default class Player{
             passButton.disabled = false;
         }
 
-        //loop through all cards and adds a click listener for each card image
+        //loop through all cards and adds a click listener for each card image TO DO: BUG click event listener goes twice, need to close event listeners
         cards.forEach(card => {
             card.addEventListener('click', () => {
                 //if clicked card is already in player's hand, remove it from their hand
@@ -537,10 +537,10 @@ export default class Player{
 
                     // Animate the image towards the target element
                     var animation = imageToAnimate.animate([
-                        { transform: "translate(0, 0)" },
-                        { transform: `translate(${playerDeltaX}px, ${playerDeltaY}px)` }
+                        { transform: "translate(0, 0) rotate(0deg)" },
+                        { transform: `translate(${playerDeltaX}px, ${playerDeltaY}px) rotate(360deg)` }
                     ], {
-                        duration: 500,
+                        duration: 420,
                         easing: "ease-in"
                     });
                     //the animations will be added to animationPromises array, only after the animation fully resolves
