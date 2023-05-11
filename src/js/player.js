@@ -17,8 +17,6 @@ const cardRankLookupTable = {
     "2": 13
 };
 
-//TO DO: lookup table for straight hands, flush hands, full house hands, four of a kind hands, straight flush hands will be LOOONG, thinking of a better method to compare combos
-//might be able to just do everything using multiple if statements in cardLogic function (straigh logic already finished)
 
 export default class Player{ 
     constructor(cards = [], turn){ //initialise player with an empty array of cards, will fill array with card objects
@@ -43,22 +41,22 @@ export default class Player{
         }
     }
 
-    printCards(playerNum){
-        document.getElementById(playerNum).innerHTML = "";
+    printCards(turn){
+        document.getElementById(turn).innerHTML = "";
         for(let i = 0; i < this.numberOfCards; i++){
             var cardImg = document.createElement("img");
             
-            if(playerNum == 0){
+            if(turn == 0){
                 cardImg.src = "./cards/" + this.cards[i].suit + this.cards[i].value + ".png"; //returns suit and value e.g ♠2.png
                 cardImg.setAttribute("id", this.cards[i].suit + this.cards[i].value);
                 cardImg.setAttribute("class", "card"); //adding card class, for JQuery card onclick listener
-                document.getElementById(playerNum).append(cardImg); //insert card card in player div
+                document.getElementById(turn).append(cardImg); //insert card card in player div
             } else { //else print out back card because you dont want to see other player's cards
                 //cardImg.src = "./cards/BACK.png"; //need to see everyones card because i need to test the game logic out
                 cardImg.src = "./cards/" + this.cards[i].suit + this.cards[i].value + ".png";
                 cardImg.setAttribute("id", this.cards[i].suit + this.cards[i].value);
                 cardImg.setAttribute("class", "card");
-                document.getElementById(playerNum).append(cardImg);
+                document.getElementById(turn).append(cardImg);
             }
         }
     }
@@ -231,7 +229,7 @@ export default class Player{
         var cardMap = deck.cardHash();
         var lastPlayedHand = []; //card array holds the hand that we will use to validate
         var lastPlayedHandIndex = gameDeck.length - lastValidHand;
-        console.log("last played hand index: " + lastPlayedHandIndex);
+        //console.log("last played hand index: " + lastPlayedHandIndex);
 
         //loop from last hand played until end of gamedeck
         for(let i = lastPlayedHandIndex; i < gameDeck.length; i++){
@@ -472,6 +470,7 @@ export default class Player{
         var cards = document.querySelectorAll('[id="' + turn + '"] img'); //cards are refreshed every turn, contains player's card images
         var cardValidate;
         playButton.disabled = true; //disable play button because no card is selected which is an invalid move
+        
 
         //disable pass button because you can't pass on first move or on a wonRound
         if(gameDeck.length == 0) {
@@ -518,40 +517,76 @@ export default class Player{
 
         //promise resolves hand length or 0 if player passes
         var myPromise = new Promise((resolve) => {
+            var animationPromises = []; //holds all animation promises
+            var cardsToRemove = []; //holds indexes of cards to be removed
+
             playButton.addEventListener("click", function(){
                 hand.forEach(cardId => {
-                    var cardIndex = self.cards.findIndex(card => card.suit + card.value === cardId); //return index of player's card that matches a cardId in hand array
+                    //return index of player's card that matches a cardId in hand array
+                    var cardIndex = self.cards.findIndex(card => card.suit + card.value === cardId);
+
                     //animate cards using cardId to identify corresponding images
-    
-                    //if card index is valid
-                    if (cardIndex !== -1) {
-                        gameDeck.push(self.cards[cardIndex]); //insert player's card that matches cardId into game deck
-                        console.log("card inserted: " + self.cards[cardIndex].suit + self.cards[cardIndex].value);
-                        self.cards.splice(cardIndex, 1); //remove card from player's cards
-                        placeCardAudio.play();
-                    }
+                    var imageToAnimate = document.getElementById(cardId);
+                    var target = document.querySelector("#gameDeck img");
+                    var targetRect = target.getBoundingClientRect();
+
+                    //adjust x and y deltas for each human player so animations perfectly finish on top of gameDeck
+                    var deltaX = targetRect.left - imageToAnimate.offsetLeft;
+                    var deltaY = targetRect.top - imageToAnimate.offsetTop;
+                    var playerDeltaX = deltaX - 350; 
+                    var playerDeltaY = deltaY - 782;
+
+                    // Animate the image towards the target element
+                    var animation = imageToAnimate.animate([
+                        { transform: "translate(0, 0)" },
+                        { transform: `translate(${playerDeltaX}px, ${playerDeltaY}px)` }
+                    ], {
+                        duration: 500,
+                        easing: "ease-in"
+                    });
+                    //the animations will be added to animationPromises array, only after the animation fully resolves
+                    animationPromises.push(animation.finished.then(() => new Promise(resolve => setTimeout(resolve, 0)))); 
+                  
+                    animation.finished.then(() => { //TO DO: bug happens sometimes, this activates twice, when its meant to activate once because im only playing one card
+                        console.log("ANIMATION FINISH")
+                        if (cardIndex !== -1) {
+                            gameDeck.push(self.cards[cardIndex]); //insert player's card that matches cardId into game deck
+                            console.log("card inserted: " + self.cards[cardIndex].suit + self.cards[cardIndex].value);
+                            cardsToRemove.push(cardIndex); //add card index into cardsToRemove array, so I can remove all cards at same time after animations are finished
+                            placeCardAudio.play();
+                        }
+                    });
                 })
-        
-                resolve(hand.length); //return amount of cards played, to move forward for loop
-                hand.length = 0; //clear hand after playing it
+
+                //remove cards, update player's cards, and resolve hand length after all animations (if more than 1 card played) are finished
+                Promise.all(animationPromises).then(() => {
+                    //loop through cardsToRemove array which contains card indexes to be removed
+                    cardsToRemove.sort().forEach(index => {
+                        self.cards.splice(index, 1); //remove played cards from player's hand after animations finish
+                    });
+                    self.printCards(turn);
+                    resolve(hand.length); //return amount of cards played, to move forward for loop
+                    hand.length = 0; //clear hand after playing it
+                });
+                
             }, { once: true });
 
-            passButton.addEventListener("click", function(){
+            restartGameButton.addEventListener("click", function(){
+                //TO DO: implement actual restart game function
+                location.reload();
+            }, { once: true });
+
+            passButton.addEventListener("click", function(){ 
                 //when player passes, remove all selected cards and remove checked class from all cards
                 cards.forEach(card => {
                     card.classList.remove('checked');
                 })
                 
                 hand.length = 0
-                passAudio.play();
+                passAudio.play(); // TO DO: bug, audio sometimes plays twice for some reason
                 resolve(0); //if player passes, return 0 cards played
             }, { once: true });
         });
-
-        restartGameButton.addEventListener("click", function(){
-            //TO DO: implement actual restart game function
-            location.reload();
-        }, { once: true });
 
         return myPromise;
     }

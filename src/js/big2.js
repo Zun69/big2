@@ -1,10 +1,11 @@
 import Deck from "./deck.js"
 import Player from "./player.js"
+import Opponent from "./opponent.js"
 
 const Player1 = new Player();
-const Player2 = new Player();
-const Player3 = new Player();
-const Player4 = new Player();
+const Player2 = new Opponent(); //ai player
+const Player3 = new Opponent();
+const Player4 = new Opponent();
 const players = [ Player1, Player2, Player3, Player4 ];
 const deck = new Deck();
 const gameDeck = []; //playing deck will be empty array, will be filled with card objects
@@ -45,10 +46,10 @@ function sortHand(players){
     });
 }
 
-async function updateCards(players){
+async function updateAllCards(players){
     //change it to update just one player at a time, makes it more efficient and less laggy when hosted on github pages
     for(let i = 0; i < players.length; i++){
-        document.getElementById(i).innerHTML = "";
+        //document.getElementById(i).innerHTML = "";
         players[i].printCards(i); //print cards for each player
     }
 }
@@ -56,11 +57,18 @@ async function updateCards(players){
 async function updateGameDeck(gameDeck, playedHand){
     document.getElementById("gameDeck").innerHTML = "";
     console.log("game deck length: " + gameDeck.length);
+    var cardImg = document.createElement("img");
+
+    if(gameDeck.length == 0){
+        cardImg = document.createElement("img");
+        cardImg.src = "./cards/TRANSPARENT.png";
+        document.getElementById("gameDeck").append(cardImg);
+    }
 
     //print last played cards, starting from lowest valued card (because its already sorted)
     //loop starts from index of first played card until end of the gameDeck
     for(let i = gameDeck.length - playedHand; i < gameDeck.length; i++){
-        var cardImg = document.createElement("img");
+        cardImg = document.createElement("img");
         cardImg.src = "./cards/" + gameDeck[i].suit + gameDeck[i].value + ".png"; //returns suit and value e.g ♠2.png
         console.log("gamedeck" + gameDeck[i].suit + gameDeck[i].value);
         cardImg.setAttribute("id", gameDeck[i].suit + gameDeck[i].value);
@@ -82,8 +90,9 @@ async function startPromise() {
 }
 
 const forLoop = async _ => {
-    sortHand(players);
-    updateCards(players);
+    updateGameDeck(gameDeck, 0); //print out transparent image, so card animations have a target
+    sortHand(players); //sort all player's cards
+    updateAllCards(players); //print out all player's cards
     var turn = await determineTurn(players); //player with 3 of diamonds has first turn
     var playedHand = 0;
     var lastValidHand;
@@ -105,14 +114,21 @@ const forLoop = async _ => {
         
         sortHand(players);
         //TO DO: still a bug when round is won, can select any players card
-        playedHand = await players[turn].playCard(gameDeck, turn, lastValidHand, wonRound); //resolve hand.length, function also validates turn TODO pass gamestate object in to keep track of combo, score, etc
+        //if turn == 0
+        if(turn == 0){
+            playedHand = await players[turn].playCard(gameDeck, turn, lastValidHand, wonRound); //resolve hand.length, function also validates hand 
+        }
+        //else if turn !=0 its oppponent cpu TO DO: pass gamestate object in to keep track of combo, score, etc
+        else{
+            playedHand = await players[turn].playCard(gameDeck, turn, lastValidHand, wonRound, players);
+        }
 
         console.log("played hand debug: " + playedHand);
         
         if(playedHand >= 1 && playedHand <= 5){ //if player played a valid hand
             passTracker = 0; //reset passTracker if hand has been played
             updateGameDeck(gameDeck, playedHand);
-            updateCards(players); //change this to update just the current turn player's cards
+            //players[turn].printCards(turn); //update current player's cards after turn
             lastValidHand = playedHand; //store last played hand length, even after a player passes (so I dont pass 0 into the card validate function in player class)
 
             if (players[turn].numberOfCards == 0){ //if player has 0 cards left, print out winner message
@@ -143,7 +159,7 @@ async function startGame() {
         audio.play();
         dealCards(deck, players);
         var winner = await forLoop();
-        window.alert(winner);
+        window.alert(winner); //replace this with a popup menu allowing players to restart
     }
 }
 
