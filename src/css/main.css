@@ -29,14 +29,30 @@ body {
     box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.6);
 }
 
-
 .button {
     margin-top: 10px;
     transition-duration: 0.4s;
     font-size: 15px;
+    font-family: Helvetica, Arial, sans-serif;
+    font-weight: 200;
 }
   
 .button:hover {
     background-color: #4CAF50; /* Green */
     color: white;
+}
+
+#turn{
+    display: inline;
+    margin-right: 280px;
+}
+
+#restartGame{
+    margin-right: 440px;
+}
+
+#turn{
+    color: black; 
+    font-family: Helvetica, Arial, sans-serif;
+    font-weight: 200;
 }

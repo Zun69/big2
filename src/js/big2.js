@@ -98,10 +98,12 @@ const forLoop = async _ => {
     var lastValidHand;
     var passTracker = 0; //track number of passes, if there are 3 passes that means player has won the round and game deck should be cleared
     var wonRound = false;
+    var turnDisplay = document.getElementById("turn");
 
     //each loop represents a single turn
     for(let i = 0; i < 100; i++){
         console.log("Current turn: Player " + turn);
+        turnDisplay.textContent = "Current Turn: Player " + (turn + 1) ;
         wonRound = false; //reset wonRound to false, its only true if 3 players have passed 
 
         if(passTracker == 3){
@@ -150,7 +152,7 @@ const forLoop = async _ => {
     }
 }
 
-
+//TO DO: make start menu that allows player to start game
 async function startGame() {
     var res = await startPromise();
     var audio = new Audio('audio/shuffling-cards-1.wav');
@@ -167,3 +169,4 @@ async function startGame() {
 //main program starts here
 startGame();
 //restartGame
+

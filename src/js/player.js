@@ -486,7 +486,6 @@ export default class Player{
                 if(hand.includes(card.id)) { 
                     hand = hand.filter(id => id !== card.id); //filter through hand array and remove card id
                     self.sortHandArray(hand); //sort selected hand so cardLogic function can tell whether its a combo, single, double or triple
-                    console.log("currrent hand: " + hand + "current turn: " + turn);
                     card.classList.remove('checked');
                     cardValidate = self.cardLogic(gameDeck, hand, lastValidHand, wonRound); //return valid if played card meets requirements
                     console.log("card validation: " + cardValidate);
@@ -520,7 +519,7 @@ export default class Player{
             var animationPromises = []; //holds all animation promises
             var cardsToRemove = []; //holds indexes of cards to be removed
 
-            playButton.addEventListener("click", function(){
+            playButton.addEventListener("click", function handlePlayClick(){
                 hand.forEach(cardId => {
                     //return index of player's card that matches a cardId in hand array
                     var cardIndex = self.cards.findIndex(card => card.suit + card.value === cardId);
@@ -547,7 +546,7 @@ export default class Player{
                     //the animations will be added to animationPromises array, only after the animation fully resolves
                     animationPromises.push(animation.finished.then(() => new Promise(resolve => setTimeout(resolve, 0)))); 
                   
-                    animation.finished.then(() => { //TO DO: bug happens sometimes, this activates twice, when its meant to activate once because im only playing one card
+                    animation.finished.then(() => { 
                         console.log("ANIMATION FINISH")
                         if (cardIndex !== -1) {
                             gameDeck.push(self.cards[cardIndex]); //insert player's card that matches cardId into game deck
@@ -568,7 +567,9 @@ export default class Player{
                     resolve(hand.length); //return amount of cards played, to move forward for loop
                     hand.length = 0; //clear hand after playing it
                 });
-                
+
+                // Remove the event listener to prevent it from being triggered multiple times
+                playButton.removeEventListener('click', handlePlayClick);
             }, { once: true });
 
             restartGameButton.addEventListener("click", function(){
@@ -576,7 +577,7 @@ export default class Player{
                 location.reload();
             }, { once: true });
 
-            passButton.addEventListener("click", function(){ 
+            passButton.addEventListener("click", function handlePassClick(){ 
                 //when player passes, remove all selected cards and remove checked class from all cards
                 cards.forEach(card => {
                     card.classList.remove('checked');
@@ -585,6 +586,9 @@ export default class Player{
                 hand.length = 0
                 passAudio.play(); // TO DO: bug, audio sometimes plays twice for some reason
                 resolve(0); //if player passes, return 0 cards played
+
+                // Remove the event listener to prevent it from being triggered multiple times
+                passButton.removeEventListener('click', handlePassClick);
             }, { once: true });
         });
 

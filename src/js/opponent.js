@@ -92,8 +92,8 @@ export default class Opponent extends Player {
                 var deltaY = targetRect.top - imageToAnimate.offsetTop;
 
                 //adjust x and y deltas for each opponent player so animations perfectly finish on top of gameDeck
-                var player1DeltaX = deltaX - 355; 
-                var player1DeltaY = deltaY - 200; 
+                var player1DeltaX = deltaX - 368; 
+                var player1DeltaY = deltaY - 210; 
 
                 var player2DeltaX = deltaX - 350; 
                 var player2DeltaY = deltaY - 50;
@@ -108,7 +108,7 @@ export default class Opponent extends Player {
                       { transform: "translate(0, 0)" },
                       { transform: `translate(${player1DeltaX}px, ${player1DeltaY}px)` }
                   ], {
-                      duration: 500,
+                      duration: 250,
                       easing: "ease-in"
                   });
                   //the animations will be added to animationPromises array, only after the animation fully resolves
@@ -119,7 +119,7 @@ export default class Opponent extends Player {
                           { transform: "translate(0, 0)" },
                           { transform: `translate(${player2DeltaX}px, ${player2DeltaY}px)` }
                       ], {
-                          duration: 500,
+                          duration: 250,
                           easing: "ease-in"
                       });
                       animationPromises.push(animation.finished.then(() => new Promise(resolve => setTimeout(resolve, 0)))); 
@@ -129,7 +129,7 @@ export default class Opponent extends Player {
                           { transform: "translate(0, 0)" },
                           { transform: `translate(${player3DeltaX}px, ${player3DeltaY}px)` }
                       ], {
-                          duration: 500,
+                          duration: 250,
                           easing: "ease-in"
                       });
                       animationPromises.push(animation.finished.then(() => new Promise(resolve => setTimeout(resolve, 0)))); 
@@ -151,6 +151,7 @@ export default class Opponent extends Player {
                 cardsToRemove.sort().forEach(index => {
                     self.cards.splice(index, 1); //remove played cards from player's hand after animations finish
                 });
+                
                 self.printCards(turn);
                 resolve(hand.length); //return amount of cards played, to move forward for loop
                 hand.length = 0; //clear hand after playing it
