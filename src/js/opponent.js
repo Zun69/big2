@@ -142,7 +142,7 @@ export default class Opponent extends Player {
               hand.forEach(cardId => {
                 //return index of player's card that matches card in hand (different than player class, because hand contains card object)
                 var cardIndex = self.cards.findIndex(card => card === cardId);
-                
+                console.log("CARD ID : " + cardId.suit + cardId.value);
                 //animate cards using cardId to identify corresponding images
                 var imageToAnimate = document.getElementById(cardId.suit + cardId.value);
                 var target = document.querySelector("#gameDeck img");
