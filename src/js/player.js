@@ -522,10 +522,8 @@ export default class Player{
 
                     //animate cards using cardId to identify corresponding images
                     var imageToAnimate = document.getElementById(cardId);
-                    var target = document.querySelector("#gameDeck img");
-                    var targetRect = target.getBoundingClientRect();
                     var targetX = 500; // Fixed X-coordinate of the target position
-                    var targetY = -340; // Fixed Y-coordinate of the target position
+                    var targetY = -330; // Fixed Y-coordinate of the target position
 
                     //adjust x and y deltas for each human player so animations perfectly finish on top of gameDeck
                     var deltaX = targetX - imageToAnimate.offsetLeft;

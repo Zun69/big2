@@ -215,22 +215,16 @@ export default class Opponent extends Player {
                 console.log("CARD ID : " + cardId.suit + cardId.value);
                 //animate cards using cardId to identify corresponding images
                 var imageToAnimate = document.getElementById(cardId.suit + cardId.value);
-                var target = document.querySelector("#gameDeck img");
-                var targetRect = target.getBoundingClientRect();
-
-                //calculate the distance to move in x and y directions
-                var deltaX = targetRect.left - imageToAnimate.offsetLeft;
-                var deltaY = targetRect.top - imageToAnimate.offsetTop;
 
                 //adjust x and y deltas for each opponent player so animations perfectly finish on top of gameDeck
-                var player1DeltaX = deltaX - 368; 
-                var player1DeltaY = deltaY - 210; 
+                var player1DeltaX = 450 - imageToAnimate.offsetLeft;  // Fixed X-coordinate of the target position
+                var player1DeltaY = 200 - imageToAnimate.offsetTop; // Fixed Y-coordinate of the target position
 
-                var player2DeltaX = deltaX - 350; 
-                var player2DeltaY = deltaY - 50;
+                var player2DeltaX = 500 - imageToAnimate.offsetLeft;
+                var player2DeltaY = 280 - imageToAnimate.offsetTop;
 
-                var player3DeltaX = deltaX - 420; 
-                var player3DeltaY = deltaY - 255;
+                var player3DeltaX = 450 - imageToAnimate.offsetLeft; 
+                var player3DeltaY = 180 - imageToAnimate.offsetTop;
 
                 //animations are different, depending on current opponent
                 if(turn == 1){
