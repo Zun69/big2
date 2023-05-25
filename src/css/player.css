@@ -41,7 +41,7 @@
 /*player 4, starts from top right*/
 .player:nth-child(2){
   margin-right: 10px;
-  margin-top: -250px;
+  margin-top: -150px;
   position: absolute;
   top: 0;
   right: 0;
@@ -69,7 +69,7 @@
 /*player 2, starts from left top*/
 .player:nth-child(3){
   margin-left: 10px;
-  margin-top: 200px;
+  margin-top: 100px;
   position: absolute;
   left: 0;
   top: 0;

@@ -1,6 +1,23 @@
 import Player from "./player.js"
 import Deck from "./deck.js"
 
+//lookup table to identify a straight
+const cardRankLookupTable = {
+  "3": 1,
+  "4": 2,
+  "5": 3,
+  "6": 4,
+  "7": 5,
+  "8": 6,
+  "9": 7,
+  "0": 8, //represents 10, 0 is returned from hand.slice(-1)
+  "J": 9,
+  "Q": 10,
+  "K": 11,
+  "A": 12,
+  "2": 13
+};
+
 export default class Opponent extends Player {
     constructor(cards = []) {
       super(cards);
@@ -18,6 +35,7 @@ export default class Opponent extends Player {
           if (currentCard.suit !== nextCard.suit) {
             doubles.push(currentCard);
             doubles.push(nextCard);
+            i++; // skip the next card since it has already been considered as a double
           }
         }
       }
@@ -25,6 +43,55 @@ export default class Opponent extends Player {
       return doubles;
     }
 
+    findTriples() {
+      var triples = [];
+    
+      for (let i = 0; i < this.numberOfCards - 2; i++) {
+        var currentCard = this.cards[i];
+        var nextCard = this.cards[i + 1];
+        var thirdCard = this.cards[i + 2];
+    
+        if (
+          currentCard.value === nextCard.value &&
+          nextCard.value === thirdCard.value
+        ) {
+          // check if cards have the same value but different suits
+          if (
+            currentCard.suit !== nextCard.suit &&
+            nextCard.suit !== thirdCard.suit
+          ) {
+            triples.push(currentCard);
+            triples.push(nextCard);
+            triples.push(thirdCard);
+          }
+        }
+      }
+    
+      return triples;
+    }
+
+    findStraights() {
+      var straights = [];
+      var potentialStraight = [this.cards[0].slice(-1)]; //array holds potential straights, populated with first card as for loop starts at first element
+
+      for(let i = 1; i < this.numberOfCards; i++){
+        var currentRank = cardRankLookupTable[this.cards[i].slice(-1)]; //return value from lookup table, using hand ranks as the key
+        var previousRank = cardRankLookupTable[this.cards[i-1].slice(-1)];
+
+        //if current card is 1 value higher than previous card
+        if(currentRank === previousRank + 1){
+            potentialStraight.push(this.cards[i]); //insert card into potential straight array
+        } 
+        else{
+          if(currentStraight.length == 5){
+            straights.push(currentStraight.slice());
+          }
+
+        }
+      }
+    }
+
+    //this function takes into account previously played card/s and returns a hand array (to playCard function)
     selectCard(lastValidHand, gameDeck, wonRound, players){
       var lastPlayedHandIndex = gameDeck.length - lastValidHand;
       var lastPlayedHand = [];
@@ -41,11 +108,24 @@ export default class Opponent extends Player {
         lastPlayedHand.push(gameDeck[i].suit + gameDeck[i].value); //insert last played cards into array (as a string to use with comboValidate function)
       }
       console.log("lastPLAYEDHANDLENGTH: " + lastPlayedHand.length)
+
+      //return double cards that are identified as an array of cards
+      var doubles = this.findDoubles();
+      for(let i = 0; i < doubles.length; i++){
+        console.log("DOUBLES: " + doubles[i].suit + doubles[i].value);
+      }
+      
+      var triples = this.findTriples();
+      for(let i = 0; i < triples.length; i++){
+        console.log("TRIPLES: " + triples[i].value + triples[i].suit);
+      }
+      
       
       switch(lastPlayedHand.length){
         case 0:
           //first turn, opponent must play 3 of diamonds, should add another if check to see if theres any combos that include 3 of diamonds
           if(gameDeck.length == 0 && wonRound == false){
+            //if 3 of diamonds combo
             console.log("starting round, play 3 of diamonds");
             hand.push(this.cards[0]);
             return hand;
@@ -74,26 +154,18 @@ export default class Opponent extends Player {
           break;
           //doubles logic
           case 2:
-            //return double cards that are identified as an array of cards
-            hand = this.findDoubles();
-            
-            //if opponent has 2 pairs left
-            if(hand.length > 1){
-              //return first pair to be played (lowest pair), if lower pair higher than last played pair and not part of combo
-              if(cardMap.get(hand[0]) >  cardMap.get(lastPlayedHand[0])){
-                return [hand[0], hand[1]];
+            //if opponent has at least 1 pair left
+            if(doubles.length >= 2){
+              console.log("PLAYING PAIR");
+              //return first pair to be played (lowest pair), if lower pair's 2nd card higher than last played pair's 2nd card and not part of combo
+              if(cardMap.get(doubles[1].suit + doubles[1].value) >  cardMap.get(lastPlayedHand[1])){
+                return [doubles[0], doubles[1]];
               }
               else {
                 console.log("pass");
                 hand.length = 0;
                 return hand;
               }
-            }
-            //if opponent has 1 pair left
-            else if(hand.length == 2){
-                console.log("pass");
-                hand.length = 0;
-                return hand;
             }
             else {
               console.log("pass");
@@ -112,8 +184,6 @@ export default class Opponent extends Player {
               console.log("pass");
               hand.length = 0;
               return hand;
-              
-
       }
 
       //return empty hand if my future ai decides its best move is to pass

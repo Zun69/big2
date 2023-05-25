@@ -59,6 +59,7 @@ async function updateGameDeck(gameDeck, playedHand){
     console.log("game deck length: " + gameDeck.length);
     var cardImg = document.createElement("img");
 
+    //if gameDeck is empty put a placeholder image, so animations still have a target to follow
     if(gameDeck.length == 0){
         cardImg = document.createElement("img");
         cardImg.src = "./cards/TRANSPARENT.png";

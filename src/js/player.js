@@ -141,7 +141,7 @@ export default class Player{
         if(straight && hand.every(card => card.slice(0, 1) === hand[0].slice(0,1))){
             return "straightFlush";
         }
-        //if hand contains a straight with a 3 of diamonds, return this first because if(straight) is first it will return "straight", same for all other combos
+        //if hand contains a straight with a 3 of diamonds, return this first because if(straight) is first it will return "straight" instead of straight3d
         for (let i = 0; i < hand.length; i++) {
             if (hand[i] == "D3" && straight) {
                 return "straight3d";
@@ -459,13 +459,6 @@ export default class Player{
         }
     }
 
-    handlePassClick(passButton) {
-        // Rest of the code for handling the pass button click
-      
-        // Remove the event listener
-        passButton.removeEventListener('click', handlePassClick);
-      }
-
     //function takes care of selecting cards and inserting cards into hand, sorting the hand, validating move and inserting the hand onto the game deck, and returning promise
     async playCard(gameDeck, turn, lastValidHand, wonRound){
         var playButton = document.getElementById("play"); //set player class to active if its their turn
@@ -478,7 +471,6 @@ export default class Player{
         var cardValidate;
         playButton.disabled = true; //disable play button because no card is selected which is an invalid move
         
-
         //disable pass button because you can't pass on first move or on a wonRound
         if(gameDeck.length == 0) {
             passButton.disabled = true; 
@@ -502,7 +494,6 @@ export default class Player{
             self.sortHandArray(hand); //sort selected hand so cardLogic function can tell whether its a combo, single, double or triple
             cardValidate = self.cardLogic(gameDeck, hand, lastValidHand, wonRound); //return valid if played card meets requirements
             console.log("card validation: " + cardValidate);
-
 
             //if current hand is validated, enable play button, else disable it because its an invalid move
             if(cardValidate) {
@@ -533,17 +524,18 @@ export default class Player{
                     var imageToAnimate = document.getElementById(cardId);
                     var target = document.querySelector("#gameDeck img");
                     var targetRect = target.getBoundingClientRect();
+                    var targetX = 500; // Fixed X-coordinate of the target position
+                    var targetY = -340; // Fixed Y-coordinate of the target position
 
                     //adjust x and y deltas for each human player so animations perfectly finish on top of gameDeck
-                    var deltaX = targetRect.left - imageToAnimate.offsetLeft;
-                    var deltaY = targetRect.top - imageToAnimate.offsetTop;
-                    var playerDeltaX = deltaX - 350; 
-                    var playerDeltaY = deltaY - 782;
+                    var deltaX = targetX - imageToAnimate.offsetLeft;
+                    var deltaY = targetY - imageToAnimate.offsetTop;
+
 
                     // Animate the image towards the target element
                     var animation = imageToAnimate.animate([
                         { transform: "translate(0, 0) rotate(0deg)" },
-                        { transform: `translate(${playerDeltaX}px, ${playerDeltaY}px) rotate(360deg)` }
+                        { transform: `translate(${deltaX}px, ${deltaY}px) rotate(360deg)` }
                     ], {
                         duration: 420,
                         easing: "ease-in"
