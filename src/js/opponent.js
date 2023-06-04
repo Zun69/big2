@@ -22,75 +22,214 @@ export default class Opponent extends Player {
     constructor(cards = []) {
       super(cards);
     }
-
-    findDoubles() {
-      var doubles = [];
     
-      for (let i = 0; i < this.numberOfCards - 1; i++) {
-        var currentCard = this.cards[i];
-        var nextCard = this.cards[i + 1];
-        
-        if (currentCard.value === nextCard.value) {
-          // check if cards have the same value but different suits
-          if (currentCard.suit !== nextCard.suit) {
-            doubles.push(currentCard);
-            doubles.push(nextCard);
-            i++; // skip the next card since it has already been considered as a double
-          }
-        }
+    cardCmp(a,b){
+      //cmpFunc for combos prioritizing length then values ORDER:Desc
+      var lengthDelta = a.length - b.length;
+      if (lengthDelta == 0){
+        return b[0].value - a[0].value;
+
+      }else{
+        return lengthDelta;
       }
-      
-      return doubles;
     }
 
-    findTriples() {
-      var triples = [];
-    
+    findDupes(){
+      //find n-card multiples; save time on combo searching
+      this.cards.sort((a,b) => a.value - b.value);
+      var dupes = [];
+      var curVal = NaN
+      for (let i = 0; i < this.numberOfCards; i++) {
+        var currentCombo = [];
+        var currentCard = this.cards[i];
+        curVal = currentCard.value;
+        currentCombo.push(currentCard);
+        var nextCardIndex = i+1;
+        var nextCard = this.cards[nextCardIndex];
+
+        while (nextCard.value == curVal){
+          currentCombo.push(nextCard);
+          nextCard = this.cards[nextCardIndex++];
+        }
+        dupes.push(currentCombo);
+      }
+      dupes.sort(this.cardCmp)
+      return dupes
+    }
+
+    findFlush(dupes){
+      var flushes = [];
       for (let i = 0; i < this.numberOfCards - 2; i++) {
+        var currentCombo = [];
         var currentCard = this.cards[i];
-        var nextCard = this.cards[i + 1];
-        var thirdCard = this.cards[i + 2];
-    
-        if (
-          currentCard.value === nextCard.value &&
-          nextCard.value === thirdCard.value
-        ) {
-          // check if cards have the same value but different suits
-          if (
-            currentCard.suit !== nextCard.suit &&
-            nextCard.suit !== thirdCard.suit
-          ) {
-            triples.push(currentCard);
-            triples.push(nextCard);
-            triples.push(thirdCard);
+        curVal = currentCard.suit;
+        currentCombo.push(currentCard);
+        var nextCardIndex = i+1;
+        var nextCard = this.cards[nextCardIndex];
+        while (nextCard.suit == curVal-1){
+          //add to combo
+          currentCombo.push(nextCard);
+          curVal = nextCard.suit;
+          nextCard = this.cards[nextCardIndex++];
+          if (currentCombo.length == 5){
+            //save this combo;
+            dupes.push(currentCombo);
           }
         }
+        //can optimize by skipping cycles
       }
-    
-      return triples;
+      //TODO(xinny): modify this to sort flushes properly
+      flushes.sort(this.cardCmp)
+      return flushes;
     }
 
-    findStraights() {
+    findStraights(dupes){
+      //find all straights and then sort by size
       var straights = [];
-      var potentialStraight = [this.cards[0].slice(-1)]; //array holds potential straights, populated with first card as for loop starts at first element
-
-      for(let i = 1; i < this.numberOfCards; i++){
-        var currentRank = cardRankLookupTable[this.cards[i].slice(-1)]; //return value from lookup table, using hand ranks as the key
-        var previousRank = cardRankLookupTable[this.cards[i-1].slice(-1)];
-
-        //if current card is 1 value higher than previous card
-        if(currentRank === previousRank + 1){
-            potentialStraight.push(this.cards[i]); //insert card into potential straight array
-        } 
-        else{
-          if(currentStraight.length == 5){
-            straights.push(currentStraight.slice());
+      for (let i = 0; i < this.numberOfCards - 2; i++) {
+        var currentCombo = [];
+        var currentCard = this.cards[i];
+        curVal = currentCard.value;
+        currentCombo.push(currentCard);
+        var nextCardIndex = i+1;
+        var nextCard = this.cards[nextCardIndex];
+        while (nextCard.value == curVal-1){
+          //add to combo
+          currentCombo.push(nextCard);
+          curVal = nextCard.value;
+          nextCard = this.cards[nextCardIndex++];
+          if (currentCombo.length == 5){
+            //save this combo;
+            dupes.push(currentCombo);
           }
-
         }
+        //can optimize by skipping cycles
       }
+      straights.sort(this.cardCmp)
+      return straights;
     }
 
+    findQuads(dupes){
+      //find quads
+      //strat: use smallest value for 5th card without breaking longer combos
+      var LENGTH = 4; 
+      var quads = dupes.filter(element => element.length == 4);
+      var fifth;
+      //get these to make sure 5th card doesnt break combos
+      var straights = this.findStraights(dupes);
+      var flush = this.findFlush(dupes);
+      let flag = (card) => flush.map(elem => (
+        (elem.includes(card)).filter(v =card> v == true ? v : null).length != 0)  || 
+        (straights.map(elem => elem.includes(card)).filter(v => v == true ? v : null).length != 0)
+      );
+      //find ideal 5th card
+      for(let i = 1; i<4; i++){
+        var searchArr = dupes.filter(element => element.length == i); 
+        if (searchArr.length != 0){
+          //iterate from smallest values
+          for(let j = searchArr.length-1; j>=0;j--){
+            var candidate = null;
+            //iterate through each card
+            if(searchArr[j].length > 1){
+              candidates = searchArr[j].map(flag);
+              if (candidates.length != 0){
+                fifth = candidates[-1];
+                break;
+              }
+            }else{
+              candidate = searchArr[j];
+              if (!flag(candidate)){
+                fifth = candidate;
+                break;
+              }
+            } 
+          }
+        }
+      }
+      //add ideal 5th to each card
+      if (fifth != null){
+        quads.forEach(element => {
+          element.push(fifth);
+        });
+        return quads;
+      }
+      //no ideal fifth (almost impossible)
+      return null;
+    }
+
+    findFullHouse(dupes){
+      //find quads
+      //strat: use smallest value for 5th card without breaking longer combos
+      var fullHouse = [];
+      var triple = dupes.filter(element => element.length == 3);
+      var pair = null;
+      //get these to make sure 5th card doesnt break combos
+      var straights = this.findStraights(dupes);
+      var flush = this.findFlush(dupes);
+
+      //filter to see if a given card is needed for a flush / straight
+      let flag = (card) => flush.map(elem => (
+        (elem.includes(card)).filter(v =card> v == true ? v : null).length != 0)  || 
+        (straights.map(elem => elem.includes(card)).filter(v => v == true ? v : null).length != 0) 
+      );
+      //find ideal pair
+      var searchArr = dupes.filter(element => element.length == 2); 
+      if (searchArr.length != 0){
+        //iterate from smallest values
+        for(let j = searchArr.length-1; j>=0;j--){
+          var candidate = null;
+          //iterate through each card
+          if(searchArr[j].length > 1){
+            candidates = searchArr[j].map(flag);
+            if (candidates.length != 0){
+              pair = candidates[-1];
+              break;
+            }
+          }
+        }
+      }
+      //add ideal 5th to each card
+      if (pair != null){
+        triple.forEach(element => {
+          var fh = []; 
+          //TODO (xinny) implement this to create a fullhouse even when the trips are the same vlaue as the pair
+          // current behavior: ignore the triple when it is equal to a pair
+          if (element[0].value != pair[0].value){
+            element.forEach(card => fh.push(card));
+            pair.forEach(card => fh.push(card));
+            fullHouse.concat(fh);
+          }
+        });
+        return fullHouse;
+      }
+      //no ideal pair
+      return null;
+    }
+
+    findAllCombos(dupes){
+      //save combos by length
+      //decide which length combo to play then access the combos in DESCending order
+      var combos = {
+        '1': [],
+        '2': [],
+        '3': [],
+        '4': [],
+        '5': [] 
+      };
+      dupes.forEach(element => {
+        var key = element.length.toString();
+        combos[key].push(element);
+      });
+      //insertion order represents size
+      //find more complex combos
+      //sort by size
+      //TODO(xinny): find straight + flush (inc royal flush)
+      //use quads as the biggest combo for now
+      this.findQuads(dupes).forEach(elem => combos['5'].concat(elem));
+      this.findFullHouse(dupes).forEach(elem => combos['5'].concat(elem));
+      this.findFlush(dupes).forEach(elem => combos['5'].concat(elem));
+      this.findStraights(dupes).forEach(elem => combos['5'].concat(elem));
+    }
     //this function takes into account previously played card/s and returns a hand array (to playCard function)
     selectCard(lastValidHand, gameDeck, wonRound, players){
       var lastPlayedHandIndex = gameDeck.length - lastValidHand;
@@ -110,16 +249,14 @@ export default class Opponent extends Player {
       console.log("lastPLAYEDHANDLENGTH: " + lastPlayedHand.length)
 
       //return double cards that are identified as an array of cards
-      var doubles = this.findDoubles();
-      for(let i = 0; i < doubles.length; i++){
-        console.log("DOUBLES: " + doubles[i].suit + doubles[i].value);
-      }
+      var dupes = this.findDupes();
+      dupes.forEach (combo => {
+        console.log("DUPES: " + combo.suit + combo.value);
+      })
+      var comboMap = findAllCombos(dupes);
       
-      var triples = this.findTriples();
-      for(let i = 0; i < triples.length; i++){
-        console.log("TRIPLES: " + triples[i].value + triples[i].suit);
-      }
-      
+      //TODO(xinny): use new functions to update play strategy (ask Jackey if you want help)
+      // avaliable options are store within combo map
       
       switch(lastPlayedHand.length){
         case 0:
