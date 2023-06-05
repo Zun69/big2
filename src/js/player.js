@@ -53,7 +53,7 @@ export default class Player{
                 cardImg.setAttribute("class", "card"); //adding card class, for JQuery card onclick listener
                 document.getElementById(turn).append(cardImg); //insert card card in player div
             } else { //else print out back card because you dont want to see other player's cards
-                cardImg.src = "./cards/BACK.png"; //need to see everyones card because i need to test the game logic out
+                //cardImg.src = "./cards/BACK.png"; //need to see everyones card because i need to test the game logic out
                 cardImg.src = "./cards/" + this.cards[i].suit + this.cards[i].value + ".png";
                 cardImg.setAttribute("id", this.cards[i].suit + this.cards[i].value);
                 cardImg.setAttribute("class", "card");
@@ -291,11 +291,11 @@ export default class Player{
 
                 if(gameDeck.length > 0){
                     if(lastPlayedHand.length == 2){
-                        //if hand cards have same value AND first card in hand has same value as first last played card 
+                        //(higher same value pair) if hand cards have same value AND first card in hand has same value as first last played card 
                         //AND second card in hand is greater than last played second card return true
-                        //OR if first hand and second card values have same value AND if first card in hand is greater than first card in last playedHand 
+                        //(higher value pair) OR if first hand and second card values have same value AND if first card in hand is greater than first card in last playedHand 
                         //AND second hand card is greater than 2nd card in last played hand return true
-                        if(splitCard1[1] == splitCard2[1] && splitCard1[1] == lastPlayedHand.value  && cardMap.get(hand[1]) > cardMap.get(lastPlayedHand[1]) ||
+                        if(splitCard1[1] == splitCard2[1] && splitCard1[1] == lastPlayedHand[0].value  && cardMap.get(hand[1]) > cardMap.get(lastPlayedHand[1]) ||
                            splitCard1[1] == splitCard2[1] && cardMap.get(hand[0]) > cardMap.get(lastPlayedHand[0]) && cardMap.get(hand[1]) > cardMap.get(lastPlayedHand[1])){
                             return true;
                         } 
@@ -522,20 +522,17 @@ export default class Player{
 
                     //animate cards using cardId to identify corresponding images
                     var imageToAnimate = document.getElementById(cardId);
-                    var targetX = 500; // Fixed X-coordinate of the target position
-                    var targetY = -330; // Fixed Y-coordinate of the target position
 
                     //adjust x and y deltas for each human player so animations perfectly finish on top of gameDeck
-                    var deltaX = targetX - imageToAnimate.offsetLeft;
-                    var deltaY = targetY - imageToAnimate.offsetTop;
-
+                    var deltaX = 490 - imageToAnimate.offsetLeft; // Fixed X-coordinate of the target position
+                    var deltaY = -270 - imageToAnimate.offsetTop; // Fixed Y-coordinate of the target position
 
                     // Animate the image towards the target element
                     var animation = imageToAnimate.animate([
                         { transform: "translate(0, 0) rotate(0deg)" },
-                        { transform: `translate(${deltaX}px, ${deltaY}px) rotate(360deg)` }
+                        { transform: `translate(${deltaX}px, ${deltaY}px)` }
                     ], {
-                        duration: 420,
+                        duration: 400,
                         easing: "ease-in"
                     });
                     //the animations will be added to animationPromises array, only after the animation fully resolves

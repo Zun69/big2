@@ -11,7 +11,7 @@ body {
 
 .main-container {
     width: 1000px;
-    height: 720px;
+    height: 650px;
     background-color: green;
     text-align: center;
     font-size: 0.8rem;
@@ -23,8 +23,8 @@ body {
 #gameDeck img {
     height: 90px;
     width: 65px;
-    margin-top: calc((720px - 90px) / 2); /* center gameDeck exactly in the middle */
-    margin-bottom: calc((720px - 90px) / 2); 
+    margin-top: calc((650px - 90px) / 2); /* center gameDeck exactly in the middle */
+    margin-bottom: calc((650px - 90px) / 2); 
     margin-right: -50px;
     box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.6);
 }
@@ -45,7 +45,11 @@ body {
 
 #turn{
     display: inline;
-    margin-right: 280px;
+    margin-left: 155px;
+}
+
+#startGame{
+    margin-left: 175px;
 }
 
 #pass{
