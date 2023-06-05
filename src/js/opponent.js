@@ -49,6 +49,10 @@ export default class Opponent extends Player {
 
         while (nextCard.value == curVal){
           currentCombo.push(nextCard);
+          if (nextCardIndex+1 == this.cards.length){
+            //end while when we run out of cards
+            break;
+          }
           nextCard = this.cards[nextCardIndex++];
         }
         dupes.push(currentCombo);
@@ -102,6 +106,10 @@ export default class Opponent extends Player {
           //add to combo
           currentCombo.push(nextCard);
           curVal = nextCard.value;
+          if (nextCardIndex+1 == this.cards.length){
+            //end while when we run out of cards
+            break;
+          }
           nextCard = this.cards[nextCardIndex++];
           if (currentCombo.length == 5){
             //save this combo;
