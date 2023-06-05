@@ -45,17 +45,19 @@ export default class Opponent extends Player {
         curVal = currentCard.value;
         currentCombo.push(currentCard);
         var nextCardIndex = i+1;
-        var nextCard = this.cards[nextCardIndex];
-
-        while (nextCard.value == curVal){
-          currentCombo.push(nextCard);
-          if (nextCardIndex+1 == this.cards.length){
-            //end while when we run out of cards
-            break;
+        if(nextCardIndex < this.cards.length){
+          var nextCard = this.cards[nextCardIndex];
+          while (nextCard.value == curVal){
+            currentCombo.push(nextCard);
+            if (nextCardIndex+1 == this.cards.length){
+              //end while when we run out of cards
+              break;
+            }
+            nextCard = this.cards[nextCardIndex++];
           }
-          nextCard = this.cards[nextCardIndex++];
         }
         dupes.push(currentCombo);
+        currentCombo = [];
       }
       dupes.sort(this.cardCmp)
       return dupes
@@ -66,7 +68,7 @@ export default class Opponent extends Player {
       for (let i = 0; i < this.numberOfCards - 2; i++) {
         var currentCombo = [];
         var currentCard = this.cards[i];
-        curVal = currentCard.suit;
+        var curVal = currentCard.suit;
         currentCombo.push(currentCard);
         var nextCardIndex = i+1;
         var nextCard = this.cards[nextCardIndex];
@@ -83,6 +85,7 @@ export default class Opponent extends Player {
           if (currentCombo.length == 5){
             //save this combo;
             dupes.push(currentCombo);
+            currentCombo = [];
           }
         }
         //can optimize by skipping cycles
@@ -95,14 +98,14 @@ export default class Opponent extends Player {
     findStraights(dupes){
       //find all straights and then sort by size
       var straights = [];
-      for (let i = 0; i < this.numberOfCards - 2; i++) {
+      for (let i = 0; i < this.numberOfCards-5; i++) {
         var currentCombo = [];
         var currentCard = this.cards[i];
-        curVal = currentCard.value;
+        var curVal = currentCard.value;
         currentCombo.push(currentCard);
         var nextCardIndex = i+1;
         var nextCard = this.cards[nextCardIndex];
-        while (nextCard.value == curVal-1){
+        while (nextCard.value == curVal-1 && currentCombo.length < 5){
           //add to combo
           currentCombo.push(nextCard);
           curVal = nextCard.value;
@@ -111,12 +114,14 @@ export default class Opponent extends Player {
             break;
           }
           nextCard = this.cards[nextCardIndex++];
-          if (currentCombo.length == 5){
-            //save this combo;
-            dupes.push(currentCombo);
-          }
+          
         }
         //can optimize by skipping cycles
+        if (currentCombo.length == 5){
+          //save this combo;
+          dupes.push(currentCombo);
+          currentCombo = []; 
+        }
       }
       straights.sort(this.cardCmp)
       return straights;
@@ -144,9 +149,9 @@ export default class Opponent extends Player {
             var candidate = null;
             //iterate through each card
             if(searchArr[j].length > 1){
-              candidates = searchArr[j].map(flag);
-              if (candidates.length != 0){
-                fifth = candidates[-1];
+              candidate = searchArr[j].map(flag);
+              if (candidate.length != 0){
+                fifth = candidate[-1];
                 break;
               }
             }else{
@@ -160,7 +165,7 @@ export default class Opponent extends Player {
         }
       }
       //add ideal 5th to each card
-      if (fifth != null){
+      if (fifth != null && quads != null){
         quads.forEach(element => {
           element.push(fifth);
         });
@@ -220,6 +225,7 @@ export default class Opponent extends Player {
     }
 
     findAllCombos(dupes){
+      console.log('finding combos');
       //save combos by length
       //decide which length combo to play then access the combos in DESCending order
       var combos = {
@@ -230,18 +236,48 @@ export default class Opponent extends Player {
         '5': [] 
       };
       dupes.forEach(element => {
-        var key = element.length.toString();
-        combos[key].push(element);
+        var key = element.length;
+        combos[key].concat(element);
       });
       //insertion order represents size
       //find more complex combos
       //sort by size
       //TODO(xinny): find straight + flush (inc royal flush)
       //use quads as the biggest combo for now
-      this.findQuads(dupes).forEach(elem => combos['5'].concat(elem));
-      this.findFullHouse(dupes).forEach(elem => combos['5'].concat(elem));
-      this.findFlush(dupes).forEach(elem => combos['5'].concat(elem));
-      this.findStraights(dupes).forEach(elem => combos['5'].concat(elem));
+      var quads = this.findQuads(dupes);
+      var fullHouse = this.findFullHouse(dupes);
+      var flush = this.findFlush(dupes);
+      var straights = this.findFlush(dupes);
+      if (quads){
+        quads.forEach(elem => {
+          if(elem != null){
+            combos['5'].concat(elem);
+          }
+        });
+      }
+      if (fullHouse){
+        fullHouse.forEach(elem => {
+          if(elem != null){
+            combos['5'].concat(elem);
+          }
+        });
+      } 
+      if(flush){
+        flush.forEach(elem => {
+          if(elem != null){
+            combos['5'].concat(elem);
+          }
+        });
+      }
+      if(straights){
+        straights.forEach(elem => {
+          if(elem != null){
+            combos['5'].concat(elem);
+          }
+        });
+      }
+
+      return combos
     }
     //this function takes into account previously played card/s and returns a hand array (to playCard function)
     selectCard(lastValidHand, gameDeck, wonRound, players){
@@ -266,7 +302,7 @@ export default class Opponent extends Player {
       dupes.forEach (combo => {
         console.log("DUPES: " + combo.suit + combo.value);
       })
-      var comboMap = findAllCombos(dupes);
+      var comboMap = this.findAllCombos(dupes);
       
       //TODO(xinny): use new functions to update play strategy (ask Jackey if you want help)
       // avaliable options are store within combo map
