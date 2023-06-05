@@ -70,6 +70,11 @@ export default class Opponent extends Player {
           //add to combo
           currentCombo.push(nextCard);
           curVal = nextCard.suit;
+          if (nextCardIndex+1 == this.cards.length){
+            //end while when we run out of cards
+            dupes.push(currentCombo);
+            break;
+          }
           nextCard = this.cards[nextCardIndex++];
           if (currentCombo.length == 5){
             //save this combo;
