@@ -532,7 +532,7 @@ export default class Player{
                         { transform: "translate(0, 0) rotate(0deg)" },
                         { transform: `translate(${deltaX}px, ${deltaY}px)` }
                     ], {
-                        duration: 400,
+                        duration: 300,
                         easing: "ease-in"
                     });
                     //the animations will be added to animationPromises array, only after the animation fully resolves
