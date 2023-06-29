@@ -1,4 +1,5 @@
 import Deck from "./deck.js"
+import Card from "./card.js"
 import Player from "./player.js"
 import Opponent from "./opponent.js"
 
@@ -25,6 +26,14 @@ function dealCards(deck, players){
             playerIndex = 0;
         }
     })
+
+    players[0].addCard(new Card('C',3));
+    /*players[1].addCard(new Card('C', 3));
+    players[1].addCard(new Card('C', 4));
+    players[1].addCard(new Card('D', 5));
+    players[1].addCard(new Card('H', 6));
+    players[1].addCard(new Card('C', 2));
+    players[1].addCard(new Card('C', 'A'));*/
 }
 
 async function determineTurn(players){

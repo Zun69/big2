@@ -33,13 +33,13 @@ export default class Opponent extends Player {
         if (currentCard.value === nextCard.value) {
           // check if cards have the same value but different suits
           if (currentCard.suit !== nextCard.suit) {
-            doubles.push(currentCard);
-            doubles.push(nextCard);
+            doubles.push([currentCard, nextCard]);
             i++; // skip the next card since it has already been considered as a double
           }
         }
       }
       
+      console.log(doubles)
       return doubles;
     }
 
@@ -51,44 +51,92 @@ export default class Opponent extends Player {
         var nextCard = this.cards[i + 1];
         var thirdCard = this.cards[i + 2];
     
-        if (
-          currentCard.value === nextCard.value &&
+        if (currentCard.value === nextCard.value &&
           nextCard.value === thirdCard.value
         ) {
           // check if cards have the same value but different suits
-          if (
-            currentCard.suit !== nextCard.suit &&
+          if (currentCard.suit !== nextCard.suit &&
             nextCard.suit !== thirdCard.suit
           ) {
-            triples.push(currentCard);
-            triples.push(nextCard);
-            triples.push(thirdCard);
+            triples.push([currentCard, nextCard, thirdCard]);
           }
         }
       }
     
+      console.log(triples)
+
       return triples;
+    }
+
+    findFullHouses(doubles, triples) {
+      //if doubles and triples values != to each other
+      //combine both arrays into one array, push it into fullhouse array
+      //return fullhouse array
+
+    }
+
+    findFok(){
+
+    }
+
+    findStraightFlush(){
+
+    }
+
+    findFlushes() {
+      var flushes = [];
+        
+        for(let i = 0; i < this.numberOfCards; i++){
+          var potentialFlush = [this.cards[i]];
+          var currentSuit = this.cards[i].suit;
+
+          for(let j = i + 1; j < this.numberOfCards; j++) {
+            if(this.cards[j].suit == currentSuit) {
+              potentialFlush.push(this.cards[j]);
+            }
+          }
+
+          if (potentialFlush.length == 5) {
+            //push array of 5 cards into flushes array
+            flushes.push(potentialFlush);
+          }
+        }
+
+      console.log(flushes);
+      return flushes;
     }
 
     findStraights() {
       var straights = [];
-      var potentialStraight = [this.cards[0].slice(-1)]; //array holds potential straights, populated with first card as for loop starts at first element
+    
+      for (let i = 0; i < this.numberOfCards; i++) {
+        var potentialStraight = [this.cards[i]];
+        var currentValue = cardRankLookupTable[this.cards[i].value]; //e.g 'K' = 11
+    
+        //compare adjacent card values
+        for (let j = i + 1; j < this.numberOfCards; j++) {
+          // Dont take into account special case: check for straight with values 3, 4, 5, 6, and 2
+          
+          //if next card value minus current card value = 1, then add card to potential straight array
+          if (cardRankLookupTable[this.cards[j].value] - currentValue === 1) {
+            potentialStraight.push(this.cards[j]);
+            currentValue = cardRankLookupTable[this.cards[j].value];
 
-      for(let i = 1; i < this.numberOfCards; i++){
-        var currentRank = cardRankLookupTable[this.cards[i].slice(-1)]; //return value from lookup table, using hand ranks as the key
-        var previousRank = cardRankLookupTable[this.cards[i-1].slice(-1)];
-
-        //if current card is 1 value higher than previous card
-        if(currentRank === previousRank + 1){
-            potentialStraight.push(this.cards[i]); //insert card into potential straight array
-        } 
-        else{
-          if(currentStraight.length == 5){
-            straights.push(currentStraight.slice());
           }
-
+          else if (cardRankLookupTable[this.cards[j].value] !== currentValue) {
+            // Break the straight if the current card value is not consecutive
+            break;
+          }
+        }
+        
+        if (potentialStraight.length === 5) {
+          // Push array of 5 cards into straights array
+          straights.push(potentialStraight);
         }
       }
+    
+      console.log(straights);
+      return straights;
     }
 
     //this function takes into account previously played card/s and returns a hand array (to playCard function)
@@ -96,7 +144,6 @@ export default class Opponent extends Player {
       var lastPlayedHandIndex = gameDeck.length - lastValidHand;
       var lastPlayedHand = [];
       var hand = []; //hand array holds selected cards
-      var cardValidate;
       var deck = new Deck();
       var cardMap = deck.cardHash();
 
@@ -110,18 +157,17 @@ export default class Opponent extends Player {
       console.log("lastPLAYEDHANDLENGTH: " + lastPlayedHand.length)
 
       //return double cards that are identified as an array of cards
-      var doubles = this.findDoubles();
-      for(let i = 0; i < doubles.length; i++){
-        console.log("DOUBLES: " + doubles[i].suit + doubles[i].value);
-      }
-      
-      var triples = this.findTriples();
-      for(let i = 0; i < triples.length; i++){
-        console.log("TRIPLES: " + triples[i].value + triples[i].suit);
-      }
+      var doubles = this.findDoubles();      
+      var triples = this.findTriples();    
+      var straights = this.findStraights();
+      var flushes = this.findFlushes();
+  
+      console.log("FLUSHES LENGTH: " + flushes.length);
+      console.log("STRAIGHTS LENGTH: " + straights.length);
       
       
       switch(lastPlayedHand.length){
+        //FIRST TURN / FREE TURN LOGIC
         case 0:
           //first turn, opponent must play 3 of diamonds, should add another if check to see if theres any combos that include 3 of diamonds
           if(gameDeck.length == 0 && wonRound == false){
@@ -137,10 +183,15 @@ export default class Opponent extends Player {
             return hand;
           }
           break;
+        //SINGLE CARD LOGIC
         case 1:
           for(let i = 0; i < this.numberOfCards; i++){
+            //TO DO: if cardToCheck is a 2, and player has a low combo they need to get rid of (e.g 3-7 straight, flush), play the 2
+            var cardToCheck = this.cards[i];
+            
             //find first card thats higher than last played card and put it in hand and return it (TO DO: add a check to see if card is part of combo)
-            if(cardMap.get(this.cards[i].suit + this.cards[i].value) > cardMap.get(lastPlayedHand[0])){
+            if(cardMap.get(this.cards[i].suit + this.cards[i].value) > cardMap.get(lastPlayedHand[0]) 
+              && !doubles.includes(cardToCheck) && !triples.includes(cardToCheck)){
               hand.push(this.cards[i]);
               return hand;
             }
@@ -152,34 +203,44 @@ export default class Opponent extends Player {
             }
           }
           break;
-          //doubles logic
+          //DOUBLE CARD LOGIC
           case 2:
             //if opponent has at least 1 pair left
-            if(doubles.length >= 2){
-              console.log("PLAYING PAIR");
-              //return first pair to be played (lowest pair), if lower pair's 2nd card higher than last played pair's 2nd card and not part of combo
-              if(cardMap.get(doubles[1].suit + doubles[1].value) >  cardMap.get(lastPlayedHand[1])){
-                return [doubles[0], doubles[1]];
+            if(doubles.length >= 1){
+              console.log("Valid double left")
+              //TO DO: if pair is not part of combo(TO DO) and is bigger than last played hand(DONE)
+              for(let i = 0; i<doubles.length; i++){
+                if(cardMap.get(doubles[i][1]["suit"] + doubles[i][1]["value"]) > cardMap.get(lastPlayedHand[1])){
+                  console.log("PLAYING PAIR");
+                  return doubles[i]; //return pair of doubles that meets criteria
+                }
+                
               }
-              else {
-                console.log("pass");
-                hand.length = 0;
-                return hand;
-              }
+              
             }
             else {
               console.log("pass");
               hand.length = 0;
               return hand;
             }
+            //TRIPLE CARD LOGIC
             case 3:
+              //if opponent has at least 1 triple left
+              if(triples.length >= 1){
+                console.log("Valid triple left")
+                
+                for(let i = 0; i<triples.length; i++){
+                  if(cardMap.get(triples[i][2]["suit"] + triples[i][2]["value"]) > cardMap.get(lastPlayedHand[2])){
+                    console.log("PLAYING TRIPLE");
+                    return triples[i]; //return pair of doubles that meets criteria
+                  }
+                }
+                
+              }
               console.log("pass");
               hand.length = 0;
             return hand;
-            case 4:
-              console.log("pass");
-              hand.length = 0;
-              return hand;
+            //COMBO LOGIC
             case 5:
               console.log("pass");
               hand.length = 0;
@@ -217,13 +278,13 @@ export default class Opponent extends Player {
                 var imageToAnimate = document.getElementById(cardId.suit + cardId.value);
 
                 //adjust x and y deltas for each opponent player so animations perfectly finish on top of gameDeck
-                var player1DeltaX = 450 - imageToAnimate.offsetLeft;  // Fixed X-coordinate of the target position
-                var player1DeltaY = 200 - imageToAnimate.offsetTop; // Fixed Y-coordinate of the target position
+                var player1DeltaX = 430 - imageToAnimate.offsetLeft;  // Fixed X-coordinate of the target position
+                var player1DeltaY = 180 - imageToAnimate.offsetTop; // Fixed Y-coordinate of the target position
 
                 var player2DeltaX = 500 - imageToAnimate.offsetLeft;
-                var player2DeltaY = 280 - imageToAnimate.offsetTop;
+                var player2DeltaY = 230 - imageToAnimate.offsetTop;
 
-                var player3DeltaX = 450 - imageToAnimate.offsetLeft; 
+                var player3DeltaX = 430 - imageToAnimate.offsetLeft; 
                 var player3DeltaY = 180 - imageToAnimate.offsetTop;
 
                 //animations are different, depending on current opponent
@@ -278,7 +339,7 @@ export default class Opponent extends Player {
                 });
                 
                 self.printCards(turn);
-                resolve(hand.length); //return amount of cards played, to move forward for loop
+                resolve(hand.length); //return amount of cards played
                 hand.length = 0; //clear hand after playing it
             });
               //cardValidate = self.cardLogic(gameDeck, hand, lastValidHand, wonRound); 
