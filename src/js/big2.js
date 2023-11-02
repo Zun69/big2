@@ -26,8 +26,6 @@ function dealCards(deck, players){
             playerIndex = 0;
         }
     })
-
-    players[0].addCard(new Card('C',3));
     /*players[1].addCard(new Card('C', 3));
     players[1].addCard(new Card('C', 4));
     players[1].addCard(new Card('D', 5));

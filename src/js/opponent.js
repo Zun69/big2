@@ -23,6 +23,20 @@ export default class Opponent extends Player {
       super(cards);
     }
 
+    findTwos() {
+      const twos = [];
+  
+      for (let i = 0; i < this.numberOfCards; i++) {
+        const currentCard = this.cards[i];
+  
+        if (currentCard.value === '2') {
+          twos.push(currentCard);
+        }
+      }
+  
+      return twos;
+    }
+
     findDoubles() {
       var doubles = [];
     
@@ -68,11 +82,22 @@ export default class Opponent extends Player {
       return triples;
     }
 
-    findFullHouses(doubles, triples) {
-      //if doubles and triples values != to each other
-      //combine both arrays into one array, push it into fullhouse array
-      //return fullhouse array
-
+    findFullHouses() {
+      var doubles = this.findDoubles();
+      var triples = this.findTriples();
+      var fullHouses = [];
+    
+      for (var double of doubles) {
+        for (var triple of triples) {
+          if (double[0].value !== triple[0].value) {
+            // If the values of the double and triple are different, it's a potential full house.
+            fullHouses.push([...double, ...triple]);
+          }
+        }
+      }
+    
+      console.log(fullHouses);
+      return fullHouses;
     }
 
     findFok(){
@@ -139,8 +164,44 @@ export default class Opponent extends Player {
       return straights;
     }
 
-    //this function takes into account previously played card/s and returns a hand array (to playCard function)
-    selectCard(lastValidHand, gameDeck, wonRound, players){
+    findSpareCards(doubles, triples, straights, flushes) {
+      const spareCards = [];
+    
+      for (let i = 0; i < this.cards.length; i++) {
+        const cardToCheck = this.cards[i];
+    
+        if (
+          !doubles.some(double => double.some(d => d.suit === cardToCheck.suit && d.value === cardToCheck.value)) &&
+          !triples.some(triple => triple.some(t => t.suit === cardToCheck.suit && t.value === cardToCheck.value)) &&
+          !straights.some(straight => straight.some(s => s.suit === cardToCheck.suit && s.value === cardToCheck.value)) &&
+          !flushes.some(flush => flush.some(f => f.suit === cardToCheck.suit && f.value === cardToCheck.value))
+        ) {
+          spareCards.push(cardToCheck);
+        }
+      }
+    
+      console.log(spareCards);
+      return spareCards;
+    }
+    
+
+    isSpareCard(card, lastPlayedHand, doubles, triples, straights, flushes, cardMap) {
+      return (
+        cardMap.get(card.suit + card.value) > cardMap.get(lastPlayedHand[0]) &&
+        !doubles.some(double => double.some(d => d.suit === card.suit && d.value === card.value)) &&
+        !triples.some(triple => triple.some(t => t.suit === card.suit && t.value === card.value)) &&
+        !straights.some(straight => straight.some(s => s.suit === card.suit && s.value === card.value)) &&
+        !flushes.some(flush => flush.some(f => f.suit === card.suit && f.value === card.value))
+      );
+    }
+
+    //compare all the combos with each other and return the best combo to play depending on the game situation
+    comboSelector(lastPlayedHand, doubles, triples, straights, flushes, fullhouses, cardMap) {
+
+    }
+
+    //this function takes into account previously played card/s and returns a hand array to the playCard function
+    selectCard(lastValidHand, gameDeck, wonRound){
       var lastPlayedHandIndex = gameDeck.length - lastValidHand;
       var lastPlayedHand = [];
       var hand = []; //hand array holds selected cards
@@ -161,9 +222,12 @@ export default class Opponent extends Player {
       var triples = this.findTriples();    
       var straights = this.findStraights();
       var flushes = this.findFlushes();
+      var fullHouses = this.findFullHouses();
+      var spareCards = this.findSpareCards(doubles, triples, straights, flushes);
   
       console.log("FLUSHES LENGTH: " + flushes.length);
       console.log("STRAIGHTS LENGTH: " + straights.length);
+      console.log("FULLHOUSES LENGTH: " + fullHouses.length);
       
       
       switch(lastPlayedHand.length){
@@ -185,21 +249,96 @@ export default class Opponent extends Player {
           break;
         //SINGLE CARD LOGIC
         case 1:
+          //loop through player's cards
           for(let i = 0; i < this.numberOfCards; i++){
             //TO DO: if cardToCheck is a 2, and player has a low combo they need to get rid of (e.g 3-7 straight, flush), play the 2
             var cardToCheck = this.cards[i];
-            
-            //find first card thats higher than last played card and put it in hand and return it (TO DO: add a check to see if card is part of combo)
-            if(cardMap.get(this.cards[i].suit + this.cards[i].value) > cardMap.get(lastPlayedHand[0]) 
-              && !doubles.includes(cardToCheck) && !triples.includes(cardToCheck)){
-              hand.push(this.cards[i]);
-              return hand;
-            }
-            //else if i cant find card thats higher than previously played card (TO DO: add a check to check if card is part of combo), pass
-            else if(i == this.numberOfCards - 1){
-              console.log("pass");
-              hand.length = 0;
-              return hand;
+            console.log(cardToCheck);
+
+            //change ai single card strategy depending on how many twos they have
+            switch(this.findTwos().length){
+              case 0:
+                console.log("0 two");
+                //find first card thats higher than last played card AND is not part of any doubles, triples, straights, flushes, straight flush and put it in hand and return it
+                if (this.isSpareCard(cardToCheck, lastPlayedHand, doubles, triples, straights, flushes, cardMap)){
+                  hand.push(this.cards[i]);
+                  return hand;
+                }
+                //else if card is higher value than last played card and card is a 2 of diamonds or clubs and player has a straight or flush
+                //else if i cant find card thats higher than previously played card (TO DO: add a check to check if card is part of combo), pass
+                else if(i == this.numberOfCards - 1){
+                  console.log("pass");
+                  hand.length = 0;
+                  return hand;
+                }
+                break;
+              case 1:
+                console.log("1 two");
+                //find first card thats higher than last played card AND is not part of any doubles, triples, straights, flushes, straight flush and put it in hand and return it
+                if (this.isSpareCard(cardToCheck, lastPlayedHand, doubles, triples, straights, flushes, cardMap)){
+                  if(spareCards.length > 1 && cardToCheck.value == 2){
+                    //if player has one 2 card only, check if player has any other combo or spare cards
+                  } else if(spareCards.length > 1 && cardToCheck.value == 2){
+
+                  }
+                  
+                  //if not a 2 card, play the card
+                  hand.push(this.cards[i]);
+                  return hand;
+                }
+                //else if card is higher value than last played card and card is a 2 of diamonds or clubs and player has a straight or flush
+                //else if i cant find card thats higher than previously played card (TO DO: add a check to check if card is part of combo), pass
+                else if(i == this.numberOfCards - 1){
+                  console.log("pass");
+                  hand.length = 0;
+                  return hand;
+                }
+                break;
+              case 2:
+                console.log("2 two");
+                //find first card thats higher than last played card AND is not part of any doubles, triples, straights, flushes, straight flush and put it in hand and return it
+                if (this.isSpareCard(cardToCheck, lastPlayedHand, doubles, triples, straights, flushes, cardMap)){
+                  hand.push(this.cards[i]);
+                  return hand;
+                }
+                //else if card is higher value than last played card and card is a 2 of diamonds or clubs and player has a straight or flush
+                //else if i cant find card thats higher than previously played card (TO DO: add a check to check if card is part of combo), pass
+                else if(i == this.numberOfCards - 1){
+                  console.log("pass");
+                  hand.length = 0;
+                  return hand;
+                }
+                break;
+              case 3:
+                console.log("3 two");
+                //find first card thats higher than last played card AND is not part of any doubles, triples, straights, flushes, straight flush and put it in hand and return it
+                if (this.isSpareCard(cardToCheck, lastPlayedHand, doubles, triples, straights, flushes, cardMap)){
+                  hand.push(this.cards[i]);
+                  return hand;
+                }
+                //else if card is higher value than last played card and card is a 2 of diamonds or clubs and player has a straight or flush
+                //else if i cant find card thats higher than previously played card (TO DO: add a check to check if card is part of combo), pass
+                else if(i == this.numberOfCards - 1){
+                  console.log("pass");
+                  hand.length = 0;
+                  return hand;
+                }
+                break;
+              case 4:
+                console.log("4 two");
+                //find first card thats higher than last played card AND is not part of any doubles, triples, straights, flushes, straight flush and put it in hand and return it
+                if (this.isSpareCard(cardToCheck, lastPlayedHand, doubles, triples, straights, flushes, cardMap)){
+                  hand.push(this.cards[i]);
+                  return hand;
+                }
+                //else if card is higher value than last played card and card is a 2 of diamonds or clubs and player has a straight or flush
+                //else if i cant find card thats higher than previously played card (TO DO: add a check to check if card is part of combo), pass
+                else if(i == this.numberOfCards - 1){
+                  console.log("pass");
+                  hand.length = 0;
+                  return hand;
+                }
+                break;
             }
           }
           break;
@@ -246,8 +385,6 @@ export default class Opponent extends Player {
               hand.length = 0;
               return hand;
       }
-
-      //return empty hand if my future ai decides its best move is to pass
     }
 
     async playCard(gameDeck, turn, lastValidHand, wonRound, players) {
