@@ -395,8 +395,8 @@ var Deck = (function () {
   }
 
   function SuitName(suit) {
-    // return suit name from suit value
-    return suit === 0 ? 'spades' : suit === 1 ? 'hearts' : suit === 2 ? 'clubs' : suit === 3 ? 'diamonds' : 'joker';
+    // return suit name from suit value (diamonds, clubs, hearts, spades in asc order)
+    return suit === 3 ? 'spades' : suit === 2 ? 'hearts' : suit === 1 ? 'clubs' : suit === 0 ? 'diamonds' : 'joker';
   }
 
   function addListener(target, name, listener) {
@@ -474,10 +474,14 @@ var Deck = (function () {
         var cards = _deck2.cards;
 
         cards.sort(function (a, b) {
+          // Define the custom sorting order for "Big 2"
+          var rankOrder = [2, 1, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3]; // Correct order of ranks
+
+  
           if (reverse) {
-            return a.i - b.i;
+            return rankOrder.indexOf(a.rank) - rankOrder.indexOf(b.rank);
           } else {
-            return b.i - a.i;
+            return rankOrder.indexOf(b.rank) - rankOrder.indexOf(a.rank);
           }
         });
 

@@ -98,24 +98,14 @@ async function startPromise() {
 var cardHashModule = {
     deck: function (_deck) {
       _deck.cardHash = function () {
-        var i = 0;
-        var cardValueMap = new Map();
-        var deck = _deck.cards;
+        let i = 0;
+        let cardValueMap = new Map();
+        let deck = _deck.cards;
+        console.log(deck)
   
-        while (i < 13) {
-          cardValueMap.set(deck[i].suit + deck[i].rank, i * 4 + 1);
-          i++;
-        }
-        while (i < 26) {
-          cardValueMap.set(deck[i].suit + deck[i].rank, (i % 13) * 4 + 2);
-          i++;
-        }
-        while (i < 39) {
-          cardValueMap.set(deck[i].suit + deck[i].rank, (i % 13) * 4 + 3);
-          i++;
-        }
-        while (i < 52) {
-          cardValueMap.set(deck[i].suit + deck[i].rank, (i % 13) * 4 + 4);
+        //loop through the deck(sorted already) and assign a key (card rank + suit) and value for use with sorting a player's hand
+        while (i < deck.length) {
+          cardValueMap.set(deck[i].suit + " " + deck[i].rank, i + 1);
           i++;
         }
   
@@ -123,35 +113,31 @@ var cardHashModule = {
       };
     },
   };
-  
+
 Deck.modules.cardHash = cardHashModule;
 
 window.onload = function() {
     // Instanciate a deck with all cards
     var deck = Deck();
-    // Your card object with suit and rank properties
-    var card = {
-        suit: 'hearts', // Replace with the suit of your card
-        rank: '10'      // Replace with the rank of your card
-    };
-  
-    
-    
-    
+
+    //sort deck in big 2 order
+    deck.sort()
 
     // display it in a html container
     var $container = document.getElementById('gameDeck');
+
     var cardMap = deck.cardHash();
+    console.log(cardMap);
     
-    console.log(cardValue);
     deck.mount($container);
-    for(let i = 0; i < 2 ; i++)
-    {
-        deck.shuffle();
-    }
-    
-    
-    
+
+    deck.flip();
+    deck.fan();
+
+    const rank = cardMap.get("1 3");
+    console.log(`The rank of the card is ${rank}`);
+
+
 
 };
 
