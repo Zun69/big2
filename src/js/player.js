@@ -1,4 +1,4 @@
-import Deck from "./deck.js"
+
 
 //lookup table to identify a straight
 const cardRankLookupTable = {

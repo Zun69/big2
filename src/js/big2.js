@@ -1,5 +1,3 @@
-import Deck from "./deck.js"
-import Card from "./card.js"
 import Player from "./player.js"
 import Opponent from "./opponent.js"
 
@@ -97,8 +95,70 @@ async function startPromise() {
     return myPromise;
 }
 
+var cardHashModule = {
+    deck: function (_deck) {
+      _deck.cardHash = function () {
+        var i = 0;
+        var cardValueMap = new Map();
+        var deck = _deck.cards;
+  
+        while (i < 13) {
+          cardValueMap.set(deck[i].suit + deck[i].rank, i * 4 + 1);
+          i++;
+        }
+        while (i < 26) {
+          cardValueMap.set(deck[i].suit + deck[i].rank, (i % 13) * 4 + 2);
+          i++;
+        }
+        while (i < 39) {
+          cardValueMap.set(deck[i].suit + deck[i].rank, (i % 13) * 4 + 3);
+          i++;
+        }
+        while (i < 52) {
+          cardValueMap.set(deck[i].suit + deck[i].rank, (i % 13) * 4 + 4);
+          i++;
+        }
+  
+        return cardValueMap;
+      };
+    },
+  };
+  
+Deck.modules.cardHash = cardHashModule;
+
+window.onload = function() {
+    // Instanciate a deck with all cards
+    var deck = Deck();
+    // Your card object with suit and rank properties
+    var card = {
+        suit: 'hearts', // Replace with the suit of your card
+        rank: '10'      // Replace with the rank of your card
+    };
+  
+    
+    
+    
+
+    // display it in a html container
+    var $container = document.getElementById('gameDeck');
+    var cardMap = deck.cardHash();
+    
+    console.log(cardValue);
+    deck.mount($container);
+    for(let i = 0; i < 2 ; i++)
+    {
+        deck.shuffle();
+    }
+    
+    
+    
+
+};
+
+
 const forLoop = async _ => {
-    updateGameDeck(gameDeck, 0); //print out transparent image, so card animations have a target
+    
+   /* updateGameDeck(gameDeck, 0); //print out transparent image, so card animations have a target
     sortHand(players); //sort all player's cards
     updateAllCards(players); //print out all player's cards
     var turn = await determineTurn(players); //player with 3 of diamonds has first turn
@@ -157,7 +217,9 @@ const forLoop = async _ => {
             console.log("player passed");
             if (turn > 3) turn = 0;
         }
+        
     }
+    */
 }
 
 //TO DO: make start menu that allows player to start game

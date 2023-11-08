@@ -1,5 +1,5 @@
 import Player from "./player.js"
-import Deck from "./deck.js"
+
 
 //lookup table to identify a straight
 const cardRankLookupTable = {
@@ -279,7 +279,7 @@ export default class Opponent extends Player {
                   if(spareCards.length > 1 && cardToCheck.value == 2){
                     //if player has one 2 card only, check if player has any other combo or spare cards
                   } else if(spareCards.length > 1 && cardToCheck.value == 2){
-
+                    
                   }
                   
                   //if not a 2 card, play the card
