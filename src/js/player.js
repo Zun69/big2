@@ -64,20 +64,27 @@ export default class Player{
 
     //sort player's cards
     sortHand(){
-        var deck = new Deck();
+        let deck = new Deck();
+        deck.sort();
         let cardMap = deck.cardHash();
+        console.log(cardMap);
 
         //bubble sort using cardMap to compare card values
         for(var i = 0; i < this.numberOfCards; i++){
             for(var j = 0; j < (this.numberOfCards - i - 1); j++){
                 //use current card as a key to cardMap using position value to compare and sort the cards, cant use object as a key
-                if(cardMap.get(this.cards[j].suit + this.cards[j].value) > cardMap.get(this.cards[j + 1].suit + this.cards[j + 1].value)){ 
+                if(cardMap.get(this.cards[j].suit + " " + this.cards[j].rank) > cardMap.get(this.cards[j + 1].suit + " " + this.cards[j + 1].rank)){
                     let temp = this.cards[j];
                     this.cards[j] = this.cards[j+1];
                     this.cards[j+1] = temp;
                 }
             }
         }
+
+        // Wait for all card animations to complete
+       /* Promise.all(animationPromises).then(() => {
+            resolve('sortingComplete');
+        });*/
     }
 
     //sort hand that user has played
@@ -96,7 +103,99 @@ export default class Player{
                 }
             }
         }
+
     }
+
+    newPositionY(index, playerNum){
+        switch(playerNum){
+            //player 1 Y coordinates (began sorting cards at this Y coordinate)
+            case 0:
+                return 260;
+            case 1:
+                return -240 + index * 40;
+            case 2:
+                return -250;
+            case 3:
+                return 242 - index * 40;
+        }
+    }
+
+    newPositionX(index, playerNum) {
+        // Calculate the new X position based on the index
+        switch(playerNum){
+            //player 1 X coordinates (began sorting cards at this X coordinate)
+            case 0:
+                return -212 + index * 40;
+            case 1:
+                return -425;
+            case 2:
+                return 261 - index * 40;
+            case 3:
+                return 440;
+        }
+        
+    }
+      
+    newPositionZ(index, playerNum) {
+        // Calculate the new z-index based on the index
+        switch (playerNum) {
+            case 0:
+                return index * 4;
+            case 1:
+                return 1 + index * 4;
+            case 2:
+                return 2 + index * 4;
+            case 3:
+                return 3 + index * 4;
+        }
+    }
+
+    newRotation(playerNum) {
+        // Calculate the new z-index based on the index
+        switch(playerNum){
+            //player 1 Z coordinates
+            case 0:
+                return 540;
+            //player 1 X coordinates
+            case 1:
+                return 630;
+            case 2:
+                return 720; 
+            case 3:
+                return 450; 
+        }
+        
+    }
+
+    sortingAnimation(playerNum) {
+        // Create an array to store all the animation promises
+        const animationPromises = [];
+
+        // Update the cards' positions and z-index
+        this.cards.forEach((card, i) => {
+            const animationPromise = new Promise((resolve) => {
+                card.animateTo({
+                    delay: 0,
+                    duration: 200,
+                    rot: this.newRotation(playerNum),
+                    ease: 'linear',
+                    x: this.newPositionX(i, playerNum),  // Calculate the new X position based on index
+                    y: this.newPositionY(i, playerNum),
+        
+                    onComplete: () => {
+                        card.$el.style.zIndex = this.newPositionZ(i, playerNum);
+                        resolve(); // Resolve the promise when this animation is completed
+                      },
+                });
+            });
+            animationPromises.push(animationPromise);
+        });
+
+        // Use Promise.all to wait for all animation promises to resolve
+        return Promise.all(animationPromises);
+    }
+      
+    
 
     //TO DO: validateCombo function, return string of combo detected, use that string as a key to combo look up e.g FIVE_HAND_COMBO['fullHouse'] = 3
     validateCombo(hand, wonRound){
