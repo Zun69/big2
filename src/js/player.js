@@ -19,7 +19,7 @@ const cardRankLookupTable = {
 
 
 export default class Player{ 
-    constructor(cards = [], turn){ //initialise player with an empty array of cards, will fill array with card objects
+    constructor(cards = []){ //initialise player with an empty array of cards, will fill array with card objects
         this.cards = cards;
     }
 

@@ -210,6 +210,7 @@ var Deck = (function () {
       var y = _params$y === undefined ? self.y : _params$y;
       var _params$rot = params.rot;
       var rot = _params$rot === undefined ? self.rot : _params$rot;
+      var rotateSideways = params.rotateSideways; // New parameter for conditional rotation
       var ease$$ = params.ease;
       var onStart = params.onStart;
       var onProgress = params.onProgress;
@@ -235,6 +236,11 @@ var Deck = (function () {
         self.x = startX + diffX * et;
         self.y = startY + diffY * et;
         self.rot = startRot + diffRot * et;
+
+        // Conditional rotation based on 'rotateSideways'
+        if (rotateSideways) {
+          self.rot = 1.5708; // 90 degrees in radians (sideways)
+        }
 
         $el.style[transform] = translate(self.x + 'px', self.y + 'px') + (diffRot ? 'rotate(' + self.rot + 'deg)' : '');
       }).end(function () {
@@ -475,8 +481,7 @@ var Deck = (function () {
 
         cards.sort(function (a, b) {
           // Define the custom sorting order for "Big 2"
-          var rankOrder = [2, 1, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3]; // Correct order of ranks
-
+          var rankOrder = [2, 1, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3]; 
   
           if (reverse) {
             return rankOrder.indexOf(a.rank) - rankOrder.indexOf(b.rank);

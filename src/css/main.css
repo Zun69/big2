@@ -22,6 +22,7 @@ body {
 }
 
 
+/*gameDeck styling*/
 #gameDeck > div {
     position: absolute;
     top: 50%; /* Place it vertically in the middle */

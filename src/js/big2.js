@@ -9,27 +9,111 @@ const players = [ Player1, Player2, Player3, Player4 ];
 const deck = new Deck();
 const gameDeck = []; //playing deck will be empty array, will be filled with card objects
 
+function sortCards(cards){
 
-//function to deal cards to all 4 players
-function dealCards(deck, players){
-    deck.shuffle();
-    var playerIndex = 0;
-    
-    deck.cards.forEach((card) => {
-        players[playerIndex].addCard(card); //add card to current index player's hand
-        playerIndex++;
-        
-        // after player 4 has been dealt to, return player index to player 1
-        if(playerIndex == players.length){
-            playerIndex = 0;
+}
+
+
+async function dealCards(deck, players) {
+    var p1Div = document.getElementById('0');
+    var p2Div = document.getElementById('1');
+    var p3Div = document.getElementById('2');
+    var p4Div = document.getElementById('3');
+    // Display the deck in an HTML container
+    let $container = document.getElementById('gameDeck');
+    deck.mount($container);
+
+    let shufflePromise = new Promise(function(myResolve) {
+        for (let i = 0; i < 3; i++) {
+            deck.shuffle();
         }
-    })
-    /*players[1].addCard(new Card('C', 3));
-    players[1].addCard(new Card('C', 4));
-    players[1].addCard(new Card('D', 5));
-    players[1].addCard(new Card('H', 6));
-    players[1].addCard(new Card('C', 2));
-    players[1].addCard(new Card('C', 'A'));*/
+        setTimeout(function() {
+            myResolve("shuffleComplete");
+        }, 1500);
+    }); 
+
+    // Use a for...of loop to iterate over the cards with asynchronous behavior
+    var playerIndex = 0;
+
+    shufflePromise.then(function(value) {
+        if(value == "shuffleComplete"){
+            deck.cards.forEach(function (card, i) {
+                if (playerIndex == 4) {
+                    playerIndex = 0;
+                }
+        
+                switch (playerIndex) {
+                    case 0:
+                        card.setSide('front')
+
+                        //animation for each card, create staggered animations using i to offset the animations
+                        setTimeout(function() {
+                            card.animateTo({
+                                delay: 0 , // wait 1 second + i * 2 ms
+                                duration: 100,
+                                ease: 'linear',
+                                rot: 180,
+                                x: -250 + (i * 10),
+                                y: 260
+                            })
+                            card.mount(p1Div);
+                        },50 + i * 42)
+                        
+                        players[playerIndex].addCard(card);
+                        playerIndex++;
+                    break;
+                    case 1:
+                        card.setSide('front')
+                        setTimeout(function() {
+                            card.animateTo({
+                                delay: 0 , // wait 1 second + i * 2 ms
+                                duration: 100,
+                                ease: 'linear',
+                                rot: 270,
+                                x: -425,
+                                y: -250 + (i * 10),
+                            })
+                            card.mount(p2Div);
+                        },50 + i * 42)
+                        playerIndex++;
+                        break;
+                    case 2:
+                        //card.setSide('front')
+                        setTimeout(function() {
+                            card.animateTo({
+                                delay: 0 , // wait 1 second + i * 2 ms
+                                duration: 100,
+                                ease: 'linear',
+                                rot: 180,
+                                x: -280 + (i * 10),
+                                y: -250
+                            })
+                            card.mount(p3Div);
+                        },50 + i * 42)
+                        players[playerIndex].addCard(card);
+                        playerIndex++;
+                        break;
+                    case 3:
+                        setTimeout(function() {
+                            card.animateTo({
+                                delay: 0 , // wait 1 second + i * 2 ms
+                                duration: 100,
+                                ease: 'linear',
+                                rot: 270,
+                                x: 440 ,
+                                y: -268 + (i * 10)
+                            })
+                            card.mount(p4Div);
+                        },50 + i * 42)
+                        players[playerIndex].addCard(card);
+                        playerIndex++;
+                        break;
+                }
+            })
+        }
+    });
+
+    //return promise, to let game know its okay to continue
 }
 
 async function determineTurn(players){
@@ -116,33 +200,22 @@ var cardHashModule = {
 
 Deck.modules.cardHash = cardHashModule;
 
-window.onload = function() {
+window.onload = async function() {
     // Instanciate a deck with all cards
     var deck = Deck();
 
-    //sort deck in big 2 order
-    deck.sort()
-
-    // display it in a html container
-    var $container = document.getElementById('gameDeck');
-
-    var cardMap = deck.cardHash();
-    console.log(cardMap);
+    dealCards(deck, players); //should await for this to finish before continuing
     
-    deck.mount($container);
-
-    deck.flip();
-    deck.fan();
-
-    const rank = cardMap.get("1 3");
-    console.log(`The rank of the card is ${rank}`);
-
-
-
+    //let winner = await gameLoop();
+    console.log(players[0].cards);
+    console.log(players[1].cards);
+    console.log(players[2].cards);
+    console.log(players[3].cards);
+    
 };
 
 
-const forLoop = async _ => {
+const gameLoop = async _ => {
     
    /* updateGameDeck(gameDeck, 0); //print out transparent image, so card animations have a target
     sortHand(players); //sort all player's cards
@@ -216,7 +289,7 @@ async function startGame() {
     if(res == "START"){
         audio.play();
         dealCards(deck, players);
-        var winner = await forLoop();
+        var winner = await gameLoop();
         window.alert(winner); //replace this with a popup menu allowing players to restart maybe also show winner and loser, if i make game ending condition every player running out of cards
     }
 }

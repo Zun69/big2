@@ -409,20 +409,20 @@ export default class Opponent extends Player {
               }
               hand.forEach(cardId => {
                 //return index of player's card that matches card in hand (different than player class, because hand contains card object)
-                var cardIndex = self.cards.findIndex(card => card === cardId);
+                let cardIndex = self.cards.findIndex(card => card === cardId);
                 console.log("CARD ID : " + cardId.suit + cardId.value);
                 //animate cards using cardId to identify corresponding images
-                var imageToAnimate = document.getElementById(cardId.suit + cardId.value);
+                let imageToAnimate = document.getElementById(cardId.suit + cardId.value);
 
                 //adjust x and y deltas for each opponent player so animations perfectly finish on top of gameDeck
-                var player1DeltaX = 430 - imageToAnimate.offsetLeft;  // Fixed X-coordinate of the target position
-                var player1DeltaY = 180 - imageToAnimate.offsetTop; // Fixed Y-coordinate of the target position
+                let player1DeltaX = 430 - imageToAnimate.offsetLeft;  // Fixed X-coordinate of the target position
+                let player1DeltaY = 180 - imageToAnimate.offsetTop; // Fixed Y-coordinate of the target position
 
-                var player2DeltaX = 500 - imageToAnimate.offsetLeft;
-                var player2DeltaY = 230 - imageToAnimate.offsetTop;
+                let player2DeltaX = 500 - imageToAnimate.offsetLeft;
+                let player2DeltaY = 230 - imageToAnimate.offsetTop;
 
-                var player3DeltaX = 430 - imageToAnimate.offsetLeft; 
-                var player3DeltaY = 180 - imageToAnimate.offsetTop;
+                let player3DeltaX = 430 - imageToAnimate.offsetLeft; 
+                let player3DeltaY = 180 - imageToAnimate.offsetTop;
 
                 //animations are different, depending on current opponent
                 if(turn == 1){
