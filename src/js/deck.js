@@ -601,8 +601,8 @@ var Deck = (function () {
           rot: 0
         });
         _card3.animateTo({
-          delay: 200 + delay,
-          duration: 200,
+          delay: 100 + delay,
+          duration: 100,
 
           x: -z,
           y: -z,

@@ -28,7 +28,8 @@ var cardHashModule = {
   };
 Deck.modules.cardHash = cardHashModule; //add cardHash function to deck library
 
-async function sortHand(players){
+//function sorts everybody's cards and plays the animation, resolves when animations finish
+async function sortHands(players){
     const animationPromises = [];
 
     players.forEach(function(player){
@@ -44,11 +45,36 @@ async function sortHand(players){
     // Wait for all animation promises to resolve
     await Promise.all(animationPromises);
 
-    // Code to execute after all animations are completed
-
+    /*/ Code to execute after all animations are completed
+    for(let i = 0; i < players[0].numberOfCards; i++){
+        players[0].cards[i].setSide('front');
+    }*/
     // You can return a resolved promise if needed
     return Promise.resolve('sortComplete');
 }
+
+function shuffleDeckAsync(deck, times, delayBetweenShuffles) {
+    return new Promise((resolve) => {
+      const shufflePromises = [];
+  
+      for (let i = 0; i < times; i++) {
+        shufflePromises.push(
+          new Promise((innerResolve) => {
+            setTimeout(() => {
+              deck.shuffle();
+              innerResolve();
+            }, i * delayBetweenShuffles);
+          })
+        );
+      }
+  
+      Promise.all(shufflePromises).then(() => {
+        setTimeout(() => {
+          resolve('shuffleComplete');
+        }, 2100);
+      });
+    });
+  }
 
 async function dealCards(deck, players) {
     return new Promise(function (resolve, reject) {
@@ -65,14 +91,7 @@ async function dealCards(deck, players) {
         let $container = document.getElementById('gameDeck');
         deck.mount($container);
 
-        let shufflePromise = new Promise(function(myResolve) {
-            for (let i = 0; i < 3; i++) {
-                deck.shuffle();
-            }
-            setTimeout(function() {
-                myResolve("shuffleComplete");
-            }, 1500);
-        }); 
+        let shufflePromise = shuffleDeckAsync(deck, 7, 0);
 
         // Use a for...of loop to iterate over the cards with asynchronous behavior
         var playerIndex = 0;
@@ -80,7 +99,7 @@ async function dealCards(deck, players) {
         shufflePromise.then(function(value) {
             if(value == "shuffleComplete"){
                 const animationPromises = []; // Array to store animation promises
-                deck.cards.forEach(function (card, i) {
+                deck.cards.reverse().forEach(function (card, i) {
                     if (playerIndex == 4) {
                         playerIndex = 0;
                     }
@@ -102,8 +121,7 @@ async function dealCards(deck, players) {
                                             card.mount(p1Div);
                                             cardResolve();
                                         }
-                                    })
-                                    
+                                    })                                  
                                 },50 + i * 28);
                             });
                             animationPromises.push(p1Promise); //add animation promise to promise array
@@ -125,8 +143,7 @@ async function dealCards(deck, players) {
                                             card.mount(p2Div);
                                             cardResolve();
                                         }
-                                    })
-                                    
+                                    })                                   
                                 },50 + i * 28)
                                 animationPromises.push(p2Promise);
                                 players[playerIndex].addCard(card);
@@ -149,7 +166,6 @@ async function dealCards(deck, players) {
                                             cardResolve();
                                         }
                                     })
-                                    
                                 },50 + i * 28)
                                 animationPromises.push(p3Promise);
                                 players[playerIndex].addCard(card);
@@ -164,15 +180,14 @@ async function dealCards(deck, players) {
                                         delay: 0 , // wait 1 second + i * 2 ms
                                         duration: 100,
                                         ease: 'linear',
-                                        rot: 90,
+                                        rot: 270,
                                         x: 440,
                                         y: 272 - (i * 10),
                                         onComplete: function () {
                                             card.mount(p4Div);
                                             cardResolve();
                                         }
-                                    })
-                                    
+                                    })                                    
                                 },50 + i * 28)
                                 animationPromises.push(p4Promise);
                                 players[playerIndex].addCard(card);
@@ -190,18 +205,19 @@ async function dealCards(deck, players) {
     });
 }
 
-async function determineTurn(players){
-    // loop through all player's cards to check for 3 of diamonds, if they have 3 of diamond they have 1st turn
+async function determineTurn(players) {
+    // Loop through all player's cards to check for 3 of diamonds, if they have it, they have the 1st turn
     let promise = new Promise((resolve, reject) => {
       players.some((player, index) => {
-        if (player.cards.some(card => card.suit === "0" && card.rank === "3")) {
+        if (player.cards.some(card => card.suit == '0' && card.rank == '3')) {
           resolve(index);
-          return true; // stop looping once the first player with 3 of diamonds is found
+          return true; // Stop looping once the first player with 3 of diamonds is found
         }
       });
     });
+  
     return await promise;
-}
+  }
 
 
 async function startPromise() {
@@ -235,12 +251,42 @@ window.onload = async function() {
 
 
 const gameLoop = async _ => {
-    let sortResolve = await sortHand(players); //sort all player's cards
-    let playedHand = 0;
-    let lastValidHand;
-    let passTracker = 0;
-    let wonRound = false;
-    let turnDisplay = document.getElementById("turn");
+    let sortResolve = await sortHands(players); //sort all player's cards
+    if(sortResolve === 'sortComplete'){
+        let playedHand = 0;
+        let lastValidHand;
+        let passTracker = 0;
+        let wonRound = false;
+        let turnDisplay = document.getElementById("turn");
+        let turn = await determineTurn(players); //player with 3 of diamonds has first turn
+        console.log("turn: " + turn)
+
+        //each loop represents a single turn
+        for(let i = 0; i < 100; i++){
+            console.log("Current turn: Player " + turn);
+            turnDisplay.textContent = "Current Turn: Player " + (turn + 1) ;
+            wonRound = false; //reset wonRound to false, its only true if 3 players have passed
+
+            /*
+            if(passTracker == 3){
+                wonRound = true; //return wonRound as true
+                console.log("Player " + turn + " has won the round, has a free turn");
+                gameDeck.length = 0; //reset gameDeck because player has won round, like in real life
+                 //clear the game deck
+                passTracker = 0; //reset passTracker value
+            }
+
+            //if turn == 0
+            if(turn == 0){
+                playedHand = await players[turn].playCard(gameDeck, turn, lastValidHand, wonRound); //resolve hand.length, function also validates hand 
+            }
+            //else if turn !=0 its oppponent cpu TO DO: pass gamestate object in to keep track of combo, score, etc
+            else{
+                playedHand = await players[turn].playCard(gameDeck, turn, lastValidHand, wonRound, players);
+            }*/
+        }
+    }
+
     /*
     let turn = await determineTurn(players); //player with 3 of diamonds has first turn
     var playedHand = 0;
@@ -263,7 +309,7 @@ const gameLoop = async _ => {
             passTracker = 0; //reset passTracker value
         }
         
-        sortHand(players);
+        sortHands(players);
         //TO DO: still a bug when round is won, can select any players card
         //if turn == 0
         if(turn == 0){

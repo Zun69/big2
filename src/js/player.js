@@ -80,11 +80,6 @@ export default class Player{
                 }
             }
         }
-
-        // Wait for all card animations to complete
-       /* Promise.all(animationPromises).then(() => {
-            resolve('sortingComplete');
-        });*/
     }
 
     //sort hand that user has played
@@ -153,16 +148,15 @@ export default class Player{
     newRotation(playerNum) {
         // Calculate the new z-index based on the index
         switch(playerNum){
-            //player 1 Z coordinates
+            //player 1 card rotation when sorting
             case 0:
-                return 540;
-            //player 1 X coordinates
+                return 180;
             case 1:
-                return 630;
+                return 90;
             case 2:
-                return 720; 
+                return 360; 
             case 3:
-                return 450; 
+                return 90; 
         }
         
     }
