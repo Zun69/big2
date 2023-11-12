@@ -1,23 +1,3 @@
-
-
-//lookup table to identify a straight
-const cardRankLookupTable = {
-    "3": 1,
-    "4": 2,
-    "5": 3,
-    "6": 4,
-    "7": 5,
-    "8": 6,
-    "9": 7,
-    "0": 8, //represents 10, 0 is returned from hand.slice(-1)
-    "J": 9,
-    "Q": 10,
-    "K": 11,
-    "A": 12,
-    "2": 13
-};
-
-
 export default class Player{ 
     constructor(cards = []){ //initialise player with an empty array of cards, will fill array with card objects
         this.cards = cards;
@@ -82,15 +62,16 @@ export default class Player{
         }
     }
 
-    //sort hand that user has played
+    //sort hand that user has selected
     sortHandArray(hand){
-        var deck = new Deck();
-        var cardMap = deck.cardHash();
+        let deck = new Deck();
+        deck.sort()
+        let cardMap = deck.cardHash();
         
         //bubble sort using cardMap to compare card values
         for(var i = 0; i < hand.length; i++){
             for(var j = 0; j < (hand.length - i - 1); j++){
-                //use current card as a key to cardMap using position value to compare and sort the cards, cant use object as a key
+                //use current card as a key to cardMap using position value to compare and sort the cards (e.g. key pair = 0 3 (diamonds, 3))
                 if(cardMap.get(hand[j]) > cardMap.get(hand[j + 1])){ 
                     let temp = hand[j];
                     hand[j] = hand[j+1];
@@ -98,7 +79,7 @@ export default class Player{
                 }
             }
         }
-
+        console.log("currrent hand: " + hand);
     }
 
     newPositionY(index, playerNum){
@@ -154,9 +135,9 @@ export default class Player{
             case 1:
                 return 90;
             case 2:
-                return 360; 
+                return 180; 
             case 3:
-                return 90; 
+                return 270; 
         }
         
     }
@@ -193,27 +174,27 @@ export default class Player{
 
     //TO DO: validateCombo function, return string of combo detected, use that string as a key to combo look up e.g FIVE_HAND_COMBO['fullHouse'] = 3
     validateCombo(hand, wonRound){
-        var splitCard1 = hand[0].split(''); //output: splitCard1[0] = suit | splitCard[1] = value
-        var splitCard2 = hand[1].split('');
-        var splitCard3 = hand[2].split('');
-        var splitCard4 = hand[3].split('');
-        var splitCard5 = hand[4].split('');
+        var splitCard1 = hand[0].split(' '); //output: splitCard1[0] = suit | splitCard[1] = value
+        var splitCard2 = hand[1].split(' ');
+        var splitCard3 = hand[2].split(' ');
+        var splitCard4 = hand[3].split(' ');
+        var splitCard5 = hand[4].split(' ');
         var straight = true;
 
         for(let i = 3; i >= 0; i--){
-            var currentRank = cardRankLookupTable[hand[i].slice(-1)]; //return value from lookup table, using hand ranks as the key
-            var nextRank = cardRankLookupTable[hand[i+1].slice(-1)];
+            var currentRank = hand[i].split(' '); //return value from lookup table, using hand ranks as the key
+            var nextRank = hand[i+1].split(' ');
 
             //if nextRank - currentRank value not 1, means card values are not exactly one rank higher
             if(nextRank - currentRank != 1){
                 //if i == 1 (2 card) AND currentRank == 13 (2 rank card) AND nextrank = 1 (3 rank card), means hand is A 2 3 4 5, continue to ace card
                 //straight is lowest as it is A,2,3,4,5
-                if(i == 1 && currentRank == cardRankLookupTable['2'] && nextRank === cardRankLookupTable['3']){
+                if(i == 1 && currentRank[1] == 2 && nextRank[1] == 3){
                     continue;
                 }
                 //if i == 0 (2 card) AND currentRank == 13 (2 rank card) AND nextrank = 1 (3 rank card), means hand is 2 3 4 5 6, continue to validate as straight
                 //straight is second lowests as it is 2,3,4,5,6
-                if(i == 0 && currentRank == cardRankLookupTable['2'] && nextRank === cardRankLookupTable['3']){
+                if(i == 0 && currentRank[1] == 2 && nextRank[1] == 3){
                     continue;
                 }
                 straight = false; //if hand of 5 does not contain a straight break out of for loop
@@ -223,7 +204,7 @@ export default class Player{
         
         //if straight flush with 3 of diamonds (3d 4d 5d 6d 7d || Ad 2d 3d 4d 5d || 2d 3d 4d 5d 6d)
         for (let i = 0; i < hand.length; i++) {
-            if(hand[i] == "D3" && straight && hand.every(card => card.slice(0, 1) === hand[0].slice(0,1))){
+            if(hand[i] == "0 3" && straight && hand.every(card => card.slice(0, 1) === hand[0].slice(0,1))){
                 return "straightFlush3d";
             }
         }
@@ -236,7 +217,7 @@ export default class Player{
         }
         //if hand contains a straight with a 3 of diamonds, return this first because if(straight) is first it will return "straight" instead of straight3d
         for (let i = 0; i < hand.length; i++) {
-            if (hand[i] == "D3" && straight) {
+            if (hand[i] == "0 3" && straight) {
                 return "straight3d";
             }
         }
@@ -249,7 +230,7 @@ export default class Player{
             return "straight";
         }
         //if first card is 3 of diamonds and every card in hand has the same suit as the first card in hand
-        if(hand[0] == "D3" && hand.every(card => card.slice(0, 1) === hand[0].slice(0,1))){ 
+        if(hand[0] == "0 3" && hand.every(card => card.slice(0, 1) === hand[0].slice(0,1))){ 
             return "flush3d";
         }
         //if player has won previous round and plays flush
@@ -261,8 +242,8 @@ export default class Player{
             return "flush";
         }
         //if hand is 333 55, or 33 555 format
-        if((hand[0] == "D3" && hand[1].includes("3") && hand[2].includes("3") && splitCard4[1] == splitCard5[1] 
-            || hand[0] == "D3" && hand[1].includes("3") && splitCard3[1] == splitCard4[1] && splitCard3[1] == splitCard5[1] && splitCard4[1] == splitCard5[1])){
+        if((hand[0] == "0 3" && hand[1].includes("3") && hand[2].includes("3") && splitCard4[1] == splitCard5[1] 
+            || hand[0] == "0 3" && hand[1].includes("3") && splitCard3[1] == splitCard4[1] && splitCard3[1] == splitCard5[1] && splitCard4[1] == splitCard5[1])){
             return "fullHouse3d";
         }
         //if player has won previous round and plays fullhouse(in either 44 222 or 333 22 format) 
@@ -276,7 +257,7 @@ export default class Player{
             return "fullHouse";
         } 
         //(four of a kind + kicker) if 3 of diamonds and first 4 cards are the same, then last card doesnt matter
-        if(hand[0] == "D3" && splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard3[1] == splitCard4[1]){ 
+        if(hand[0] == "0 3" && splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard3[1] == splitCard4[1]){ 
             return "fok3d";
         }
         //if prev round won and fok
@@ -295,17 +276,23 @@ export default class Player{
     }
 
     detectUniqueStraights(hand){
+        let splitCard1 = hand[0].split(' ');
+        let splitCard2 = hand[1].split(' ');
+        let splitCard3 = hand[2].split(' ');
+        let splitCard4 = hand[3].split(' ');
+        let splitCard5 = hand[4].split(' ');
+
         //if hand contains 3 4 5 A 2 change to A 2 3 4 5 
-        if(hand[0].slice(-1) == 3 && hand[1].slice(-1) == 4 && hand[2].slice(-1) == 5 && hand[3].slice(-1) == "A" && hand[4].slice(-1) == 2){
-                var aceCard = hand[3];
-                var twoCard = hand[4];
+        if(splitCard1[1] == 3 && splitCard2[1] == 4 && splitCard3[1] == 5 && splitCard4[1] == 1 && splitCard5[1] == 2){
+                let aceCard = hand[3];
+                let twoCard = hand[4];
                 hand.splice(4, 1); //remove 2 from hand
                 hand.splice(3, 1); //remove Ace from hand
                 hand.unshift(aceCard, twoCard); //add ace card and two to start of hand
                 console.log(hand);
         }
         //else if hand contains 3 4 5 6 2 change to 2 3 4 5 6
-        else if(hand[0].slice(-1) == 3 && hand[1].slice(-1) == 4 && hand[2].slice(-1) == 5 && hand[3].slice(-1) == 6 && hand[4].slice(-1) == 2){
+        else if(splitCard1[1] == 3 && splitCard2[1] == 4 && splitCard3[1] == 5 && splitCard4[1] == 6 && splitCard5[1] == 2){
             var twoCard = hand[4];
             hand.splice(4, 1); //remove 2 from hand
             hand.unshift(twoCard);
@@ -319,11 +306,12 @@ export default class Player{
 
     //return true if played card || combo is valid, else return false
     cardLogic(gameDeck, hand, lastValidHand, wonRound){ 
-        var deck = new Deck();
+        let deck = new Deck();
+        deck.sort(); //sort in big 2 ascending order
         var cardMap = deck.cardHash();
         var lastPlayedHand = []; //card array holds the hand that we will use to validate
         var lastPlayedHandIndex = gameDeck.length - lastValidHand;
-        //console.log("last played hand index: " + lastPlayedHandIndex);
+        console.log("last played hand index: " + lastPlayedHandIndex);
 
         //loop from last hand played until end of gamedeck
         for(let i = lastPlayedHandIndex; i < gameDeck.length; i++){
@@ -331,7 +319,7 @@ export default class Player{
             if(i < 0){
                 continue; //don't insert cards into last played hand and continue out of loop
             }
-            lastPlayedHand.push(gameDeck[i].suit + gameDeck[i].value); //insert last played cards into array (as a string to use with comboValidate function)
+            lastPlayedHand.push(gameDeck[i].suit + " " +gameDeck[i].rank); //insert last played cards into array ['0 3', '1 3'] (as a string to use with comboValidate function)
         }
 
         //switch case using hand length
@@ -340,7 +328,7 @@ export default class Player{
             case 1:
                 //if gamedeck is empty TO DO program it to detect after round has been won, pass in passTracker
                 if(gameDeck.length == 0){ 
-                    if(hand[0] == "D3"){
+                    if(hand[0] == "0 3"){
                         return true;
                     }
                     //if player has won the previous hand, allow them to place any single card down 
@@ -367,11 +355,11 @@ export default class Player{
                 break;
             //validate doubles
             case 2:
-                var splitCard1 = hand[0].split(''); //output: splitCard1[0] = suit | splitCard[1] = value
-                var splitCard2 = hand[1].split(''); 
+                var splitCard1 = hand[0].split(' '); //output: splitCard1[0] = suit | splitCard[1] = rank
+                var splitCard2 = hand[1].split(' '); 
                 if(gameDeck.length == 0){
                     //if gamedeck is empty and hand contains a 3 of diamonds and another 3 card, return valid as its a valid double
-                    if(hand[0] == "D3" && hand[1].includes("3")){
+                    if(hand[0] == "0 3" && hand[1].includes("3")){
                         return true;
                     }
                     //else if player has won previous round and hand contains a valid double, return true 
@@ -400,13 +388,13 @@ export default class Player{
                 break;
             //validate triples
             case 3:
-                var splitCard1 = hand[0].split(''); //output: splitCard1[0] = suit | splitCard[1] = value
-                var splitCard2 = hand[1].split('');
-                var splitCard3 = hand[2].split('');
+                var splitCard1 = hand[0].split(' '); 
+                var splitCard2 = hand[1].split(' ');
+                var splitCard3 = hand[2].split(' ');
 
                 if(gameDeck.length == 0){
                     //if gamedeck is empty and hand contains a 3 of diamonds and two other 3 cards, return valid as its a valid triple to start game with
-                    if(hand[0] == "D3" && hand[1].includes("3") && hand[2].includes("3")){
+                    if(hand[0] == "0 3" && hand[1].includes("3") && hand[2].includes("3")){
                         return true;
                     } 
                     //else if player has won previous round and hand contains a valid triple, return true
@@ -420,8 +408,7 @@ export default class Player{
 
                 if(gameDeck.length > 0){
                     if(lastPlayedHand.length == 3){
-                        //if all 3 hand cards have same value AND first card is greater than last played first card AND second card is greater than second last played card
-                        //AND third card is greater than last played third card return true
+                        //check if hand contains a triple and return true if triple is bigger than previous triple
                         if(splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard1[1] == splitCard3[1] && cardMap.get(hand[0]) > cardMap.get(lastPlayedHand[0]) 
                             && cardMap.get(hand[1]) > cardMap.get(lastPlayedHand[1]) && cardMap.get(hand[2]) > cardMap.get(lastPlayedHand[2])){
                             return true;
@@ -443,6 +430,7 @@ export default class Player{
                 var combo = this.validateCombo(hand, wonRound);
                 console.log("current combo: " + combo);
 
+                //TODO clean this up
                 if(gameDeck.length == 0){
                     //else if 3 of diamonds and hand contains a straight
                     if(combo == "straight3d"){
@@ -497,6 +485,7 @@ export default class Player{
                         console.log("last played combo: " + lastPlayedCombo);
                         //console.log(" 3 4 5 6 2 combo: " + lastPlayedHand[3].slice(-1) + " " + lastPlayedHand[4].slice(-1))
         
+                        //TO DO clean this whole section up (make all if statements a function)
                         //if last played combo is straight (all variants) and hand combo is higher straight(done) or flush(done), or full house(done), or fok(done), or straight flush(done)
                         if(lastPlayedCombo == "straight3d" && combo == "straight" && cardMap.get(hand[4]) > cardMap.get(lastPlayedHand[4]) 
                             || lastPlayedCombo == "straightWonRound" && combo == "straight" && cardMap.get(hand[4]) > cardMap.get(lastPlayedHand[4])
@@ -552,6 +541,17 @@ export default class Player{
         }
     }
 
+    //return card element through using cardId as a key
+    findCardObject(cardId){
+        for(let i = 0; i < this.numberOfCards; i++){
+            let currentCard = this.cards[i];
+
+            if(currentCard.suit + " " + currentCard.rank == cardId){
+                return currentCard;
+            }
+        }
+    }
+
     //function takes care of selecting cards and inserting cards into hand, sorting the hand, validating move and inserting the hand onto the game deck, and returning promise
     async playCard(gameDeck, turn, lastValidHand, wonRound){
         var playButton = document.getElementById("play"); //set player class to active if its their turn
@@ -560,7 +560,6 @@ export default class Player{
         var passAudio = new Audio("audio/pass.mp3");
         var self = this; //assign player to self
         var hand = []; //hand array holds selected cards
-        var cards = document.querySelectorAll('[id="' + turn + '"] img'); //cards are refreshed every turn, contains player's card images
         var cardValidate;
         playButton.disabled = true; //disable play button because no card is selected which is an invalid move
         
@@ -571,20 +570,28 @@ export default class Player{
             passButton.disabled = false;
         }
 
-        //this function handles the card selection logic
-        var cardClickListener = function(event) {
-            var card = event.target;
+        var cardClickListener = function(card) {
+            console.log('Card clicked:', card.$el);
 
-            if(hand.includes(card.id)) { 
-                hand = hand.filter(id => id !== card.id); //filter through hand array and remove card id
-                card.classList.remove('checked');
-            } else if (!hand.includes(card.id) && hand.length < 5){ //else if card isnt in hand array && hand length is less than 5
-                hand.push(card.id); //insert clicked on card into hand
+            //id the clicked card
+            let cardId = card.suit + " " + card.rank;
+            console.log(cardId);
+
+            if(hand.includes(cardId)) { 
+                hand = hand.filter(id => id !== cardId); //fremove card from hand if you click on it again
+                //remove checked class
+                console.log("unclicked");
                 console.log("currrent hand: " + hand);
-                card.classList.add('checked');
+                console.log("currrent hand length: " + hand.length);
+            } else if (!hand.includes(cardId) && hand.length < 5){ //else if card isnt in hand array && hand length is less than 5
+                console.log("clicked");
+                hand.push(cardId); //insert clicked on card into hand
+                //add checked css class for styling
+                
+                console.log("currrent hand length: " + hand.length);
             }
 
-            self.sortHandArray(hand); //sort selected hand so cardLogic function can tell whether its a combo, single, double or triple
+            self.sortHandArray(hand);
             cardValidate = self.cardLogic(gameDeck, hand, lastValidHand, wonRound); //return valid if played card meets requirements
             console.log("card validation: " + cardValidate);
 
@@ -592,18 +599,109 @@ export default class Player{
             if(cardValidate) {
                 playButton.disabled = false;
             } else {
-                playButton.disabled = true;
+                playButton.disabled = false;
             }
-        }
+        };
+        
+        this.cards.forEach(function(card) {
+            card.$el.removeEventListener('click', cardClickListener);
 
-        cards.forEach(function(card) {
-            //this will remove previous event listeners on cards and then add them back again, making sure theres only 1 event listener on each card
-            card.removeEventListener('click', cardClickListener);
-            card.addEventListener('click', cardClickListener);
-        })
+            card.$el.addEventListener('click', function() {
+                //remove click listeners first (because game loop calls function multiple times)
+                cardClickListener(card);
+            });
+
+        });
+
+        var myPromise = new Promise((resolve) => {
+            let animationPromises = []; //holds all animation promises
+            let cardsToRemove = []; //holds indexes of cards to be removed
+            let i = 0; //for staggered placing down animations (remove if i dont like it)
+            let gameDeckDiv = document.getElementById("gameDeck");
+
+            var playClickListener = function(event) {
+                hand.forEach(cardId => {
+                    //return index of player's card that matches a cardId in hand array
+                    let cardIndex = self.cards.findIndex(card => card.suit + " " + card.rank == cardId);
+                    let card = findCardObject(cardId); //return card object using cardId to search
+                    
+                    //animate card object to gameDeck position
+                    p1Promise = new Promise((cardResolve) => {
+                        setTimeout(function() {
+                            let gameDeckRect = gameDeckDiv.getBoundingClientRect();
+                            let centerY = gameDeckRect.top + gameDeckRect.height / 2 + window.scrollY;
+                            card.animateTo({
+                                delay: 0, // wait 1 second + i * 2 ms
+                                duration: 100,
+                                ease: 'linear',
+                                rot: 0,
+                                x: -212 + (i * 10),
+                                y: centerY,
+                                onComplete: function () {
+                                    if (cardIndex !== -1) {
+                                        gameDeck.push(self.cards[cardIndex]); //insert player's card that matches cardId into game deck
+                                        console.log("card inserted: " + self.cards[cardIndex].suit + self.cards[cardIndex].rank);
+                                        cardsToRemove.push(cardIndex); //add card index into cardsToRemove array, so I can remove all cards at same time after animations are finished
+                                        placeCardAudio.play();
+                                    }
+                                    card.mount(gameDeckDiv);
+                                    cardResolve(); //only resolve promise when animation is complete
+                                }
+                            })                                  
+                        },50 + i * 28);
+                    });
+                    animationPromises.push(p1Promise); //add animation promise to promise array
+                    i++;
+                })
+                // Wait for all card animations to complete
+                Promise.all(animationPromises).then(() => {
+                    //loop through cardsToRemove arr, starting from highest index, so splicing wont affect lower indexed cards
+                    //call playClickListener function when playButton is clicked, the function will remove event listener after its called
+                    
+                    cardsToRemove.sort().reverse().forEach(index => {
+                        console.log("removed cards: " + self.cards[index].suit + self.cards[index].value);
+                        self.cards.splice(index, 1); //remove played cards from player's hand after animations finish
+                    });
+                        
+                    resolve(hand.length); //return amount of cards played, to move forward for loop
+                    hand.length = 0; //clear hand after playing it
+                });
+
+                //remove playButton event listener to prevent propogation
+                playButton.removeEventListener('click', playClickListener);
+                
+                //remove pass button listener, when player passes so event listeners dont propogate
+                passButton.removeEventListener('click', passClickListener);
+            }
+
+            playButton.addEventListener("click", playClickListener, { once: true });
+                
+            var passClickListener = function(event) {
+                //when player passes, remove all selected cards and remove checked class from all cards
+                cards.forEach(card => {
+                    card.classList.remove('checked');
+                })
+                
+                hand.length = 0
+                passAudio.play(); // TO DO: bug, audio sometimes plays twice for some reason
+                resolve(0); //if player passes, return 0 cards played
+
+                //remove passButton event listener after pass button functions are completed
+                passButton.removeEventListener('click', passClickListener);
+
+                //remove play button listener, when player passes so event listeners dont propogate
+                playButton.removeEventListener('click', playClickListener); 
+            }
+
+            //call passClickListener function when passButton is clicked, the function will remove event listener after its called
+            passButton.addEventListener("click", passClickListener, { once: true });
+            
+        });
+
+        return myPromise;
 
         //promise resolves hand length or 0 if player passes
-        var myPromise = new Promise((resolve) => {
+        /*var myPromise = new Promise((resolve) => {
             var animationPromises = []; //holds all animation promises
             var cardsToRemove = []; //holds indexes of cards to be removed
 
@@ -685,11 +783,11 @@ export default class Player{
 
             //call passClickListener function when passButton is clicked, the function will remove event listener after its called
             passButton.addEventListener("click", passClickListener, { once: true });
-        });
+        });*/
 
         
 
-        return myPromise;
+        
     }
 }
 

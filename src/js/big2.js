@@ -45,10 +45,13 @@ async function sortHands(players){
     // Wait for all animation promises to resolve
     await Promise.all(animationPromises);
 
-    /*/ Code to execute after all animations are completed
+    // Code to execute after all animations are completed
     for(let i = 0; i < players[0].numberOfCards; i++){
         players[0].cards[i].setSide('front');
-    }*/
+        players[1].cards[i].setSide('front');
+        players[2].cards[i].setSide('front');
+        players[3].cards[i].setSide('front');
+    }
     // You can return a resolved promise if needed
     return Promise.resolve('sortComplete');
 }
@@ -107,7 +110,7 @@ async function dealCards(deck, players) {
                     //play different dealing animations depending on player index
                     switch (playerIndex) {
                         case 0:
-                            card.setSide('front');
+                            //card.setSide('front');
                             p1Promise = new Promise((cardResolve) => {
                                 setTimeout(function() {
                                     card.animateTo({
@@ -129,7 +132,7 @@ async function dealCards(deck, players) {
                             playerIndex++;
                             break;
                         case 1:
-                            card.setSide('front')
+                            //card.setSide('front')
                             p2Promise = new Promise((cardResolve) => {
                                 setTimeout(function() {
                                     card.animateTo({
@@ -151,7 +154,7 @@ async function dealCards(deck, players) {
                             });
                             break;
                         case 2:
-                            card.setSide('front')
+                            //card.setSide('front')
                             p3Promise = new Promise((cardResolve) => {
                                 setTimeout(function() {
                                     card.animateTo({
@@ -173,14 +176,14 @@ async function dealCards(deck, players) {
                             });
                             break;
                         case 3:
-                            card.setSide('front')
+                            //card.setSide('front')
                             p4Promise = new Promise((cardResolve) => {
                                 setTimeout(function() {
                                     card.animateTo({
                                         delay: 0 , // wait 1 second + i * 2 ms
                                         duration: 100,
                                         ease: 'linear',
-                                        rot: 270,
+                                        rot: 90,
                                         x: 440,
                                         y: 272 - (i * 10),
                                         onComplete: function () {
@@ -258,7 +261,7 @@ const gameLoop = async _ => {
         let passTracker = 0;
         let wonRound = false;
         let turnDisplay = document.getElementById("turn");
-        let turn = await determineTurn(players); //player with 3 of diamonds has first turn
+        let turn = 0;//await determineTurn(players); //player with 3 of diamonds has first turn
         console.log("turn: " + turn)
 
         //each loop represents a single turn
@@ -267,7 +270,7 @@ const gameLoop = async _ => {
             turnDisplay.textContent = "Current Turn: Player " + (turn + 1) ;
             wonRound = false; //reset wonRound to false, its only true if 3 players have passed
 
-            /*
+            
             if(passTracker == 3){
                 wonRound = true; //return wonRound as true
                 console.log("Player " + turn + " has won the round, has a free turn");
@@ -282,8 +285,11 @@ const gameLoop = async _ => {
             }
             //else if turn !=0 its oppponent cpu TO DO: pass gamestate object in to keep track of combo, score, etc
             else{
-                playedHand = await players[turn].playCard(gameDeck, turn, lastValidHand, wonRound, players);
-            }*/
+                //playedHand = await players[turn].playCard(gameDeck, turn, lastValidHand, wonRound, players);
+                continue;
+            }
+
+            console.log("played hand debug: " + playedHand);
         }
     }
 
