@@ -9,7 +9,7 @@ body {
     background-color: lightgrey;
 }
 
-.main-container {
+#gameContainer {
     width: 1000px;
     height: 650px;
     background-image: url('/icons/Wooden-Background.jpg');

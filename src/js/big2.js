@@ -74,7 +74,7 @@ function shuffleDeckAsync(deck, times, delayBetweenShuffles) {
       Promise.all(shufflePromises).then(() => {
         setTimeout(() => {
           resolve('shuffleComplete');
-        }, 2100);
+        }, 250); //default 2100 7 shuffles
       });
     });
   }
@@ -94,7 +94,7 @@ async function dealCards(deck, players) {
         let $container = document.getElementById('gameDeck');
         deck.mount($container);
 
-        let shufflePromise = shuffleDeckAsync(deck, 7, 0);
+        let shufflePromise = shuffleDeckAsync(deck, 1, 0);
 
         // Use a for...of loop to iterate over the cards with asynchronous behavior
         var playerIndex = 0;
@@ -245,8 +245,7 @@ window.onload = async function() {
         // Cards have been dealt and animations are complete
         console.log('Dealing complete');
         var winner = await gameLoop();
-        
-
+        //TODO add post game screen (score, positions, continue to next game option)
     }
     
     //let winner = await gameLoop();
@@ -270,13 +269,12 @@ const gameLoop = async _ => {
             turnDisplay.textContent = "Current Turn: Player " + (turn + 1) ;
             wonRound = false; //reset wonRound to false, its only true if 3 players have passed
 
-            
+            //if 3 players pass, flag wonRound, reset gameDeck and passTracker
             if(passTracker == 3){
-                wonRound = true; //return wonRound as true
+                wonRound = true; 
                 console.log("Player " + turn + " has won the round, has a free turn");
-                gameDeck.length = 0; //reset gameDeck because player has won round, like in real life
-                 //clear the game deck
-                passTracker = 0; //reset passTracker value
+                gameDeck.length = 0; //clear the game deck because player has won round, like in real life TODO: record the gameDeck before resetting (to show card's played)
+                passTracker = 0; 
             }
 
             //if turn == 0
@@ -290,6 +288,31 @@ const gameLoop = async _ => {
             }
 
             console.log("played hand debug: " + playedHand);
+
+            if(playedHand >= 1 && playedHand <= 5){ //if player played a valid hand
+                passTracker = 0; //reset passTracker if hand has been played
+
+                //if player or ai play a valid hand, sort their cards
+                await sortHands(players);
+                
+                lastValidHand = playedHand; //store last played hand length, even after a player passes (so I dont pass 0 into the card validate function in player class)
+    
+                if (players[turn].numberOfCards == 0){ //if player has 0 cards left, print out winner message
+                    return new Promise(resolve => {
+                        resolve("Player " + turn + " won!");
+                    });
+                }
+    
+                turn += 1; 
+                if (turn > 3) turn = 0; //go back to player 1's turn after player 4's turn
+            }
+            else if(playedHand == 0){ //else if player passed
+                turn += 1;
+                passTracker += 1; //keeps track of number of passes to track if anyone has won round
+                console.log("pass tracker: " + passTracker);
+                console.log("player passed");
+                if (turn > 3) turn = 0;
+            }
         }
     }
 

@@ -10,12 +10,12 @@ const cardRankLookupTable = {
   "7": 5,
   "8": 6,
   "9": 7,
-  "0": 8, //represents 10, 0 is returned from hand.slice(-1)
-  "J": 9,
-  "Q": 10,
-  "K": 11,
-  "A": 12,
-  "2": 13
+  "10": 8, //keys are card ranks 
+  "11": 9,
+  "12": 10,
+  "13": 11, //king
+  "1": 12, //ace
+  "2": 13 //two
 };
 
 export default class Opponent extends Player {
@@ -136,19 +136,19 @@ export default class Opponent extends Player {
     
       for (let i = 0; i < this.numberOfCards; i++) {
         var potentialStraight = [this.cards[i]];
-        var currentValue = cardRankLookupTable[this.cards[i].value]; //e.g 'K' = 11
+        var currentValue = cardRankLookupTable[this.cards[i].rank]; //e.g 'K' = 11
     
         //compare adjacent card values
         for (let j = i + 1; j < this.numberOfCards; j++) {
           // Dont take into account special case: check for straight with values 3, 4, 5, 6, and 2
           
           //if next card value minus current card value = 1, then add card to potential straight array
-          if (cardRankLookupTable[this.cards[j].value] - currentValue === 1) {
+          if (cardRankLookupTable[this.cards[j].rank] - currentValue === 1) {
             potentialStraight.push(this.cards[j]);
-            currentValue = cardRankLookupTable[this.cards[j].value];
+            currentValue = cardRankLookupTable[this.cards[j].rank];
 
           }
-          else if (cardRankLookupTable[this.cards[j].value] !== currentValue) {
+          else if (cardRankLookupTable[this.cards[j].rank] !== currentValue) {
             // Break the straight if the current card value is not consecutive
             break;
           }

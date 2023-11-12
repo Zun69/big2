@@ -570,7 +570,7 @@ export default class Player{
             passButton.disabled = false;
         }
 
-        var cardClickListener = function(card) {
+        let cardClickListener = function(card) {
             console.log('Card clicked:', card.$el);
 
             //id the clicked card
@@ -580,6 +580,16 @@ export default class Player{
             if(hand.includes(cardId)) { 
                 hand = hand.filter(id => id !== cardId); //fremove card from hand if you click on it again
                 //remove checked class
+                card.animateTo({
+                    delay: 0, // wait 1 second + i * 2 ms
+                    duration: 100,
+                    ease: 'linear',
+                    rot: 180,
+                    x: card.x,
+                    y: card.y + 10,
+                    onComplete: function () {
+                    }
+                })    
                 console.log("unclicked");
                 console.log("currrent hand: " + hand);
                 console.log("currrent hand length: " + hand.length);
@@ -587,7 +597,16 @@ export default class Player{
                 console.log("clicked");
                 hand.push(cardId); //insert clicked on card into hand
                 //add checked css class for styling
-                
+                card.animateTo({
+                    delay: 0, // wait 1 second + i * 2 ms
+                    duration: 100,
+                    ease: 'linear',
+                    rot: 180,
+                    x: card.x,
+                    y: card.y - 10,
+                    onComplete: function () {
+                    }
+                })    
                 console.log("currrent hand length: " + hand.length);
             }
 
@@ -599,18 +618,19 @@ export default class Player{
             if(cardValidate) {
                 playButton.disabled = false;
             } else {
-                playButton.disabled = false;
+                playButton.disabled = true;
             }
         };
-        
+
+        //add event listeners on cards
         this.cards.forEach(function(card) {
+            //remove click listeners first (because game loop calls function multiple times)
             card.$el.removeEventListener('click', cardClickListener);
 
+            //add click listener for every card
             card.$el.addEventListener('click', function() {
-                //remove click listeners first (because game loop calls function multiple times)
                 cardClickListener(card);
             });
-
         });
 
         var myPromise = new Promise((resolve) => {
@@ -619,36 +639,32 @@ export default class Player{
             let i = 0; //for staggered placing down animations (remove if i dont like it)
             let gameDeckDiv = document.getElementById("gameDeck");
 
-            var playClickListener = function(event) {
+            var playClickListener = function() {
                 hand.forEach(cardId => {
                     //return index of player's card that matches a cardId in hand array
                     let cardIndex = self.cards.findIndex(card => card.suit + " " + card.rank == cardId);
-                    let card = findCardObject(cardId); //return card object using cardId to search
+                    let card = self.findCardObject(cardId); //return card object using cardId to search
                     
-                    //animate card object to gameDeck position
-                    p1Promise = new Promise((cardResolve) => {
-                        setTimeout(function() {
-                            let gameDeckRect = gameDeckDiv.getBoundingClientRect();
-                            let centerY = gameDeckRect.top + gameDeckRect.height / 2 + window.scrollY;
-                            card.animateTo({
-                                delay: 0, // wait 1 second + i * 2 ms
-                                duration: 100,
-                                ease: 'linear',
-                                rot: 0,
-                                x: -212 + (i * 10),
-                                y: centerY,
-                                onComplete: function () {
-                                    if (cardIndex !== -1) {
-                                        gameDeck.push(self.cards[cardIndex]); //insert player's card that matches cardId into game deck
-                                        console.log("card inserted: " + self.cards[cardIndex].suit + self.cards[cardIndex].rank);
-                                        cardsToRemove.push(cardIndex); //add card index into cardsToRemove array, so I can remove all cards at same time after animations are finished
-                                        placeCardAudio.play();
-                                    }
-                                    card.mount(gameDeckDiv);
-                                    cardResolve(); //only resolve promise when animation is complete
+                    //animate card object to gameDeck position (//can use turn to slightly stagger the cards like uno on ios)
+                    let p1Promise = new Promise((cardResolve) => {
+                        card.animateTo({
+                            delay: 0, // wait 1 second + i * 2 ms
+                            duration: 150,
+                            ease: 'linear',
+                            rot: 180,
+                            x: 18 + (i * 15),
+                            y: -11,
+                            onComplete: function () {
+                                if (cardIndex !== -1) {
+                                    gameDeck.push(self.cards[cardIndex]); //insert player's card that matches cardId into game deck
+                                    console.log("card inserted: " + self.cards[cardIndex].suit + self.cards[cardIndex].rank);
+                                    cardsToRemove.push(cardIndex); //add card index into cardsToRemove array, so I can remove all cards at same time after animations are finished
+                                    placeCardAudio.play();
                                 }
-                            })                                  
-                        },50 + i * 28);
+                                //card.mount(gameDeckDiv);
+                                cardResolve(); //only resolve promise when animation is complete
+                            }
+                        })                                  
                     });
                     animationPromises.push(p1Promise); //add animation promise to promise array
                     i++;
@@ -656,10 +672,9 @@ export default class Player{
                 // Wait for all card animations to complete
                 Promise.all(animationPromises).then(() => {
                     //loop through cardsToRemove arr, starting from highest index, so splicing wont affect lower indexed cards
-                    //call playClickListener function when playButton is clicked, the function will remove event listener after its called
                     
                     cardsToRemove.sort().reverse().forEach(index => {
-                        console.log("removed cards: " + self.cards[index].suit + self.cards[index].value);
+                        console.log("removed cards: " + self.cards[index].suit + self.cards[index].rank);
                         self.cards.splice(index, 1); //remove played cards from player's hand after animations finish
                     });
                         
@@ -674,6 +689,7 @@ export default class Player{
                 passButton.removeEventListener('click', passClickListener);
             }
 
+            //call playClickListener function when playButton is clicked, the function will remove event listener after its called
             playButton.addEventListener("click", playClickListener, { once: true });
                 
             var passClickListener = function(event) {
@@ -699,95 +715,6 @@ export default class Player{
         });
 
         return myPromise;
-
-        //promise resolves hand length or 0 if player passes
-        /*var myPromise = new Promise((resolve) => {
-            var animationPromises = []; //holds all animation promises
-            var cardsToRemove = []; //holds indexes of cards to be removed
-
-            //this function will insert selected hand into deck and animate the cards, and will remove pass and play button event listeners after
-            var playClickListener = function(event) {
-                hand.forEach(cardId => {
-                    //return index of player's card that matches a cardId in hand array
-                    var cardIndex = self.cards.findIndex(card => card.suit + card.value === cardId);
-
-                    //animate cards using cardId to identify corresponding images
-                    var imageToAnimate = document.getElementById(cardId);
-
-                    //adjust x and y deltas for each human player so animations perfectly finish on top of gameDeck
-                    var deltaX = 490 - imageToAnimate.offsetLeft; // Fixed X-coordinate of the target position
-                    var deltaY = -270 - imageToAnimate.offsetTop; // Fixed Y-coordinate of the target position
-
-                    // Animate the image towards the target element
-                    var animation = imageToAnimate.animate([
-                        { transform: "translate(0, 0) rotate(0deg)" },
-                        { transform: `translate(${deltaX}px, ${deltaY}px)` }
-                    ], {
-                        duration: 300,
-                        easing: "ease-in"
-                    });
-                    //the animations will be added to animationPromises array, only after the animation fully resolves
-                    animationPromises.push(animation.finished.then(() => new Promise(resolve => setTimeout(resolve, 0)))); 
-                  
-                    animation.finished.then(() => { 
-                        console.log("ANIMATION FINISH")
-                        if (cardIndex !== -1) {
-                            gameDeck.push(self.cards[cardIndex]); //insert player's card that matches cardId into game deck
-                            console.log("card inserted: " + self.cards[cardIndex].suit + self.cards[cardIndex].value);
-                            cardsToRemove.push(cardIndex); //add card index into cardsToRemove array, so I can remove all cards at same time after animations are finished
-                            placeCardAudio.play();
-                        }
-                    });
-                })
-
-                //remove cards, update player's cards, and resolve hand length after all animations (if more than 1 card played) are finished
-                Promise.all(animationPromises).then(() => {
-                    //loop through cardsToRemove arr, starting from highest index, so splicing wont affect lower indexed cards
-                    cardsToRemove.sort().reverse().forEach(index => {
-                        console.log("removed cards: " + self.cards[index].suit + self.cards[index].value);
-                        self.cards.splice(index, 1); //remove played cards from player's hand after animations finish
-                    });
-                    
-                    self.printCards(turn);
-                    resolve(hand.length); //return amount of cards played, to move forward for loop
-                    hand.length = 0; //clear hand after playing it
-                });
-                
-                //remove playButton event listener to prevent propogation
-                playButton.removeEventListener('click', playClickListener);
-                
-                //remove pass button listener, when player passes so event listeners dont propogate
-                passButton.removeEventListener('click', passClickListener);
-            }
-
-            //call playClickListener function when playButton is clicked, the function will remove event listener after its called
-            playButton.addEventListener("click", playClickListener, { once: true });
-                
-            
-            var passClickListener = function(event) {
-                //when player passes, remove all selected cards and remove checked class from all cards
-                cards.forEach(card => {
-                    card.classList.remove('checked');
-                })
-                
-                hand.length = 0
-                passAudio.play(); // TO DO: bug, audio sometimes plays twice for some reason
-                resolve(0); //if player passes, return 0 cards played
-
-                //remove passButton event listener after pass button functions are completed
-                passButton.removeEventListener('click', passClickListener);
-
-                //remove play button listener, when player passes so event listeners dont propogate
-                playButton.removeEventListener('click', playClickListener); 
-            }
-
-            //call passClickListener function when passButton is clicked, the function will remove event listener after its called
-            passButton.addEventListener("click", passClickListener, { once: true });
-        });*/
-
-        
-
-        
     }
 }
 
