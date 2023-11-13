@@ -47,7 +47,6 @@ export default class Player{
         let deck = new Deck();
         deck.sort();
         let cardMap = deck.cardHash();
-        console.log(cardMap);
 
         //bubble sort using cardMap to compare card values
         for(var i = 0; i < this.numberOfCards; i++){
@@ -133,7 +132,7 @@ export default class Player{
             case 0:
                 return 180;
             case 1:
-                return 90;
+                return 270;
             case 2:
                 return 180; 
             case 3:
@@ -170,6 +169,7 @@ export default class Player{
         return Promise.all(animationPromises);
     }
       
+    //playingCard animation
     
 
     //TO DO: validateCombo function, return string of combo detected, use that string as a key to combo look up e.g FIVE_HAND_COMBO['fullHouse'] = 3
@@ -182,8 +182,8 @@ export default class Player{
         var straight = true;
 
         for(let i = 3; i >= 0; i--){
-            var currentRank = hand[i].split(' '); //return value from lookup table, using hand ranks as the key
-            var nextRank = hand[i+1].split(' ');
+            var currentRank = +hand[i].split(' ')[1]; // Convert to number
+            var nextRank = +hand[i + 1].split(' ')[1]; // Convert to number
 
             //if nextRank - currentRank value not 1, means card values are not exactly one rank higher
             if(nextRank - currentRank != 1){
@@ -561,6 +561,7 @@ export default class Player{
         var self = this; //assign player to self
         var hand = []; //hand array holds selected cards
         var cardValidate;
+        var p1Div = document.getElementById("0");
         playButton.disabled = true; //disable play button because no card is selected which is an invalid move
         
         //disable pass button because you can't pass on first move or on a wonRound
@@ -578,8 +579,8 @@ export default class Player{
             console.log(cardId);
 
             if(hand.includes(cardId)) { 
-                hand = hand.filter(id => id !== cardId); //fremove card from hand if you click on it again
                 //remove checked class
+                hand = hand.filter(id => id !== cardId); //fremove card from hand if you click on it again
                 card.animateTo({
                     delay: 0, // wait 1 second + i * 2 ms
                     duration: 100,
@@ -588,6 +589,7 @@ export default class Player{
                     x: card.x,
                     y: card.y + 10,
                     onComplete: function () {
+                        
                     }
                 })    
                 console.log("unclicked");
@@ -656,6 +658,7 @@ export default class Player{
                             y: -11,
                             onComplete: function () {
                                 if (cardIndex !== -1) {
+                                    card.$el.style.zIndex = gameDeck.length; //make it equal gameDeck.length
                                     gameDeck.push(self.cards[cardIndex]); //insert player's card that matches cardId into game deck
                                     console.log("card inserted: " + self.cards[cardIndex].suit + self.cards[cardIndex].rank);
                                     cardsToRemove.push(cardIndex); //add card index into cardsToRemove array, so I can remove all cards at same time after animations are finished
@@ -693,10 +696,7 @@ export default class Player{
             playButton.addEventListener("click", playClickListener, { once: true });
                 
             var passClickListener = function(event) {
-                //when player passes, remove all selected cards and remove checked class from all cards
-                cards.forEach(card => {
-                    card.classList.remove('checked');
-                })
+                //when player passes, remove all selected cards and remove checked class from all cards)
                 
                 hand.length = 0
                 passAudio.play(); // TO DO: bug, audio sometimes plays twice for some reason

@@ -34,7 +34,6 @@ async function sortHands(players){
 
     players.forEach(function(player){
         player.sortHand();
-        console.log(player.cards)
     });
     
     for (let i = 0; i < 4; i++) {
@@ -47,10 +46,7 @@ async function sortHands(players){
 
     // Code to execute after all animations are completed
     for(let i = 0; i < players[0].numberOfCards; i++){
-        players[0].cards[i].setSide('front');
-        players[1].cards[i].setSide('front');
-        players[2].cards[i].setSide('front');
-        players[3].cards[i].setSide('front');
+        //players[0].cards[i].setSide('front');
     }
     // You can return a resolved promise if needed
     return Promise.resolve('sortComplete');
@@ -110,7 +106,7 @@ async function dealCards(deck, players) {
                     //play different dealing animations depending on player index
                     switch (playerIndex) {
                         case 0:
-                            //card.setSide('front');
+                            card.setSide('front');
                             p1Promise = new Promise((cardResolve) => {
                                 setTimeout(function() {
                                     card.animateTo({
@@ -132,14 +128,14 @@ async function dealCards(deck, players) {
                             playerIndex++;
                             break;
                         case 1:
-                            //card.setSide('front')
+                            card.setSide('front')
                             p2Promise = new Promise((cardResolve) => {
                                 setTimeout(function() {
                                     card.animateTo({
                                         delay: 0 , // wait 1 second + i * 2 ms
                                         duration: 100,
                                         ease: 'linear',
-                                        rot: 270,
+                                        rot: 90,
                                         x: -425,
                                         y: -250 + (i * 10),
                                         onComplete: function () {
@@ -154,7 +150,7 @@ async function dealCards(deck, players) {
                             });
                             break;
                         case 2:
-                            //card.setSide('front')
+                            card.setSide('front')
                             p3Promise = new Promise((cardResolve) => {
                                 setTimeout(function() {
                                     card.animateTo({
@@ -176,7 +172,7 @@ async function dealCards(deck, players) {
                             });
                             break;
                         case 3:
-                            //card.setSide('front')
+                            card.setSide('front')
                             p4Promise = new Promise((cardResolve) => {
                                 setTimeout(function() {
                                     card.animateTo({
@@ -260,7 +256,7 @@ const gameLoop = async _ => {
         let passTracker = 0;
         let wonRound = false;
         let turnDisplay = document.getElementById("turn");
-        let turn = 0;//await determineTurn(players); //player with 3 of diamonds has first turn
+        let turn = await determineTurn(players); //player with 3 of diamonds has first turn
         console.log("turn: " + turn)
 
         //each loop represents a single turn
@@ -283,28 +279,32 @@ const gameLoop = async _ => {
             }
             //else if turn !=0 its oppponent cpu TO DO: pass gamestate object in to keep track of combo, score, etc
             else{
-                //playedHand = await players[turn].playCard(gameDeck, turn, lastValidHand, wonRound, players);
-                continue;
+                playedHand = await players[turn].playCard(gameDeck, turn, lastValidHand, wonRound, players);
+                console.log("opponent playhand: " + playedHand);
             }
 
-            console.log("played hand debug: " + playedHand);
-
             if(playedHand >= 1 && playedHand <= 5){ //if player played a valid hand
+                console.log("played hand debug: " + playedHand);
                 passTracker = 0; //reset passTracker if hand has been played
+                //update gamedeck (unmount all cards in gameDeck OR animate them to another empty deck that is mounted in a div 
+                // (deal the finished card into the deck, then I can use the finishedDeck.length to determine the end of the game))
 
-                //if player or ai play a valid hand, sort their cards
-                await sortHands(players);
                 
-                lastValidHand = playedHand; //store last played hand length, even after a player passes (so I dont pass 0 into the card validate function in player class)
+                //if player or ai play a valid hand, sort their cards
+                let resolve = await sortHands(players);
+                
+                if(resolve == 'sortComplete'){
+                    lastValidHand = playedHand; //store last played hand length, even after a player passes (so I dont pass 0 into the card validate function in player class)
     
-                if (players[turn].numberOfCards == 0){ //if player has 0 cards left, print out winner message
-                    return new Promise(resolve => {
-                        resolve("Player " + turn + " won!");
-                    });
+                    if (players[turn].numberOfCards == 0){ //if player has 0 cards left, print out winner message
+                        return new Promise(resolve => {
+                            resolve("Player " + turn + " won!");
+                        });
+                    }
+
+                    turn += 1; 
+                    if (turn > 3) turn = 0; //go back to player 1's turn after player 4's turn
                 }
-    
-                turn += 1; 
-                if (turn > 3) turn = 0; //go back to player 1's turn after player 4's turn
             }
             else if(playedHand == 0){ //else if player passed
                 turn += 1;
