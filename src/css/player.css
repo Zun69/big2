@@ -103,15 +103,6 @@
   position: absolute;
   top: -268px; /* Adjust this value as needed */
   left: 44%;
-  
-}
-
-.player:nth-child(4) img:hover{
-  transform: translateY(-15px);
-}
-
-.player:nth-child(4) .checked{
-  transform: translateY(-15px);
 }
 
 

@@ -6,8 +6,15 @@ const Player2 = new Opponent(); //ai player
 const Player3 = new Opponent();
 const Player4 = new Opponent();
 const players = [ Player1, Player2, Player3, Player4 ];
-const deck = new Deck();
 const gameDeck = []; //playing deck will be empty array, will be filled with card objects
+const deck = Deck();
+const finishedDeck = Deck(); //store post round cards
+
+// Empty the deck of all its cards
+finishedDeck.cards.forEach(function (card) {
+    card.unmount();
+});
+finishedDeck.cards = [];
 
 var cardHashModule = {
     deck: function (_deck) {
@@ -135,7 +142,7 @@ async function dealCards(deck, players) {
                                         delay: 0 , // wait 1 second + i * 2 ms
                                         duration: 100,
                                         ease: 'linear',
-                                        rot: 90,
+                                        rot: 0,
                                         x: -425,
                                         y: -250 + (i * 10),
                                         onComplete: function () {
@@ -179,7 +186,7 @@ async function dealCards(deck, players) {
                                         delay: 0 , // wait 1 second + i * 2 ms
                                         duration: 100,
                                         ease: 'linear',
-                                        rot: 90,
+                                        rot: 0,
                                         x: 440,
                                         y: 272 - (i * 10),
                                         onComplete: function () {
@@ -231,11 +238,46 @@ async function startPromise() {
     return myPromise;
 }
 
+async function finishDeckAnimation(gameDeck, finishedDeck) {
+    return new Promise(async function (resolve, reject) {
+        let finishedDeckDiv = document.getElementById("finishedDeck");
+
+        for (let i = 0; i < gameDeck.length; i++) {
+            let card = gameDeck[i];
+            card.setSide('back');
+            
+            //wait until each card is finished animating
+            await new Promise((cardResolve) => {
+                setTimeout(function () {
+                    card.animateTo({
+                        delay: 0,
+                        duration: 100,
+                        ease: 'linear',
+                        rot: 180,
+                        x: 240 + finishedDeck.cards.length * 0.25,
+                        y: -150,
+                        onComplete: function () {
+                            finishedDeck.cards.push(card); //push gameDeck card into finshedDeck
+                            card.$el.style.zIndex = finishedDeck.cards.length; //change z index of card to the length of finished deck
+                            finishedDeck.mount(finishedDeckDiv); //mount finishedDeck to div
+                            card.mount(finishedDeck.$el);  //mount card to the finishedDeck div
+                            cardResolve(); //resolve, so next card can animate
+                        }
+                    });
+                }, i * 3);
+            });
+        }
+
+        // All card animations are complete, mount finishedDeck to finish deck div and return resolve
+        resolve('finishDeckComplete');
+    });
+}
+
 
 
 window.onload = async function() {
     // Instanciate a deck with all cards
-    const deck = Deck();
+
     let dealResolve = await dealCards(deck, players);
     if(dealResolve === 'dealingComplete'){
         // Cards have been dealt and animations are complete
@@ -267,10 +309,15 @@ const gameLoop = async _ => {
 
             //if 3 players pass, flag wonRound, reset gameDeck and passTracker
             if(passTracker == 3){
-                wonRound = true; 
-                console.log("Player " + turn + " has won the round, has a free turn");
-                gameDeck.length = 0; //clear the game deck because player has won round, like in real life TODO: record the gameDeck before resetting (to show card's played)
-                passTracker = 0; 
+                // (deal the finished card into the deck, then I can use the finishedDeck.length to determine the end of the game))
+                let finishDeckResolve = await finishDeckAnimation(gameDeck, finishedDeck);
+
+                if(finishDeckResolve == "finishDeckComplete"){
+                    wonRound = true; 
+                    console.log("Player " + turn + " has won the round, has a free turn");
+                    gameDeck.length = 0; //clear the game deck because player has won round, like in real life TODO: record the gameDeck before resetting (to show card's played)
+                    passTracker = 0;
+                }
             }
 
             //if turn == 0
@@ -287,16 +334,16 @@ const gameLoop = async _ => {
                 console.log("played hand debug: " + playedHand);
                 passTracker = 0; //reset passTracker if hand has been played
                 //update gamedeck (unmount all cards in gameDeck OR animate them to another empty deck that is mounted in a div 
-                // (deal the finished card into the deck, then I can use the finishedDeck.length to determine the end of the game))
 
-                
+
                 //if player or ai play a valid hand, sort their cards
                 let resolve = await sortHands(players);
                 
                 if(resolve == 'sortComplete'){
                     lastValidHand = playedHand; //store last played hand length, even after a player passes (so I dont pass 0 into the card validate function in player class)
     
-                    if (players[turn].numberOfCards == 0){ //if player has 0 cards left, print out winner message
+                    //if finishedDeck has 52 cards, game is
+                    if (players[turn].numberOfCards == 0){ 
                         return new Promise(resolve => {
                             resolve("Player " + turn + " won!");
                         });
@@ -315,67 +362,6 @@ const gameLoop = async _ => {
             }
         }
     }
-
-    /*
-    let turn = await determineTurn(players); //player with 3 of diamonds has first turn
-    var playedHand = 0;
-    var lastValidHand;
-    var passTracker = 0; //track number of passes, if there are 3 passes that means player has won the round and game deck should be cleared
-    var wonRound = false;
-    var turnDisplay = document.getElementById("turn");
-
-    //each loop represents a single turn
-    for(let i = 0; i < 100; i++){
-        console.log("Current turn: Player " + turn);
-        turnDisplay.textContent = "Current Turn: Player " + (turn + 1) ;
-        wonRound = false; //reset wonRound to false, its only true if 3 players have passed 
-
-        if(passTracker == 3){
-            wonRound = true; //return wonRound as true
-            console.log("Player " + turn + " has won the round, has a free turn");
-            gameDeck.length = 0; //reset gameDeck because player has won round, like in real life
-            updateGameDeck(gameDeck, playedHand);
-            passTracker = 0; //reset passTracker value
-        }
-        
-        sortHands(players);
-        //TO DO: still a bug when round is won, can select any players card
-        //if turn == 0
-        if(turn == 0){
-            playedHand = await players[turn].playCard(gameDeck, turn, lastValidHand, wonRound); //resolve hand.length, function also validates hand 
-        }
-        //else if turn !=0 its oppponent cpu TO DO: pass gamestate object in to keep track of combo, score, etc
-        else{
-            playedHand = await players[turn].playCard(gameDeck, turn, lastValidHand, wonRound, players);
-        }
-
-        console.log("played hand debug: " + playedHand);
-        
-        if(playedHand >= 1 && playedHand <= 5){ //if player played a valid hand
-            passTracker = 0; //reset passTracker if hand has been played
-            updateGameDeck(gameDeck, playedHand);
-            //players[turn].printCards(turn); //update current player's cards after turn
-            lastValidHand = playedHand; //store last played hand length, even after a player passes (so I dont pass 0 into the card validate function in player class)
-
-            if (players[turn].numberOfCards == 0){ //if player has 0 cards left, print out winner message
-                return new Promise(resolve => {
-                    resolve("Player " + turn + " won!");
-                });
-            }
-
-            turn += 1; 
-            if (turn > 3) turn = 0; //go back to player 1's turn after player 4's turn
-        }
-        else if(playedHand == 0){ //else if player passed
-            turn += 1;
-            passTracker += 1; //keeps track of number of passes to track if anyone has won round
-            console.log("pass tracker: " + passTracker);
-            console.log("player passed");
-            if (turn > 3) turn = 0;
-        }
-        
-    }
-    */
 }
 
 //TO DO: make start menu that allows player to start game
