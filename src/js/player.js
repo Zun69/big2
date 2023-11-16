@@ -125,7 +125,6 @@ export default class Player{
         // Create an array to store all the animation promises
         const animationPromises = [];
         
-
         // Update the cards' positions and z-index
         this.cards.forEach((card, i) => {
             const animationPromise = new Promise((resolve) => {
@@ -534,7 +533,7 @@ export default class Player{
     }
 
     //function takes care of selecting cards and inserting cards into hand, sorting the hand, validating move and inserting the hand onto the game deck, and returning promise
-    async playCard(gameDeck, turn, lastValidHand, wonRound){
+    async playCard(gameDeck, lastValidHand, wonRound){
         var playButton = document.getElementById("play"); //set player class to active if its their turn
         var passButton = document.getElementById("pass");
         var placeCardAudio = new Audio("audio/flipcard.mp3");
@@ -542,7 +541,6 @@ export default class Player{
         var self = this; //assign player to self
         var hand = []; //hand array holds selected cards
         var cardValidate;
-        var p1Div = document.getElementById("0");
         playButton.disabled = true; //disable play button because no card is selected which is an invalid move
         
         //disable pass button because you can't pass on first move or on a wonRound
@@ -569,9 +567,6 @@ export default class Player{
                     rot: 180,
                     x: card.x,
                     y: card.y + 10,
-                    onComplete: function () {
-                        
-                    }
                 })    
                 console.log("unclicked");
                 console.log("currrent hand: " + hand);
@@ -587,8 +582,6 @@ export default class Player{
                     rot: 180,
                     x: card.x,
                     y: card.y - 10,
-                    onComplete: function () {
-                    }
                 })    
                 console.log("currrent hand length: " + hand.length);
             }
@@ -687,15 +680,22 @@ export default class Player{
             //call playClickListener function when playButton is clicked, the function will remove event listener after its called
             playButton.addEventListener("click", playClickListener, { once: true });
                 
-            var passClickListener = function(event) {
-                //when player passes, remove all selected cards and remove checked class from all cards)
+            var passClickListener = function() {
                 
-                hand.length = 0
-                passAudio.play(); // TO DO: bug, audio sometimes plays twice for some reason
-                resolve(0); //if player passes, return 0 cards played
-
                 self.cards.forEach(function(card) {
                     card.$el.removeEventListener('click', card.clickListener);
+                });
+
+                hand.forEach(function (cardId) {
+                    let card = self.findCardObject(cardId); //find card that is hand
+                    card.animateTo({
+                        delay: 0, // wait 1 second + i * 2 ms
+                        duration: 100,
+                        ease: 'linear',
+                        rot: 180,
+                        x: card.x,
+                        y: card.y + 10,
+                    })  
                 });
 
                 //remove passButton event listener after pass button functions are completed
@@ -703,6 +703,11 @@ export default class Player{
 
                 //remove play button listener, when player passes so event listeners dont propogate
                 playButton.removeEventListener('click', playClickListener); 
+
+                //when player passes, remove all selected cards and remove checked class from all cards)
+                hand.length = 0
+                passAudio.play(); // TO DO: bug, audio sometimes plays twice for some reason
+                resolve(0); //if player passes, return 0 cards played
             }
 
             //call passClickListener function when passButton is clicked, the function will remove event listener after its called

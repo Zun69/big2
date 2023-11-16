@@ -1,6 +1,5 @@
 import Player from "./player.js"
 
-
 //lookup table to identify a straight
 const cardRankLookupTable = {
   "3": 1,
