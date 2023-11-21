@@ -1,6 +1,31 @@
 import Player from "./player.js"
 import Opponent from "./opponent.js"
 
+// Lookup table for printing actual rank in last played hand
+const rankLookup = {
+    1: 'A',
+    2: '2',
+    3: '3',
+    4: '4',
+    5: '5',
+    6: '6',
+    7: '7',
+    8: '8',
+    9: '9',
+    10: '10',
+    11: 'J',
+    12: 'Q',
+    13: 'K',
+};
+
+// Lookup table for printing suit icon in last played hand
+const suitLookup = {
+    0: '♦', // Diamonds
+    1: '♣', // Clubs
+    2: '♥', // Hearts
+    3: '♠', // Spades
+};
+
 const Player1 = new Player();
 const Player2 = new Opponent(); //ai player
 const Player3 = new Opponent();
@@ -10,12 +35,13 @@ const gameDeck = []; //playing deck will be empty array, will be filled with car
 const deck = Deck();
 const finishedDeck = Deck(); //store post round cards
 
-// Empty the deck of all its cards
+// Empty the finished deck of all its cards
 finishedDeck.cards.forEach(function (card) {
     card.unmount();
 });
 finishedDeck.cards = [];
 
+//create card Map that maps each card to a value (1-52) for sorting (deck has to be sorted already)
 var cardHashModule = {
     deck: function (_deck) {
       _deck.cardHash = function () {
@@ -223,7 +249,7 @@ async function determineTurn(players) {
     });
   
     return await promise;
-  }
+}
 
 
 async function startPromise() {
@@ -253,9 +279,9 @@ async function finishDeckAnimation(gameDeck, finishedDeck) {
                         delay: 0,
                         duration: 100,
                         ease: 'linear',
-                        rot: 180,
-                        x: 240 + finishedDeck.cards.length * 0.25,
-                        y: -150,
+                        rot: 0,
+                        x: 240 - finishedDeck.cards.length * 0.25, //stagger the cards when they pile up, imitates original deck styling
+                        y: -150 - finishedDeck.cards.length * 0.25,
                         onComplete: function () {
                             finishedDeck.cards.push(card); //push gameDeck card into finshedDeck
                             card.$el.style.zIndex = finishedDeck.cards.length; //change z index of card to the length of finished deck
@@ -273,7 +299,23 @@ async function finishDeckAnimation(gameDeck, finishedDeck) {
     });
 }
 
+function findLastPlayedHand(gameDeck, lastValidHand){
+    var lastPlayedHand = []; //card array holds the hand that we will use to validate
+    var lastPlayedHandIndex = gameDeck.length - lastValidHand;
+    console.log("last played hand index: " + lastPlayedHandIndex);
 
+    //loop from last hand played until end of gamedeck
+    for(let i = lastPlayedHandIndex; i < gameDeck.length; i++){
+        //if i less than 0 (happens after user wins a round, because gamedeck length is 0 and lastValidHand stores length of winning hand)
+        if(i < 0){
+            continue; //don't insert cards into last played hand and continue out of loop
+        }
+        //make a lookup table that converts the suit to icon and rank to actual rank (eg [0, 13] will turn to [♦, K]) because this function is just for printing no validating
+        lastPlayedHand.push(rankLookup[gameDeck[i].rank] + suitLookup[gameDeck[i].suit]); 
+    }
+
+    return lastPlayedHand;
+}
 
 window.onload = async function() {
     // Instanciate a deck with all cards
@@ -297,14 +339,14 @@ const gameLoop = async _ => {
         let lastValidHand;
         let passTracker = 0;
         let wonRound = false;
-        let turnDisplay = document.getElementById("turn");
         let turn = await determineTurn(players); //player with 3 of diamonds has first turn
+        let gameInfoDiv = document.getElementById("gameInfo");
         console.log("turn: " + turn)
 
-        //each loop represents a single turn
+        //GAME LOOP, each loop represents a single turn
         for(let i = 0; i < 100; i++){
-            console.log("Current turn: Player " + turn);
-            turnDisplay.textContent = "Current Turn: Player " + (turn + 1) ;
+            let lastHand = findLastPlayedHand(gameDeck, lastValidHand);
+            gameInfoDiv.innerHTML = "Last Played - " + lastHand + "<br>Current Turn - Player " + (turn + 1) ;
             wonRound = false; //reset wonRound to false, its only true if 3 players have passed
 
             //if 3 players pass, flag wonRound, reset gameDeck and passTracker
@@ -379,6 +421,5 @@ async function startGame() {
 
 
 //main program starts here
-startGame();
 //restartGame
 

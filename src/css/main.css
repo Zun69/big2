@@ -38,18 +38,45 @@ body {
     transform: translate(-50%, -50%); /* Center it perfectly */
 }
 
+#gameInfo {
+    position: absolute;
+    top: 67.8%; /*67.8*/
+    left: 50%;
+    transform: translate(-50%, -50%); /* Center the element precisely */
+    font-size: 15px;
+    background-color: rgba(255, 255, 255, 0.5); /* Transparent white background */
+    padding: 10px;
+    backdrop-filter: blur(1px); /* Adjust the blur value as needed */
+    border-radius: 10px; /* Adjust the border-radius value as needed */
+}
 
 .button {
-    margin-top: 10px;
     transition-duration: 0.4s;
     font-size: 15px;
     font-family: Helvetica, Arial, sans-serif;
     font-weight: 200;
+    padding: 4px 8px; /* Adjust padding to increase button size */
+    border-radius: 4px;
 }
   
 .button:hover {
-    background-color: #4CAF50; /* Green */
+    background-color: #d2b48c;
     color: white;
+}
+
+
+#pass {
+    position: absolute;
+    bottom: 10px; /* Adjust this value to set the distance from the bottom */
+    left: 52%;
+    /* Add other styles for your buttons */
+}
+
+#play{
+    position: absolute;
+    bottom: 10px; /* Adjust this value to set the distance from the bottom */
+    left: 42.5%;
+    /* Add other styles for your buttons */
 }
 
 #turn{
@@ -57,9 +84,6 @@ body {
     margin-left: 125px;
 }
 
-#startGame{
-    margin-left: 210px;
-}
 
 #pass{
     margin-right: 460px;

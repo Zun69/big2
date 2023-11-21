@@ -291,7 +291,6 @@ export default class Player{
         var cardMap = deck.cardHash();
         var lastPlayedHand = []; //card array holds the hand that we will use to validate
         var lastPlayedHandIndex = gameDeck.length - lastValidHand;
-        console.log("last played hand index: " + lastPlayedHandIndex);
 
         //loop from last hand played until end of gamedeck
         for(let i = lastPlayedHandIndex; i < gameDeck.length; i++){
@@ -299,7 +298,8 @@ export default class Player{
             if(i < 0){
                 continue; //don't insert cards into last played hand and continue out of loop
             }
-            lastPlayedHand.push(gameDeck[i].suit + " " +gameDeck[i].rank); //insert last played cards into array ['0 3', '1 3'] (as a string to use with comboValidate function)
+            //insert last played cards into array ['0 3', '1 3'] (as a string to use with comboValidate function)
+            lastPlayedHand.push(gameDeck[i].suit + " " + gameDeck[i].rank); 
         }
 
         //switch case using hand length
@@ -550,6 +550,7 @@ export default class Player{
             passButton.disabled = false;
         }
 
+        //function when player clicks on card
         var cardClickListener = function(card) {
             console.log('Card clicked:', card.$el);
 
@@ -567,7 +568,7 @@ export default class Player{
                     rot: 180,
                     x: card.x,
                     y: card.y + 10,
-                })    
+                })
                 console.log("unclicked");
                 console.log("currrent hand: " + hand);
                 console.log("currrent hand length: " + hand.length);
@@ -582,7 +583,7 @@ export default class Player{
                     rot: 180,
                     x: card.x,
                     y: card.y - 10,
-                })    
+                })
                 console.log("currrent hand length: " + hand.length);
             }
 
@@ -596,7 +597,6 @@ export default class Player{
             } else {
                 playButton.disabled = true;
             }
-
         };
 
         //add event listeners on cards
@@ -613,6 +613,7 @@ export default class Player{
             card.clickListener = clickListener;
         });
 
+        //resolve promise when player clicks on play button or pass button
         var myPromise = new Promise((resolve) => {
             let animationPromises = []; //holds all animation promises
             let cardsToRemove = []; //holds indexes of cards to be removed
@@ -635,7 +636,7 @@ export default class Player{
                             ease: 'linear',
                             rot: 180  + rotationOffset,
                             x: 20 + (i * 15),
-                            y: -11,
+                            y: 15,
                             onComplete: function () {
                                 if (cardIndex !== -1) {
                                     card.$el.style.zIndex = gameDeck.length; //make it equal gameDeck.length
@@ -680,14 +681,16 @@ export default class Player{
             //call playClickListener function when playButton is clicked, the function will remove event listener after its called
             playButton.addEventListener("click", playClickListener, { once: true });
                 
+            //when player passes
             var passClickListener = function() {
-                
+                //remove click listeners on all cards 
                 self.cards.forEach(function(card) {
                     card.$el.removeEventListener('click', card.clickListener);
                 });
 
+                //animate cards in selected hand back to original position
                 hand.forEach(function (cardId) {
-                    let card = self.findCardObject(cardId); //find card that is hand
+                    let card = self.findCardObject(cardId); 
                     card.animateTo({
                         delay: 0, // wait 1 second + i * 2 ms
                         duration: 100,
@@ -704,15 +707,14 @@ export default class Player{
                 //remove play button listener, when player passes so event listeners dont propogate
                 playButton.removeEventListener('click', playClickListener); 
 
-                //when player passes, remove all selected cards and remove checked class from all cards)
+                //remove all selected cards, play pass audio and resolve 0
                 hand.length = 0
-                passAudio.play(); // TO DO: bug, audio sometimes plays twice for some reason
-                resolve(0); //if player passes, return 0 cards played
+                passAudio.play(); 
+                resolve(0); 
             }
 
             //call passClickListener function when passButton is clicked, the function will remove event listener after its called
             passButton.addEventListener("click", passClickListener, { once: true });
-            
         });
 
         return myPromise;
