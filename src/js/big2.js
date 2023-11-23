@@ -146,9 +146,9 @@ async function dealCards(deck, players) {
                                         delay: 0, // wait 1 second + i * 2 ms
                                         duration: 100,
                                         ease: 'linear',
-                                        rot: 180,
+                                        rot: 0,
                                         x: -212 + (i * 10),
-                                        y: 260,
+                                        y: 230,
                                         onComplete: function () {
                                             card.mount(p1Div);
                                             cardResolve();
@@ -190,7 +190,7 @@ async function dealCards(deck, players) {
                                         delay: 0 , // wait 1 second + i * 2 ms
                                         duration: 100,
                                         ease: 'linear',
-                                        rot: 360,
+                                        rot: 0,
                                         x: 281 - (i * 10),
                                         y: -250,
                                         onComplete: function () { 

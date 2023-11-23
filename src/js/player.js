@@ -65,7 +65,7 @@ export default class Player{
         switch(playerNum){
             //player 1 Y coordinates (began sorting cards at this Y coordinate)
             case 0:
-                return 260;
+                return 230;
             case 1:
                 return -240 + index * 40;
             case 2:
@@ -110,15 +110,14 @@ export default class Player{
         switch(playerNum){
             //player 1 card rotation when sorting
             case 0:
-                return 180;
+                return 0;
             case 1:
                 return 0;
             case 2:
-                return 180; 
+                return 0; 
             case 3:
                 return 0; 
         }
-        
     }
 
     sortingAnimation(playerNum) {
@@ -565,7 +564,7 @@ export default class Player{
                     delay: 0, // wait 1 second + i * 2 ms
                     duration: 100,
                     ease: 'linear',
-                    rot: 180,
+                    rot: 0,
                     x: card.x,
                     y: card.y + 10,
                 })
@@ -580,7 +579,7 @@ export default class Player{
                     delay: 0, // wait 1 second + i * 2 ms
                     duration: 100,
                     ease: 'linear',
-                    rot: 180,
+                    rot: 0,
                     x: card.x,
                     y: card.y - 10,
                 })
@@ -634,7 +633,7 @@ export default class Player{
                             delay: 0, // wait 1 second + i * 2 ms
                             duration: 150,
                             ease: 'linear',
-                            rot: 180  + rotationOffset,
+                            rot: 0  + rotationOffset,
                             x: 20 + (i * 15),
                             y: 15,
                             onComplete: function () {
@@ -695,7 +694,7 @@ export default class Player{
                         delay: 0, // wait 1 second + i * 2 ms
                         duration: 100,
                         ease: 'linear',
-                        rot: 180,
+                        rot: 0,
                         x: card.x,
                         y: card.y + 10,
                     })  

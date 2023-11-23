@@ -89,7 +89,6 @@
 
 /*player 1, starts from right bottom*/
 .player:nth-child(4){
-  margin-bottom: 10px;
   position: absolute;
   right: 0;
   bottom: 0;
@@ -100,7 +99,7 @@
 /* Adjust the top property to move cards up */
 .player:nth-child(4) .card {
   position: absolute;
-  top: -300px; /* Adjust this value as needed */
+  top: -292px; /* Adjust this value as needed */
   left: 44%;
 }
 

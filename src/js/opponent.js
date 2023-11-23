@@ -411,7 +411,7 @@ export default class Opponent extends Player {
                     delay: 0, // wait 1 second + i * 2 ms
                     duration: 100,
                     ease: 'linear',
-                    rot: 180 + rotationOffset,
+                    rot: 0 + rotationOffset,
                     x: 12 + (i * 15),
                     y: 0,
                     onComplete: function () {
@@ -439,7 +439,7 @@ export default class Opponent extends Player {
                       delay: 0, 
                       duration: 100,
                       ease: 'linear',
-                      rot: 180 + rotationOffset,
+                      rot: 0 + rotationOffset,
                       x: 12 + (i * 15),
                       y: 0,
                       onComplete: function () {
@@ -464,7 +464,7 @@ export default class Opponent extends Player {
                       delay: 0, // wait 1 second + i * 2 ms
                       duration: 100,
                       ease: 'linear',
-                      rot: 180 + rotationOffset,
+                      rot: 0 + rotationOffset,
                       x: 12 + (i * 15),
                       y: 0,
                       onComplete: function () {
