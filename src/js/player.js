@@ -151,7 +151,7 @@ export default class Player{
     //playingCard animation
     
 
-    //TO DO: validateCombo function, return string of combo detected, use that string as a key to combo look up e.g FIVE_HAND_COMBO['fullHouse'] = 3
+    //return combo string based on hand array
     validateCombo(hand, wonRound){
         var splitCard1 = hand[0].split(' '); //output: splitCard1[0] = suit | splitCard[1] = value
         var splitCard2 = hand[1].split(' ');
@@ -160,20 +160,32 @@ export default class Player{
         var splitCard5 = hand[4].split(' ');
         var straight = true;
 
+        //start from 5th card in hand
         for(let i = 3; i >= 0; i--){
             var currentRank = +hand[i].split(' ')[1]; // Convert to number
             var nextRank = +hand[i + 1].split(' ')[1]; // Convert to number
+            
 
             //if nextRank - currentRank value not 1, means card values are not exactly one rank higher
             if(nextRank - currentRank != 1){
+                console.log("CURRENT RANK: " + currentRank + "NEXT RANK: " + nextRank + "i value: " + i);
+                // J Q K A 2, make transition from king (current rank) to A (next rank) a valid straight
+                if(i == 3 && currentRank == 13 && nextRank == 1){
+                    console.log("10 J Q K A")
+                    continue;
+                }
+                if(i == 2 && currentRank == 13 && nextRank == 1){
+                    console.log("J Q K A 2")
+                    continue;
+                }
                 //if i == 1 (2 card) AND currentRank == 13 (2 rank card) AND nextrank = 1 (3 rank card), means hand is A 2 3 4 5, continue to ace card
                 //straight is lowest as it is A,2,3,4,5
-                if(i == 1 && currentRank[1] == 2 && nextRank[1] == 3){
+                if(i == 1 && currentRank == 2 && nextRank == 3){
                     continue;
                 }
                 //if i == 0 (2 card) AND currentRank == 13 (2 rank card) AND nextrank = 1 (3 rank card), means hand is 2 3 4 5 6, continue to validate as straight
                 //straight is second lowests as it is 2,3,4,5,6
-                if(i == 0 && currentRank[1] == 2 && nextRank[1] == 3){
+                if(i == 0 && currentRank == 2 && nextRank == 3){
                     continue;
                 }
                 straight = false; //if hand of 5 does not contain a straight break out of for loop
@@ -356,7 +368,7 @@ export default class Player{
                         //(higher value pair) OR if first hand and second card values have same value AND if first card in hand is greater than first card in last playedHand 
                         //AND second hand card is greater than 2nd card in last played hand return true
                         if(splitCard1[1] == splitCard2[1] && splitCard1[1] == lastPlayedHand[0].value  && cardMap.get(hand[1]) > cardMap.get(lastPlayedHand[1]) ||
-                           splitCard1[1] == splitCard2[1] && cardMap.get(hand[0]) > cardMap.get(lastPlayedHand[0]) && cardMap.get(hand[1]) > cardMap.get(lastPlayedHand[1])){
+                           splitCard1[1] == splitCard2[1] && cardMap.get(hand[1]) > cardMap.get(lastPlayedHand[1])){
                             return true;
                         } 
                         else {
@@ -400,7 +412,6 @@ export default class Player{
             //validate quads? i dont know if these are allowed (leaning towards not allowed for the moment)
             case 4:
                 return false;
-                break;
             //validate straights, flushes, full houses, 4 of a kinds + kickers, straight flushes (in order of least to most valuable)
             case 5:
                 //if hand contains a unique straight(3 4 5 A 2 || 3 4 5 6 2) change it to ascending order, else do nothing to hand
@@ -635,13 +646,13 @@ export default class Player{
                             ease: 'linear',
                             rot: 0  + rotationOffset,
                             x: 20 + (i * 15),
-                            y: 15,
+                            y: -10,
                             onComplete: function () {
                                 if (cardIndex !== -1) {
                                     card.$el.style.zIndex = gameDeck.length; //make it equal gameDeck.length
                                     gameDeck.push(self.cards[cardIndex]); //insert player's card that matches cardId into game deck
                                     console.log("card inserted: " + self.cards[cardIndex].suit + self.cards[cardIndex].rank);
-                                    cardsToRemove.unshift(cardIndex); //add card index into cardsToRemove array, so I can remove all cards at same time after animations are finished
+                                    cardsToRemove.unshift(self.cards[cardIndex].suit + " " + self.cards[cardIndex].rank); //add card index into cardsToRemove array, so I can remove all cards at same time after animations are finished
                                     console.log("Cards to remove: " + cardsToRemove);
                                     placeCardAudio.play();
                                 }
@@ -655,10 +666,15 @@ export default class Player{
                 })
                 // Wait for all card animations to complete
                 Promise.all(animationPromises).then(() => {
-                    //loop through cardsToRemove arr, starting from highest index, so splicing wont affect lower indexed cards
-                    cardsToRemove.forEach(index => {
-                        console.log("removed cards: " + self.cards[index].suit + self.cards[index].rank);
-                        self.cards.splice(index, 1); //remove played cards from player's hand after animations finish
+                    cardsToRemove.forEach(cardToRemove => {
+                        const indexToRemove = self.cards.findIndex(card => {
+                            return card.suit + ' ' + card.rank === cardToRemove;
+                        });
+                
+                        if (indexToRemove !== -1) {
+                            console.log("removed card: " + self.cards[indexToRemove].suit + self.cards[indexToRemove].rank);
+                            self.cards.splice(indexToRemove, 1);
+                        }
                     });
                         
                     resolve(hand.length); //return amount of cards played, to move forward for loop

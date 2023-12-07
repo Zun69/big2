@@ -1,6 +1,7 @@
 import Player from "./player.js"
 
 //lookup table to identify a straight
+//keys are card ranks 
 const cardRankLookupTable = {
   "3": 1,
   "4": 2,
@@ -9,9 +10,9 @@ const cardRankLookupTable = {
   "7": 5,
   "8": 6,
   "9": 7,
-  "10": 8, //keys are card ranks 
-  "11": 9,
-  "12": 10,
+  "10": 8, 
+  "11": 9, //jack
+  "12": 10, //queen
   "13": 11, //king
   "1": 12, //ace
   "2": 13 //two
@@ -46,7 +47,7 @@ export default class Opponent extends Player {
         if (currentCard.rank === nextCard.rank) {
           // check if cards have the same rank but different suits
           if (currentCard.suit !== nextCard.suit) {
-            doubles.push([currentCard, nextCard]);
+            doubles.push([currentCard.suit + " " + currentCard.rank, nextCard.suit + " " + nextCard.rank]);
             i++; // skip the next card since it has already been considered as a double
           }
         }
@@ -71,70 +72,45 @@ export default class Opponent extends Player {
           if (currentCard.suit !== nextCard.suit &&
             nextCard.suit !== thirdCard.suit
           ) {
-            triples.push([currentCard, nextCard, thirdCard]);
+            triples.push([currentCard.suit + " " + currentCard.rank, nextCard.suit + " " + nextCard.rank, thirdCard.suit + " " + thirdCard.rank]);
           }
         }
       }
-    
-      console.log(triples)
 
       return triples;
     }
 
-    findFullHouses() {
-      var doubles = this.findDoubles();
-      var triples = this.findTriples();
-      var fullHouses = [];
-    
-      for (var double of doubles) {
-        for (var triple of triples) {
-          if (double[0].rank !== triple[0].rank) {
-            // If the ranks of the double and triple are different, it's a potential full house.
-            fullHouses.push([...double, ...triple]);
-          }
-        }
-      }
-    
-      console.log(fullHouses);
-      return fullHouses;
-    }
-
-    findFok(){
-
-    }
-
-    findStraightFlush(){
-
-    }
-
     findFlushes() {
       var flushes = [];
-        
-        for(let i = 0; i < this.numberOfCards; i++){
-          var potentialFlush = [this.cards[i]];
-          var currentSuit = this.cards[i].suit;
 
-          for(let j = i + 1; j < this.numberOfCards; j++) {
-            if(this.cards[j].suit == currentSuit) {
-              potentialFlush.push(this.cards[j]);
-            }
-          }
+      for(let i = 0; i < this.numberOfCards; i++){
+        var potentialFlush = [this.cards[i].suit + " " +this.cards[i].rank];
+        var currentSuit = this.cards[i].suit;
 
-          if (potentialFlush.length == 5) {
-            //push array of 5 cards into flushes array
-            flushes.push(potentialFlush);
+        //if next card has the same suit as first card in potential flush
+        for(let j = i + 1; j < this.numberOfCards; j++) {
+          if(this.cards[j].suit == currentSuit) {
+            potentialFlush.push(this.cards[j].suit + " " + this.cards[j].rank);
           }
         }
 
+        if (potentialFlush.length == 5) {
+          //push array of 5 cards into flushes array
+          flushes.push(potentialFlush);
+        }
+      }
+
+      console.log("FLUSHES");
       console.log(flushes);
       return flushes;
     }
 
+    //find all straights (except A 2 3 4 5 and 2 3 4 5 6)
     findStraights() {
       var straights = [];
     
       for (let i = 0; i < this.numberOfCards; i++) {
-        var potentialStraight = [this.cards[i]];
+        var potentialStraight = [this.cards[i].suit + " " + this.cards[i].rank];
         var currentValue = cardRankLookupTable[this.cards[i].rank]; //e.g 'K' = 11
     
         //compare adjacent card ranks
@@ -143,9 +119,8 @@ export default class Opponent extends Player {
           
           //if next card rank minus current card rank = 1, then add card to potential straight array
           if (cardRankLookupTable[this.cards[j].rank] - currentValue === 1) {
-            potentialStraight.push(this.cards[j]);
+            potentialStraight.push(this.cards[j].suit + " " + this.cards[j].rank);
             currentValue = cardRankLookupTable[this.cards[j].rank];
-
           }
           else if (cardRankLookupTable[this.cards[j].rank] !== currentValue) {
             // Break the straight if the current card rank is not consecutive
@@ -159,8 +134,93 @@ export default class Opponent extends Player {
         }
       }
     
+      console.log("STRAIGHTS");
       console.log(straights);
       return straights;
+    }
+
+    findFullHouses() {
+      const fullHouses = [];
+  
+      // Find triples
+      const triples = this.findTriples();
+  
+      // Find doubles
+      const doubles = this.findDoubles();
+  
+      // Iterate through triples and doubles to find potential full houses
+      for (const triple of triples) {
+          for (const double of doubles) {
+              // Check if the ranks of the triple and double are different
+              if (triple[0].split(' ')[1] !== double[0].split(' ')[1]) {
+                  // Create a potentialFullHouse array to store the combination
+                  const potentialFullHouse = [...triple, ...double];
+                  // Add the potentialFullHouse to the fullHouses array
+                  fullHouses.push(potentialFullHouse);
+              }
+          }
+      }
+  
+      console.log("POTENTIAL FULL HOUSES")
+      console.log(fullHouses);
+      return fullHouses;
+   }
+
+    findFoks(spareCards) {
+      const foks = [];
+    
+      for (let i = 0; i < this.numberOfCards; i++) {
+        var potentialFok = [this.cards[i].suit + " " + this.cards[i].rank];
+        var currentRank = this.cards[i].rank;
+    
+        // Check for three more cards with the same rank
+        let count = 1; // Count includes the current card
+        for (let j = i + 1; j < this.numberOfCards; j++) {
+          if (this.cards[j].rank == currentRank) {
+            potentialFok.push(this.cards[j].suit + " " + this.cards[j].rank);
+            count++;
+          }
+    
+          if (count === 4) {
+            // Found four cards with the same rank, add a copy of the lowest spare card, add them to foks array
+            foks.push([...potentialFok]);
+            foks.push({ ...spareCards[0] }); // Creating a copy of the spare card
+            break;
+          }
+        }
+      }
+    
+      console.log("FOKS");
+      console.log(foks);
+      return foks;
+    }
+    
+    findStraightFlush() {
+      var straightFlushes = [];
+    
+      for (let i = 0; i < this.numberOfCards; i++) {
+        var potentialStraightFlush = [this.cards[i].suit + " " + this.cards[i].rank];
+        var currentSuit = this.cards[i].suit;
+        var currentValue = cardRankLookupTable[this.cards[i].rank];
+    
+        // Check for four more consecutive cards with the same suit
+        let count = 1; // Count includes the current card
+        for (let j = i + 1; j < this.numberOfCards; j++) {
+          if (this.cards[j].suit === currentSuit && cardRankLookupTable[this.cards[j].rank] - currentValue === 1) {
+            potentialStraightFlush.push(this.cards[j].suit + " " + this.cards[j].rank);
+            currentValue = cardRankLookupTable[this.cards[j].rank];
+            count++;
+          }
+    
+          if (count === 5) {
+            // Found five consecutive cards with the same suit, add them to straightFlushes array
+            straightFlushes.push(potentialStraightFlush);
+            break;
+          }
+        }
+      }
+    
+      return straightFlushes;
     }
 
     findSpareCards(doubles, triples, straights, flushes) {
@@ -169,42 +229,213 @@ export default class Opponent extends Player {
       for (let i = 0; i < this.cards.length; i++) {
         const cardToCheck = this.cards[i];
     
+        // Helper function to check if a card is part of any combo
+        const isPartOfCombo = (combo) => combo.some(c => c === cardToCheck.suit + " " + cardToCheck.rank);
+    
         if (
-          !doubles.some(double => double.some(d => d.suit === cardToCheck.suit && d.rank === cardToCheck.rank)) &&
-          !triples.some(triple => triple.some(t => t.suit === cardToCheck.suit && t.rank === cardToCheck.rank)) &&
-          !straights.some(straight => straight.some(s => s.suit === cardToCheck.suit && s.rank === cardToCheck.rank)) &&
-          !flushes.some(flush => flush.some(f => f.suit === cardToCheck.suit && f.rank === cardToCheck.rank))
+          !doubles.some(isPartOfCombo) &&
+          !triples.some(isPartOfCombo) &&
+          !straights.some(isPartOfCombo) &&
+          !flushes.some(isPartOfCombo)
         ) {
-          spareCards.push(cardToCheck);
+          spareCards.push(cardToCheck.suit + " " + cardToCheck.rank);
         }
       }
     
+      console.log("SPARE CARDS")
       console.log(spareCards);
       return spareCards;
     }
     
-
-    isSpareCard(card, lastPlayedHand, doubles, triples, straights, flushes, cardMap) {
+    isSpareCard(card, cardMap, lastPlayedHand, doubles, triples, straights, flushes, foks, straightFlushes) {
+      const cardRepresentation = card.suit + " " + card.rank;
+    
+      // Helper function to check if a card is part of any combo
+      const isPartOfCombo = (combo) => combo.some(c => c === cardRepresentation);
+    
       return (
-        cardMap.get(card.suit + " " + card.rank) > cardMap.get(lastPlayedHand[0]) &&
-        !doubles.some(double => double.some(d => d.suit === card.suit && d.rank === card.rank)) &&
-        !triples.some(triple => triple.some(t => t.suit === card.suit && t.rank === card.rank)) &&
-        !straights.some(straight => straight.some(s => s.suit === card.suit && s.rank === card.rank)) &&
-        !flushes.some(flush => flush.some(f => f.suit === card.suit && f.rank === card.rank))
+        cardMap.get(cardRepresentation) > cardMap.get(lastPlayedHand[0]) &&
+        !doubles.some(isPartOfCombo) &&
+        !triples.some(isPartOfCombo) &&
+        !straights.some(isPartOfCombo) &&
+        !flushes.some(isPartOfCombo) &&
+        !foks.some(isPartOfCombo) &&
+        !straightFlushes.some(isPartOfCombo)
       );
     }
 
-    freeHandSelector(hand, lastPlayedHand, doubles, triples, spareCards, straights, flushes, cardMap){
-      for(let i = 0; i < this.numberOfCards; i++){
-        //TO DO: if cardToCheck is a 2, and player has a low combo they need to get rid of (e.g 3-7 straight, flush), play the 2
-        var cardToCheck = this.cards[i];
-        
+    isSpareDouble(double, triples, straights, flushes, foks, straightFlushes) {
+      // Helper function to check if any card in double is part of any combo
+      const isPartOfCombo = (combo) => double.some(card => combo.flat().includes(card));
+    
+      return (
+        !triples.some(isPartOfCombo) &&
+        !straights.some(isPartOfCombo) &&
+        !flushes.some(isPartOfCombo) &&
+        !foks.some(isPartOfCombo) &&
+        !straightFlushes.some(isPartOfCombo)
+      );
+    }
 
+    isSpareTriple(triple, doubles, straights, flushes, foks, straightFlushes) {
+      // Helper function to check if any card in triple is part of any combo
+      const isPartOfCombo = (combo) => triple.some(card => combo.flat().includes(card));
+    
+      return (
+        !doubles.some(isPartOfCombo) &&
+        !straights.some(isPartOfCombo) &&
+        !flushes.some(isPartOfCombo) &&
+        !foks.some(isPartOfCombo) &&
+        !straightFlushes.some(isPartOfCombo)
+      );
+    }
+
+    //check if card is contained in array (combo)
+    findSubarrayBySuitAndRank(arr, targetSuit, targetRank) {
+      for (let i = 0; i < arr.length; i++) {
+        const subarray = arr[i];
+        for (let j = 0; j < subarray.length; j++) {
+          const card = subarray[j];
+          
+          if (parseInt(card.charAt(0)) === targetSuit && parseInt(card.charAt(2)) === targetRank) {
+            console.log('Found subarray:', subarray); // Log the subarray
+            return subarray; // Found the card, return the subarray
+          }
+        }
+      }
+      return null; // Card not found
+    }
+
+    //compare first element of combo arrays to find individual combo/s
+    findIndividualCombos(straights, flushes, fullHouses, foks, straightFlushes) {
+      const allCombos = [].concat(straights, flushes, fullHouses, foks, straightFlushes);
+      const individualCombos = [];
+    
+      for (let i = 0; i < allCombos.length; i++) {
+        let isIndividual = true;
+    
+        for (let j = 0; j < allCombos.length; j++) {
+          if (i !== j && allCombos[i][0] === allCombos[j][0]) {
+            // If the first element is the same in another combo, it's not individual
+            isIndividual = false;
+            break;
+          }
+        }
+    
+        if (isIndividual) {
+          individualCombos.push(allCombos[i]);
+        }
+      }
+      
+      console.log("Individual Combos");
+      console.log(individualCombos);
+      return individualCombos;
+    }
+    
+    // Helper function to check if two arrays have an intersection
+    hasIntersection(arr1, arr2) {
+      return arr1.some(element => arr2.includes(element));
+    }
+
+    //select correct hand on free turn
+    freeHandSelector(hand, doubles, triples, spareCards, straights, flushes, fullHouses, foks, straightFlushes, gameDeck, wonRound){
+      const individualCombos = this.findIndividualCombos(straights, flushes, fullHouses, foks, straightFlushes);
+
+      //if player has 3 of diamonds
+      if(gameDeck.length == 0 && wonRound == false){
+        //search for 3 of diamond combos, doubles, and triples
+        let straightFlushes3d = this.findSubarrayBySuitAndRank(straightFlushes, 0, 3);
+        let fok3d = this.findSubarrayBySuitAndRank(foks, 0, 3);
+        let straight3d = this.findSubarrayBySuitAndRank(straights, 0, 3);
+        let flush3d = this.findSubarrayBySuitAndRank(flushes, 0, 3);
+        //fullhouse is glitchede for some reason
+        let fh3d = this.findSubarrayBySuitAndRank(fullHouses, 0, 3);
+        let double3d = this.findSubarrayBySuitAndRank(doubles, 0, 3);
+        let triple3d = this.findSubarrayBySuitAndRank(triples, 0, 3);
+        
+        //play 3 of diamond combos, or triple and double if combo doesnt exist
+        if(straightFlushes3d){
+          return straightFlushes3d;
+        }
+        else if(fok3d){
+          return fok3d;
+        }
+        else if(straight3d){
+          return straight3d;
+        }
+        else if(flush3d){
+          return flush3d;
+        }
+        else if(fh3d){
+          return fh3d;
+        }
+        else if(triple3d) {
+          return triple3d;
+        }
+        else if(double3d) {
+          return double3d;
+        }
+        else{
+          console.log("starting round, play 3 of diamonds");
+          hand.push(this.cards[0].suit + " " + this.cards[0].rank);
+          return hand;
+        }
+      }
+      //if opponent has won round, check if i have combos that dont intersect, play lower one, else just play a combo, triple, double, and finally single
+      else if(gameDeck.length == 0 && wonRound == true){
+        console.log("opponent won round")
+       
+        if(straights.length > 0){
+          return straights[0];
+        }
+        else if(flushes.length > 0){
+          return flushes[0];
+        }
+        else if(fullHouses.length > 0){
+          return fullHouses[0];
+        }
+        else if(foks.length > 0){
+          return foks[0];
+        }
+        else if(straightFlushes.length > 0){
+          return straightFlushes[0];
+        }
+        else if(triples.length > 0){
+          return triples[0];
+        }
+        else if(spareCards.length > 0){
+          //if spare card is J or higher dont play it, play a low double (if it exists) instead
+          if(cardRankLookupTable[spareCards[0].split(' ')[1]] >= 9){
+            //if double exists and is 10 or below, play it
+            if(doubles.length > 0 && cardRankLookupTable[doubles[0][1].split(' ')[1]] <= 8){
+              console.log("low doubles found: " + doubles[0][1].split(' ')[1])
+              return doubles[0];
+            }
+            else{
+              hand.push(spareCards[0]);
+              return hand;
+            }
+          }
+          //else if spare card is below jack, play the spare card 
+          else if(spareCards.length > 0){
+            if(doubles.length > 0 && cardRankLookupTable[doubles[0][1].split(' ')[1]] <= 8){
+              console.log("low doubles found: " + doubles[0][1].split(' ')[1])
+              return doubles[0];
+            }
+            else{
+              hand.push(spareCards[0]);
+              return hand;
+            }
+          }
+        }
+        //else if no spare cards, play doubles
+        else if(doubles.length > 0){
+          return doubles[0];
+        }
       }
     }
 
-    singleSelector(hand, lastPlayedHand, doubles, triples, spareCards, straights, flushes, cardMap, twos){
-      
+    singleSelector(hand, lastPlayedHand, doubles, triples, spareCards, straights, flushes, fullHouses, foks, straightFlushes, cardMap, twos){
       for(let i = 0; i < this.numberOfCards; i++){
         //TO DO: if cardToCheck is a 2, and player has a low combo they need to get rid of (e.g 3-7 straight, flush), play the 2
         var cardToCheck = this.cards[i];
@@ -213,7 +444,7 @@ export default class Opponent extends Player {
           case 0:
             console.log("0 two");
             //find first card thats higher than last played card AND is not part of any doubles, triples, straights, flushes, straight flush and put it in hand and return it
-            if (this.isSpareCard(cardToCheck, lastPlayedHand, doubles, triples, straights, flushes, cardMap)){
+            if (this.isSpareCard(cardToCheck, cardMap, lastPlayedHand, doubles, triples, straights, flushes, foks, straightFlushes)){
               hand.push(this.cards[i].suit + " " + this.cards[i].rank);
               return hand;
             }
@@ -226,71 +457,311 @@ export default class Opponent extends Player {
             }
             break;
             case 1:
-            case 2:
-            case 3:
-            case 4:
-                  console.log("1 or greater twos " + twos.length);
-                  //find first card thats higher than last played card AND is not part of any doubles, triples, straights, flushes, straight flush and put it in hand and return it
-                  if (this.isSpareCard(cardToCheck, lastPlayedHand, doubles, triples, straights, flushes, cardMap)){
-                    if(spareCards.length > 1 && cardToCheck.rank == 2){
-                      //if player has one 2 card only, check if player has any other combo or spare cards
-                      hand.push(this.cards[i].suit + " " + this.cards[i].rank);
-                      return hand;
-                    }
-                    //if not a 2 card, play the card
-                    hand.push(this.cards[i].suit + " " + this.cards[i].rank);
+              console.log("1 two " + twos.length);
+              //if player has a 2 card and has a spare card, or combo, play the 2 (WIP)
+              if (this.isSpareCard(cardToCheck, cardMap, lastPlayedHand, doubles, triples, straights, flushes, foks, straightFlushes)){
+                console.log("CARD TO CHECK: " + cardToCheck.suit + " " + cardToCheck.rank);
+
+                if(lastPlayedHand[0].split(' ')[1] != 2 && spareCards.length > 0 && cardToCheck.rank == 2 && cardMap.get(cardToCheck.suit + " " + cardToCheck.rank) > cardMap.get(lastPlayedHand[0])
+                  || lastPlayedHand[0].split(' ')[1] != 2 && straights.length > 0 && cardToCheck.rank == 2 && cardMap.get(cardToCheck.suit + " " + cardToCheck.rank) > cardMap.get(lastPlayedHand[0])
+                  || lastPlayedHand[0].split(' ')[1] != 2 && flushes.length > 0 && cardToCheck.rank == 2 && cardMap.get(cardToCheck.suit + " " + cardToCheck.rank) > cardMap.get(lastPlayedHand[0])
+                  || lastPlayedHand[0].split(' ')[1] != 2 && fullHouses.length > 0 && cardToCheck.rank == 2 && cardMap.get(cardToCheck.suit + " " + cardToCheck.rank) > cardMap.get(lastPlayedHand[0])){
+                  //if player has one 2 card only, check if player has any other combo or spare cards
+                  hand.push(cardToCheck.suit + " " + cardToCheck.rank);
+                  return hand;
+                }
+                else{
+                  //if not a 2 card, play the card
+                  hand.push(cardToCheck.suit + " " + cardToCheck.rank);
+                  return hand;
+                }
+              }
+              //else if 2 is part of a combo but player has multiple doubles, and last card was not 2, play the 2
+              else if(cardToCheck.rank == 2 && doubles.length>=2  && cardMap.get(cardToCheck.suit + " " + cardToCheck.rank) > cardMap.get(lastPlayedHand[0] && lastPlayedHand[0].split(' ')[1] != 2) ){
+                hand.push(cardToCheck.suit + " " + cardToCheck.rank);
+                return hand;
+              }
+              //else if card is higher rank than last played card and card is a 2 of diamonds or clubs and player has a straight or flush
+              //else if i cant find card thats higher than previously played card (TO DO: add a check to check if card is part of combo), pass
+              else if(i == this.numberOfCards - 1){
+                console.log("pass");
+                hand.length = 0;
+                return hand;
+              }
+              break;
+              case 2:
+              case 3:
+              case 4:
+                //if player has 2 or more 2's and has combos, play the two
+                if(lastPlayedHand[0].split(' ')[1] != 2 && cardToCheck.rank == 2 && cardMap.get(cardToCheck.suit + " " + cardToCheck.rank) > cardMap.get(lastPlayedHand[0]) && straights.length > 0
+                || lastPlayedHand[0].split(' ')[1] != 2 && cardToCheck.rank == 2 && cardMap.get(cardToCheck.suit + " " + cardToCheck.rank) > cardMap.get(lastPlayedHand[0]) && flushes.length > 0
+                || lastPlayedHand[0].split(' ')[1] != 2 && cardToCheck.rank == 2 && cardMap.get(cardToCheck.suit + " " + cardToCheck.rank) > cardMap.get(lastPlayedHand[0]) && fullHouses.length > 0
+                || lastPlayedHand[0].split(' ')[1] != 2 && cardToCheck.rank == 2 && cardMap.get(cardToCheck.suit + " " + cardToCheck.rank) > cardMap.get(lastPlayedHand[0]) && spareCards.length > 0
+                || lastPlayedHand[0].split(' ')[1] != 2 && cardToCheck.rank == 2 && cardMap.get(cardToCheck.suit + " " + cardToCheck.rank) > cardMap.get(lastPlayedHand[0]) && doubles.length > 0
+                || lastPlayedHand[0].split(' ')[1] != 2 && this.isSpareCard(cardToCheck, cardMap, lastPlayedHand, doubles, triples, straights, flushes, foks, straightFlushes)) {
+                    //if player has one 2 card only, check if player has any other combo or spare cards
+                    hand.push(cardToCheck.suit + " " + cardToCheck.rank);
                     return hand;
-                  }
-                  //else if card is higher rank than last played card and card is a 2 of diamonds or clubs and player has a straight or flush
-                  //else if i cant find card thats higher than previously played card (TO DO: add a check to check if card is part of combo), pass
-                  else if(i == this.numberOfCards - 1){
-                    console.log("pass");
-                    hand.length = 0;
-                    return hand;
-                  }
-                  break;
+                }
+                else if(i == this.numberOfCards - 1){
+                  console.log("pass");
+                  hand.length = 0;
+                  return hand;
+                }
+                break;
         }
       }
     }
 
-    doubleSelector(){
-
+    doubleSelector(hand, lastPlayedHand, doubles, triples, straights, flushes, foks, straightFlushes, cardMap){
+      switch(doubles.length){
+        case 0:
+          //if no doubles, pass turn
+          console.log("pass");
+          hand.length = 0;
+          return hand;
+        case 1:
+          console.log("1 double left")
+          //check if i have 1 triple left as well(means i have a fullhouse and i should not play this double)
+          if(triples.length >= 1){
+            console.log("1 double and triple left")
+            console.log("pass");
+            hand.length = 0;
+            return hand;
+          }
+          //if double is a spare double and is greater than last played double, play the double
+          if(this.isSpareDouble(doubles[0], triples, straights, flushes, foks, straightFlushes)){
+            if(cardMap.get(doubles[0][1]) > cardMap.get(lastPlayedHand[1])){
+              console.log("PUSHED DOUBLES")
+              hand.push(...doubles[0]);
+              return hand;
+            }
+            else{
+              console.log("pass");
+              hand.length = 0;
+              return hand;
+            }
+          }
+          else{
+            console.log("pass");
+            hand.length = 0;
+            return hand;
+          }
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+          console.log("2 or more doubles left")
+          if(triples.length >= 2){
+            console.log("multiple doubles and 2 triples left")
+            console.log("pass");
+            hand.length = 0;
+            return hand;
+          }
+          for(let i = 0; i < doubles.length ; i++){
+            //if double is a spare double and is greater than last played double, play the double
+            if(this.isSpareDouble(doubles[i], triples, straights, flushes, foks, straightFlushes)){
+              if(cardMap.get(doubles[i][1]) > cardMap.get(lastPlayedHand[1])){
+                console.log("PUSHED DOUBLES")
+                hand.push(...doubles[i]);
+                return hand;
+              }
+            }
+          }
+          console.log("pass");
+          hand.length = 0;
+          return hand;
+      }
     }
 
-    tripleSelector(){
-      
+    tripleSelector(hand, lastPlayedHand, doubles, triples, straights, flushes, foks, straightFlushes, cardMap){
+      switch(triples.length){
+        case 0:
+          //if no triples, pass turn
+          console.log("pass");
+          hand.length = 0;
+          return hand;
+        case 1:
+          console.log("1 triple left")
+          //check if i have 1 triple left as well(means i have a fullhouse and i should not play this double)
+          if(doubles.length >= 1){
+            console.log("1 triple and double left")
+            console.log("pass");
+            hand.length = 0;
+            return hand;
+          }
+          //if triple is a spare triple and is greater than last played triple, play the double
+          if(this.isSpareTriple(triples[0], doubles, straights, flushes, foks, straightFlushes)){
+            if(cardMap.get(triples[0][2]) > cardMap.get(lastPlayedHand[2])){
+              console.log("PUSHED TRIPLES")
+              hand.push(...triples[0]);
+              return hand;
+            }
+            else{
+              console.log("pass");
+              hand.length = 0;
+              return hand;
+            }
+          }
+          else{
+            console.log("pass");
+            hand.length = 0;
+            return hand;
+          }
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+          console.log("2 or more triples left")
+          if(doubles.length >= 2){
+            console.log("multiple triples and 2 doubles left")
+            console.log("pass");
+            hand.length = 0;
+            return hand;
+          }
+          for(let i = 0; i < triples.length ; i++){
+            //if double is a spare double and is greater than last played double, play the double
+            if(this.isSpareDouble(doubles[i], triples, straights, flushes, foks, straightFlushes)){
+              if(cardMap.get(triples[i][2]) > cardMap.get(lastPlayedHand[2])){
+                console.log("PUSHED TRIPLES")
+                hand.push(...triples[i]);
+                return hand;
+              }
+            }
+          }
+          console.log("pass");
+          hand.length = 0;
+          return hand;
+      }
     }
 
     //compare all the combos with each other and return the best combo to play depending on the game situation
-    comboSelector(lastPlayedHand, doubles, triples, straights, flushes, fullhouses, cardMap) {
+    comboSelector(hand, lastPlayedHand, straights, flushes, foks, straightFlushes, fullHouses, cardMap, wonRound) {
+      const lastPlayedCombo = this.validateCombo(lastPlayedHand, wonRound);
+      console.log("LAST PLAYED COMBO: " + lastPlayedCombo);
 
-    }
+      //strategy depending on last played combo
+      switch(lastPlayedCombo){
+        case "straight":
+        case "straight3d":
+        case "straightWonRound":
+          //play higher straight if available
+          console.log("LAST COMBO WAS STRAIGHT")
+          if(straights.length >= 1){
+            for(let i = 0; i < straights.length; i++){
+              if(cardMap.get(straights[i][4]) > cardMap.get(lastPlayedHand[4])){
+                return straights[i];
+              }
+            }
+          }
+          //else play higher combo
+          else if(flushes.length >=1){
+            console.log("LAST COMBO WAS STRAIGHT AND I HAVE FLUSH")
+            return flushes[0];
+          }
+          else if(fullHouses.length >=1){
+            console.log("LAST COMBO WAS STRAIGHT AND I HAVE FH")
+            return fullHouses[0];
+          }
+          else if(foks.length >=1){
+            hand.push(foks[0]);
+            return hand;
+          }
+          else if(straightFlushes.length >=1){
+            hand.push(straightFlushes[0]);
+            return hand;
+          }
+          else{
+            console.log("pass");
+            hand.length = 0;
+            return hand;
+          }
+        case "flush":
+        case "flush3d":
+        case "flushWonRound":
+          console.log("LAST COMBO WAS FLUSH")
+          //play higher straight if available
+          if(flushes.length >= 1){
+            for(let i = 0; i < flushes.length; i++){
+              //if flush is a higher suit OR if the same suit, largest card wins
+              if(flushes[i][4].split(' ')[0] > lastPlayedHand[4].split(' ')[0] 
+              || flushes[i][4].split(' ')[0] == lastPlayedHand[4].split(' ')[0] && cardMap.get(flushes[i][4]) > cardMap.get(lastPlayedHand[4])){
+                console.log("last combo was flush, playing higher flush")
+                return flushes[i];
+              }
+            }
+          }
+          else if(fullHouses.length >=1){
+            console.log("last combo was flush, playing fullhouse")
+            return fullHouses[0];
+          }
+          else if(foks.length >=1){
+            return foks[0];
+          }
+          else if(straightFlushes.length >=1){
+            return straightFlushes[0];
+          }
+          else{
+            console.log("pass");
+            hand.length = 0;
+            return hand;
+          }
+        case "fullHouse":
+        case "fullHouse3d":
+        case "fullHouseWonRound":
+          //if fullhouse's last card is larger than previous full house, play the card
+          console.log("LAST COMBO WAS FULLHOUSE")
+          if(fullHouses.length >= 1){
+            for(let i = 0; i < fullHouses.length; i++){
+              //compare 3rd card with last played hand because 3rd card will always be part of the triple e.g (44 4 55 || 33 A AA)(99 9 JJ || 88 Q QQ)
+              if(cardMap.get(fullHouses[i][2]) > cardMap.get(lastPlayedHand[2])){
+                console.log("LAST COMBO WAS FULLHOUSE AND I HAVE HIGHER FH")
+                return fullHouses[i];
+              }
+            }
+          }
+          else if(foks.length >=1){
+            return foks[0];
+          }
+          else if(straightFlushes.length >=1){
+            return straightFlushes[0];
+          }
+          else{
+            console.log("pass");
+            hand.length = 0;
+            return hand;
+          }
+        case "fok":
+        case "fok3d":
+        case "fokWonRound":
+          break;
+        case "straightFlush":
+        case "straightFlush3d":
+        case "straightFlushWonRound":
+            break;
+      }
 
-    // Function to find intersection of arrays based on card properties
-    findIntersection(arr1, arr2) {
-      // Flatten the subarrays to make it easier to find the intersection
-      const flatArr1 = arr1.flat();
-      const flatArr2 = arr2.flat();
-
-      // Use the same logic to find the intersection
-      return flatArr1.filter(card1 => flatArr2.some(card2 => card1.rank === card2.rank && card1.suit === card2.suit));
     }
 
     //this function takes into account previously played card/s and returns a hand array to the playCard function
     selectCard(lastValidHand, gameDeck, wonRound){
-      var lastPlayedHandIndex = gameDeck.length - lastValidHand;
-      var lastPlayedHand = [];
-      var hand = []; //hand array holds selected cards
-      var deck = new Deck();
+      const lastPlayedHandIndex = gameDeck.length - lastValidHand;
+      const lastPlayedHand = [];
+      let hand = []; // hand array holds selected cards
+      const deck = new Deck();
       deck.sort();
-      var cardMap = deck.cardHash();
-      var twos = this.findTwos();
-      var doubles = this.findDoubles();      
-      var triples = this.findTriples();    
-      var straights = this.findStraights();
-      var flushes = this.findFlushes();
-      var fullHouses = this.findFullHouses();
-      var spareCards = this.findSpareCards(doubles, triples, straights, flushes);
+      const cardMap = deck.cardHash();
+      const twos = this.findTwos();
+      const doubles = this.findDoubles();      
+      const triples = this.findTriples();    
+      const straights = this.findStraights();
+      const flushes = this.findFlushes();
+      const fullHouses = this.findFullHouses();
+      const straightFlushes = this.findStraightFlush();
+      const spareCards = this.findSpareCards(doubles, triples, straights, flushes);
+      const foks = this.findFoks(spareCards);
 
       for(let i = lastPlayedHandIndex; i < gameDeck.length; i++){
         //if i less than 0 (happens after user wins a round, because gamedeck length is 0 and lastValidHand stores length of winning hand)
@@ -304,73 +775,33 @@ export default class Opponent extends Player {
       console.log("FLUSHES LENGTH: " + flushes.length);
       console.log("STRAIGHTS LENGTH: " + straights.length);
       console.log("FULLHOUSES LENGTH: " + fullHouses.length);
+      console.log("FOK LENGTH: " + foks.length);
+      console.log("STRAIGHT FLUSH LENGTH: " + straightFlushes.length);
       
       switch(lastPlayedHand.length){
         //FIRST TURN / FREE TURN LOGIC
         case 0:
-          //first turn, opponent must play 3 of diamonds, should add another if check to see if theres any combos that include 3 of diamonds
-          if(gameDeck.length == 0 && wonRound == false){
-            //if 3 of diamonds combo
-            console.log("starting round, play 3 of diamonds");
-            hand.push(this.cards[0].suit + " " + this.cards[0].rank);
-            return hand;
-          }
-          //change this to play a double, triple, combo if they have one, if not play low single (use random generator to choose which move to play)
-          else if(gameDeck.length == 0 && wonRound == true){
-            console.log("opponent won round")
-            hand.push(this.cards[0].suit + " " + this.cards[0].rank);
-            return hand;
-          }
-          break;
+          hand = this.freeHandSelector(hand, doubles, triples, spareCards, straights, flushes, fullHouses, foks, straightFlushes, gameDeck, wonRound);
+          console.log("Value of hand before returning:", hand);
+          console.log("Length of hand before returning:", hand.length);
+          return hand;
         //SINGLE CARD LOGIC
         case 1:
           //return a single card based on hand combo situation
-            hand = this.singleSelector(hand, lastPlayedHand, doubles, triples, spareCards, straights, flushes, cardMap, twos);
+            hand = this.singleSelector(hand, lastPlayedHand, doubles, triples, spareCards, straights, flushes, fullHouses, foks, straightFlushes, cardMap, twos);
             return hand;
           //DOUBLE CARD LOGIC
-          case 2:
-            //if opponent has at least 1 pair left
-            if(doubles.length >= 1){
-              console.log("Valid double left")
-              //TO DO: if pair is not part of combo(TO DO) and is bigger than last played hand(DONE)
-              for(let i = 0; i<doubles.length; i++){
-                if(cardMap.get(doubles[i][1]["suit"] + " " + doubles[i][1]["rank"]) > cardMap.get(lastPlayedHand[1])){
-                  console.log("PLAYING PAIR");
-                  hand.push(doubles[i][0]["suit"] + " " + doubles[i][0]["rank"]);
-                  hand.push(doubles[i][1]["suit"] + " " + doubles[i][1]["rank"]);
-                  return hand;
-                }
-                
-              }
-              
-            }
-            else {
-              console.log("pass");
-              hand.length = 0;
-              return hand;
-            }
-            //TRIPLE CARD LOGIC
-            case 3:
-              //if opponent has at least 1 triple left
-              if(triples.length >= 1){
-                console.log("Valid triple left")
-                
-                for(let i = 0; i<triples.length; i++){
-                  if(cardMap.get(triples[i][2]["suit"] + " " + triples[i][2]["rank"]) > cardMap.get(lastPlayedHand[2])){
-                    console.log("PLAYING TRIPLE");
-                    return triples[i]; //return pair of doubles that meets criteria
-                  }
-                }
-                
-              }
-              console.log("pass");
-              hand.length = 0;
-            return hand;
-            //COMBO LOGIC
-            case 5:
-              console.log("pass");
-              hand.length = 0;
-              return hand;
+        case 2:
+          hand = this.doubleSelector(hand, lastPlayedHand, doubles, triples, straights, flushes, foks, straightFlushes, cardMap);
+          return hand;
+          //TRIPLE CARD LOGIC
+        case 3:
+          hand = this.tripleSelector(hand, lastPlayedHand, doubles, triples, straights, flushes, foks, straightFlushes, cardMap);
+          return hand;
+        //COMBO LOGIC
+        case 5:
+          hand = this.comboSelector(hand, lastPlayedHand, straights, flushes, foks, straightFlushes, fullHouses, cardMap, wonRound);
+          return hand;
       }
     }
 
@@ -382,7 +813,7 @@ export default class Opponent extends Player {
         //function to find all possible combos, find outlier cards
         //if lowest card in ai hand(thats not part of a combo) is larger than last played card(only single for now)
         //select cpu hand function based on previous played cards, current combos, etc, insert cards into hand, then play the animation
-        var hand = self.selectCard(lastValidHand, gameDeck, wonRound, players);
+        const hand = this.selectCard(lastValidHand, gameDeck, wonRound);
         
         var myPromise = new Promise(async (resolve) => {
           let rotationOffset = Math.random() * 7 + -7; // Calculate a new rotation offset for each card
@@ -421,7 +852,7 @@ export default class Opponent extends Player {
                         console.log("card inserted: " + self.cards[cardIndex].suit + self.cards[cardIndex].rank);
                         //add card index into cardsToRemove array, so I can remove all cards at same time after animations are finished
                         //insert cardIndex at beginning so that when im sorting the array in reverse the higher index will be processed first
-                        cardsToRemove.unshift(cardIndex);
+                        cardsToRemove.unshift(self.cards[cardIndex].suit + " " + self.cards[cardIndex].rank);
                         console.log("Cards to remove: " + cardsToRemove);
                         placeCardAudio.play();
                       }
@@ -447,7 +878,7 @@ export default class Opponent extends Player {
                           card.$el.style.zIndex = gameDeck.length; 
                           gameDeck.push(self.cards[cardIndex]); 
                           console.log("card inserted: " + self.cards[cardIndex].suit + self.cards[cardIndex].rank);
-                          cardsToRemove.unshift(cardIndex); 
+                          cardsToRemove.unshift(self.cards[cardIndex].suit + " " + self.cards[cardIndex].rank); 
                           console.log("Cards to remove: " + cardsToRemove);
                           placeCardAudio.play();
                         }
@@ -472,7 +903,7 @@ export default class Opponent extends Player {
                           card.$el.style.zIndex = gameDeck.length; //make it equal gameDeck.length
                           gameDeck.push(self.cards[cardIndex]); //insert player's card that matches cardId into game deck
                           console.log("card inserted: " + self.cards[cardIndex].suit + self.cards[cardIndex].rank);
-                          cardsToRemove.unshift(cardIndex); 
+                          cardsToRemove.unshift(self.cards[cardIndex].suit + " " + self.cards[cardIndex].rank); 
                           console.log("Cards to remove: " + cardsToRemove);
                           placeCardAudio.play();
                         }
@@ -488,9 +919,15 @@ export default class Opponent extends Player {
             await Promise.all(animationPromises);
 
             //loop through cardsToRemove array which contains card indexes to be removed
-            cardsToRemove.forEach(index => {
-              console.log("index: " + index); //FIX REMOVE HIGHER index first and then lower
-              self.cards.splice(index, 1); //remove played cards from player's hand after animations finish
+            cardsToRemove.forEach(cardToRemove => {
+              const indexToRemove = self.cards.findIndex(card => {
+                  return card.suit + ' ' + card.rank === cardToRemove;
+              });
+      
+              if (indexToRemove !== -1) {
+                  console.log("removed card: " + self.cards[indexToRemove].suit + self.cards[indexToRemove].rank);
+                  self.cards.splice(indexToRemove, 1);
+              }
             });
 
             console.log("returning hand.length" + hand.length)
