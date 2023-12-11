@@ -183,8 +183,8 @@ export default class Opponent extends Player {
     
           if (count === 4) {
             // Found four cards with the same rank, add a copy of the lowest spare card, add them to foks array
+            potentialFok.push(spareCards[0]); // Creating a copy of the spare card
             foks.push([...potentialFok]);
-            foks.push({ ...spareCards[0] }); // Creating a copy of the spare card
             break;
           }
         }
@@ -384,8 +384,10 @@ export default class Opponent extends Player {
       //if opponent has won round, check if i have combos that dont intersect, play lower one, else just play a combo, triple, double, and finally single
       else if(gameDeck.length == 0 && wonRound == true){
         console.log("opponent won round")
-       
-        if(straights.length > 0){
+        if(individualCombos.length > 0){
+          return individualCombos[0];
+        }
+        else if(straights.length > 0){
           return straights[0];
         }
         else if(flushes.length > 0){
@@ -418,7 +420,7 @@ export default class Opponent extends Player {
           }
           //else if spare card is below jack, play the spare card 
           else if(spareCards.length > 0){
-            if(doubles.length > 0 && cardRankLookupTable[doubles[0][1].split(' ')[1]] <= 8){
+            if(doubles.length > 0 && cardRankLookupTable[doubles[0][1].split(' ')[1]] <= 4){
               console.log("low doubles found: " + doubles[0][1].split(' ')[1])
               return doubles[0];
             }
@@ -529,12 +531,22 @@ export default class Opponent extends Player {
             hand.length = 0;
             return hand;
           }
-          //if double is a spare double and is greater than last played double, play the double
+          //TO DO if double is 2 dont play it
+          
           if(this.isSpareDouble(doubles[0], triples, straights, flushes, foks, straightFlushes)){
-            if(cardMap.get(doubles[0][1]) > cardMap.get(lastPlayedHand[1])){
+            //if double is a spare double and is greater than last played double, and isn't a double 2, play the double
+            if(cardMap.get(doubles[0][1]) > cardMap.get(lastPlayedHand[1]) && doubles[0][1].slice(2,3) != 2){
               console.log("PUSHED DOUBLES")
               hand.push(...doubles[0]);
               return hand;
+            }
+            if(cardMap.get(doubles[0][1]) > cardMap.get(lastPlayedHand[1]) && doubles[0][1].slice(2,3) == 2 ){
+              //if player will have 2 cards left and they are a double, play the 2s OR if player will have one card left play the 2s
+              if(this.numberOfCards == 4 && doubles.length == 2 || this.numberOfCards == 3){
+                console.log("PUSHED DOUBLE 2s")
+                hand.push(...doubles[0]);
+                return hand;
+              }
             }
             else{
               console.log("pass");
@@ -562,10 +574,18 @@ export default class Opponent extends Player {
           for(let i = 0; i < doubles.length ; i++){
             //if double is a spare double and is greater than last played double, play the double
             if(this.isSpareDouble(doubles[i], triples, straights, flushes, foks, straightFlushes)){
-              if(cardMap.get(doubles[i][1]) > cardMap.get(lastPlayedHand[1])){
+              if(cardMap.get(doubles[i][1]) > cardMap.get(lastPlayedHand[1]) && doubles[i][1].slice(2,3) != 2){
                 console.log("PUSHED DOUBLES")
                 hand.push(...doubles[i]);
                 return hand;
+              }
+              if(cardMap.get(doubles[i][1]) > cardMap.get(lastPlayedHand[1]) && doubles[i][1].slice(2,3) == 2 ){
+                //if player will have 2 cards left and they are a double, play the 2s OR if player will have one card left play the 2s
+                if(this.numberOfCards == 4 && doubles.length == 2 || this.numberOfCards == 3){
+                  console.log("PUSHED DOUBLE 2s")
+                  hand.push(...doubles[i]);
+                  return hand;
+                }
               }
             }
           }
@@ -655,9 +675,10 @@ export default class Opponent extends Player {
                 return straights[i];
               }
             }
+            // If straight isn't found, it will continue to the next conditions
           }
           //else play higher combo
-          else if(flushes.length >=1){
+          if(flushes.length >=1){
             console.log("LAST COMBO WAS STRAIGHT AND I HAVE FLUSH")
             return flushes[0];
           }
@@ -685,15 +706,15 @@ export default class Opponent extends Player {
           //play higher straight if available
           if(flushes.length >= 1){
             for(let i = 0; i < flushes.length; i++){
-              //if flush is a higher suit OR if the same suit, largest card wins
-              if(flushes[i][4].split(' ')[0] > lastPlayedHand[4].split(' ')[0] 
-              || flushes[i][4].split(' ')[0] == lastPlayedHand[4].split(' ')[0] && cardMap.get(flushes[i][4]) > cardMap.get(lastPlayedHand[4])){
+              //if last card in flush is a higher value, plpay the flush
+              if(hand[0].slice(0,1) > lastPlayedHand[0].slice(0,1)
+              || hand[0].slice(0,1) == lastPlayedHand[0].slice(0,1) && cardMap.get(flushes[i][4]) > cardMap.get(lastPlayedHand[4])){
                 console.log("last combo was flush, playing higher flush")
                 return flushes[i];
               }
             }
           }
-          else if(fullHouses.length >=1){
+          if(fullHouses.length >=1){
             console.log("last combo was flush, playing fullhouse")
             return fullHouses[0];
           }
@@ -722,7 +743,7 @@ export default class Opponent extends Player {
               }
             }
           }
-          else if(foks.length >=1){
+          if(foks.length >=1){
             return foks[0];
           }
           else if(straightFlushes.length >=1){
@@ -736,13 +757,44 @@ export default class Opponent extends Player {
         case "fok":
         case "fok3d":
         case "fokWonRound":
-          break;
+          console.log("LAST COMBO WAS FOK")
+          if(foks.length >= 1){
+            for(let i = 0; i < foks.length; i++){
+              //compare 3rd card with last played hand because 3rd card will always be part of the fok e.g (4444 5 || 3 AAAA)
+              if(cardMap.get(foks[i][3]) > cardMap.get(lastPlayedHand[3])){
+                console.log("LAST COMBO WAS FOK AND I HAVE HIGHER FOK")
+                return foks[i];
+              }
+            }
+          }
+          if(straightFlushes.length >=1){
+            return straightFlushes[0];
+          }
+          else{
+            console.log("pass");
+            hand.length = 0;
+            return hand;
+          }
         case "straightFlush":
         case "straightFlush3d":
         case "straightFlushWonRound":
-            break;
+          console.log("LAST COMBO WAS FOK")
+          if(straightFlushes.length >= 1){
+            for(let i = 0; i < foks.length; i++){
+              //if 5th card of straight flush is higher than other straight flushes 5th card, then you can play the straight flush
+              if(cardMap.get(straightFlushes[i][4]) > cardMap.get(lastPlayedHand[4])){
+                console.log("LAST COMBO WAS SF AND I HAVE HIGHER SF")
+                return straightFlushes[i];
+              }
+            }
+          }
+          else{
+            console.log("pass");
+            hand.length = 0;
+            return hand;
+          }
+          break;
       }
-
     }
 
     //this function takes into account previously played card/s and returns a hand array to the playCard function
@@ -847,6 +899,7 @@ export default class Opponent extends Player {
                     y: 0,
                     onComplete: function () {
                       if (cardIndex !== -1) {
+                        card.setSide('front');
                         card.$el.style.zIndex = gameDeck.length; //make it equal gameDeck.length
                         gameDeck.push(self.cards[cardIndex]); //insert player's card that matches cardId into game deck
                         console.log("card inserted: " + self.cards[cardIndex].suit + self.cards[cardIndex].rank);
@@ -875,6 +928,7 @@ export default class Opponent extends Player {
                       y: 0,
                       onComplete: function () {
                         if (cardIndex !== -1) {
+                          card.setSide('front');
                           card.$el.style.zIndex = gameDeck.length; 
                           gameDeck.push(self.cards[cardIndex]); 
                           console.log("card inserted: " + self.cards[cardIndex].suit + self.cards[cardIndex].rank);
@@ -900,6 +954,7 @@ export default class Opponent extends Player {
                       y: 0,
                       onComplete: function () {
                         if (cardIndex !== -1) {
+                          card.setSide('front');
                           card.$el.style.zIndex = gameDeck.length; //make it equal gameDeck.length
                           gameDeck.push(self.cards[cardIndex]); //insert player's card that matches cardId into game deck
                           console.log("card inserted: " + self.cards[cardIndex].suit + self.cards[cardIndex].rank);

@@ -364,7 +364,7 @@ const gameLoop = async _ => {
 
             //if turn == 0
             if(turn == 0){
-                playedHand = await players[turn].playCard(gameDeck, lastValidHand, wonRound); //resolve hand.length, function also validates hand 
+                playedHand = await players[turn].playCard(gameDeck, lastValidHand, wonRound, turn); //resolve hand.length, function also validates hand 
             }
             //else if turn !=0 its oppponent cpu TO DO: pass gamestate object in to keep track of combo, score, etc
             else{
