@@ -384,6 +384,10 @@ export default class Opponent extends Player {
       //if opponent has won round, check if i have combos that dont intersect, play lower one, else just play a combo, triple, double, and finally single
       else if(gameDeck.length == 0 && wonRound == true){
         console.log("opponent won round")
+        if(this.numberOfCards == 0){
+          hand.length = 0;
+          return hand;
+        }
         if(individualCombos.length > 0){
           return individualCombos[0];
         }
@@ -438,6 +442,12 @@ export default class Opponent extends Player {
     }
 
     singleSelector(hand, lastPlayedHand, doubles, triples, spareCards, straights, flushes, fullHouses, foks, straightFlushes, cardMap, twos){
+      //if player has finished game, pass turn
+      if(this.numberOfCards == 0){
+        hand.length = 0;
+        return hand;
+      }
+
       for(let i = 0; i < this.numberOfCards; i++){
         //TO DO: if cardToCheck is a 2, and player has a low combo they need to get rid of (e.g 3-7 straight, flush), play the 2
         var cardToCheck = this.cards[i];
@@ -523,6 +533,10 @@ export default class Opponent extends Player {
           hand.length = 0;
           return hand;
         case 1:
+          if(this.numberOfCards == 0){
+            hand.length = 0;
+            return hand;
+          }
           console.log("1 double left")
           //check if i have 1 triple left as well(means i have a fullhouse and i should not play this double)
           if(triples.length >= 1){
@@ -564,6 +578,10 @@ export default class Opponent extends Player {
         case 4:
         case 5:
         case 6:
+          if(this.numberOfCards == 0){
+            hand.length = 0;
+            return hand;
+          }
           console.log("2 or more doubles left")
           if(triples.length >= 2){
             console.log("multiple doubles and 2 triples left")
@@ -603,6 +621,10 @@ export default class Opponent extends Player {
           hand.length = 0;
           return hand;
         case 1:
+          if(this.numberOfCards == 0){
+            hand.length = 0;
+            return hand;
+          }
           console.log("1 triple left")
           //check if i have 1 triple left as well(means i have a fullhouse and i should not play this double)
           if(doubles.length >= 1){
@@ -634,6 +656,10 @@ export default class Opponent extends Player {
         case 4:
         case 5:
         case 6:
+          if(this.numberOfCards == 0){
+            hand.length = 0;
+            return hand;
+          }
           console.log("2 or more triples left")
           if(doubles.length >= 2){
             console.log("multiple triples and 2 doubles left")
@@ -669,6 +695,10 @@ export default class Opponent extends Player {
         case "straightWonRound":
           //play higher straight if available
           console.log("LAST COMBO WAS STRAIGHT")
+          if(this.numberOfCards == 0){
+            hand.length = 0;
+            return hand;
+          }
           if(straights.length >= 1){
             for(let i = 0; i < straights.length; i++){
               if(cardMap.get(straights[i][4]) > cardMap.get(lastPlayedHand[4])){
@@ -703,12 +733,16 @@ export default class Opponent extends Player {
         case "flush3d":
         case "flushWonRound":
           console.log("LAST COMBO WAS FLUSH")
+          if(this.numberOfCards == 0){
+            hand.length = 0;
+            return hand;
+          }
           //play higher straight if available
           if(flushes.length >= 1){
             for(let i = 0; i < flushes.length; i++){
               //if last card in flush is a higher value, plpay the flush
-              if(hand[0].slice(0,1) > lastPlayedHand[0].slice(0,1)
-              || hand[0].slice(0,1) == lastPlayedHand[0].slice(0,1) && cardMap.get(flushes[i][4]) > cardMap.get(lastPlayedHand[4])){
+              if(flushes[i][0].slice(0,1) > lastPlayedHand[0].slice(0,1)
+              || flushes[i][0].slice(0,1) == lastPlayedHand[0].slice(0,1) && cardMap.get(flushes[i][4]) > cardMap.get(lastPlayedHand[4])){
                 console.log("last combo was flush, playing higher flush")
                 return flushes[i];
               }
@@ -734,6 +768,10 @@ export default class Opponent extends Player {
         case "fullHouseWonRound":
           //if fullhouse's last card is larger than previous full house, play the card
           console.log("LAST COMBO WAS FULLHOUSE")
+          if(this.numberOfCards == 0){
+            hand.length = 0;
+            return hand;
+          }
           if(fullHouses.length >= 1){
             for(let i = 0; i < fullHouses.length; i++){
               //compare 3rd card with last played hand because 3rd card will always be part of the triple e.g (44 4 55 || 33 A AA)(99 9 JJ || 88 Q QQ)
@@ -758,6 +796,10 @@ export default class Opponent extends Player {
         case "fok3d":
         case "fokWonRound":
           console.log("LAST COMBO WAS FOK")
+          if(this.numberOfCards == 0){
+            hand.length = 0;
+            return hand;
+          }
           if(foks.length >= 1){
             for(let i = 0; i < foks.length; i++){
               //compare 3rd card with last played hand because 3rd card will always be part of the fok e.g (4444 5 || 3 AAAA)
@@ -779,6 +821,10 @@ export default class Opponent extends Player {
         case "straightFlush3d":
         case "straightFlushWonRound":
           console.log("LAST COMBO WAS FOK")
+          if(this.numberOfCards == 0){
+            hand.length = 0;
+            return hand;
+          }
           if(straightFlushes.length >= 1){
             for(let i = 0; i < foks.length; i++){
               //if 5th card of straight flush is higher than other straight flushes 5th card, then you can play the straight flush
@@ -841,6 +887,8 @@ export default class Opponent extends Player {
         case 1:
           //return a single card based on hand combo situation
             hand = this.singleSelector(hand, lastPlayedHand, doubles, triples, spareCards, straights, flushes, fullHouses, foks, straightFlushes, cardMap, twos);
+            console.log("Value of hand before returning:", hand);
+            console.log("Length of hand before returning:", hand.length);
             return hand;
           //DOUBLE CARD LOGIC
         case 2:

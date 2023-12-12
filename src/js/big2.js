@@ -277,7 +277,7 @@ async function finishDeckAnimation(gameDeck, finishedDeck) {
                 setTimeout(function () {
                     card.animateTo({
                         delay: 0,
-                        duration: 100,
+                        duration: 50,
                         ease: 'linear',
                         rot: 0,
                         x: 240 - finishedDeck.cards.length * 0.25, //stagger the cards when they pile up, imitates original deck styling
@@ -300,8 +300,8 @@ async function finishDeckAnimation(gameDeck, finishedDeck) {
 }
 
 function findLastPlayedHand(gameDeck, lastValidHand){
-    var lastPlayedHand = []; //card array holds the hand that we will use to validate
-    var lastPlayedHandIndex = gameDeck.length - lastValidHand;
+    const lastPlayedHand = []; //card array holds the hand that we will use to validate
+    const lastPlayedHandIndex = gameDeck.length - lastValidHand;
     console.log("last played hand index: " + lastPlayedHandIndex);
 
     //loop from last hand played until end of gamedeck
@@ -324,7 +324,7 @@ window.onload = async function() {
     if(dealResolve === 'dealingComplete'){
         // Cards have been dealt and animations are complete
         console.log('Dealing complete');
-        var winner = await gameLoop();
+        let results = await gameLoop();
         //TODO add post game screen (score, positions, continue to next game option)
     }
     
@@ -341,12 +341,15 @@ const gameLoop = async _ => {
         let wonRound = false;
         let turn = await determineTurn(players); //player with 3 of diamonds has first turn
         let gameInfoDiv = document.getElementById("gameInfo");
+        let playersFinished = [];
         console.log("turn: " + turn)
 
         //GAME LOOP, each loop represents a single turn
         for(let i = 0; i < 100; i++){
+            //used for displaying last played hand with actual suit icons 
             let lastHand = findLastPlayedHand(gameDeck, lastValidHand);
-            gameInfoDiv.innerHTML = "Last Played - " + lastHand + "<br>Current Turn - Player " + (turn + 1) ;
+
+            gameInfoDiv.innerHTML = "Last Played - " + lastHand + "<br>Current Turn - Player " + (turn + 1);
             wonRound = false; //reset wonRound to false, its only true if 3 players have passed
 
             //if 3 players pass, flag wonRound, reset gameDeck and passTracker
@@ -385,10 +388,15 @@ const gameLoop = async _ => {
                     lastValidHand = playedHand; //store last played hand length, even after a player passes (so I dont pass 0 into the card validate function in player class)
     
                     //if finishedDeck has 52 cards, game is
-                    if (players[turn].numberOfCards == 0){ 
-                        return new Promise(resolve => {
-                            resolve("Player " + turn + " won!");
-                        });
+                    if (players[turn].numberOfCards == 0){
+                        playersFinished.push(turn);
+                        console.log(playersFinished);
+                    
+                        if(playersFinished.length == 3){
+                            return new Promise(resolve => {
+                                resolve(playersFinished);
+                            });
+                        }
                     }
 
                     turn += 1; 

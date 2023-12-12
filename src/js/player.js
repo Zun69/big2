@@ -153,6 +153,9 @@ export default class Player{
 
     //return combo string based on hand array
     validateCombo(hand, wonRound){
+        if(hand.length == 0 || hand.length == 1 || hand.length == 2 || hand.length == 3){
+            return "N/A";
+        }
         var splitCard1 = hand[0].split(' '); //output: splitCard1[0] = suit | splitCard[1] = value
         var splitCard2 = hand[1].split(' ');
         var splitCard3 = hand[2].split(' ');
@@ -628,6 +631,14 @@ export default class Player{
             let animationPromises = []; //holds all animation promises
             let cardsToRemove = []; //holds indexes of cards to be removed
             let i = 0; //for staggered placing down animations (remove if i dont like it)
+
+            //if player has no cards left, automatically pass
+            if(this.numberOfCards == 0){
+                //remove all selected cards, play pass audio and resolve 0
+                hand.length = 0
+                passAudio.play();
+                resolve(0); 
+            }
 
             var playClickListener = function() {
                 let rotationOffset = Math.random() * 7 + -7; // Calculate a new rotation offset for each card
