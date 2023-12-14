@@ -7,7 +7,7 @@ body {
     font-family: Arial, Helvetica, sans-serif;
     text-align: center;
     /*background-color: rgb(11, 173, 11);*/
-    background-image: url('/src/css/Sky-Background.jpg');
+    background-image: url('background/Sky-Background.jpg');
     margin: 0;
     padding: 0;
 }
@@ -42,7 +42,7 @@ p {
 #gameContainer {
     width: 1000px;
     height: 650px;
-    background-image: url('/src/css/Wooden-Background.jpg');
+    background-image: url('background/Wooden-Background.jpg');
     background-size: cover; /* Scale the image to cover the entire container */
     background-repeat: no-repeat; /* Prevent the image from repeating */
     text-align: center;
