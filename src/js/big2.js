@@ -61,8 +61,28 @@ var cardHashModule = {
   };
 Deck.modules.cardHash = cardHashModule; //add cardHash function to deck library
 
+
+async function sortPlayerHandAfterTurn(players,turn){
+    const animationPromises = [];
+
+    //sort player's card after turn
+    //players[turn].sortHand();
+
+    console.log("TURN: " + turn);
+    // Push the animation promise into the array
+    animationPromises.push(players[turn].sortingAnimationAfterTurn(turn));
+
+    // Wait for all animation promises to resolve
+    await Promise.all(animationPromises);
+
+    console.log("hand sorted after turn")
+
+    // return resolve, to let game loop know that player's cards have been sorted
+    return Promise.resolve('sortAfterTurnComplete');
+}
+
 //function sorts everybody's cards and plays the animation, resolves when animations finish
-async function sortHands(players){
+async function sortHands(players){ 
     const animationPromises = [];
 
     players.forEach(function(player){
@@ -77,14 +97,11 @@ async function sortHands(players){
     // Wait for all animation promises to resolve
     await Promise.all(animationPromises);
 
-    // Code to execute after all animations are completed
-    for(let i = 0; i < players[0].numberOfCards; i++){
-        //players[0].cards[i].setSide('front');
-    }
     // You can return a resolved promise if needed
     return Promise.resolve('sortComplete');
 }
 
+//purpose is to wait for shuffle animation finish before resolving promise back to dealCards function
 function shuffleDeckAsync(deck, times, delayBetweenShuffles) {
     return new Promise((resolve) => {
       const shufflePromises = [];
@@ -103,7 +120,7 @@ function shuffleDeckAsync(deck, times, delayBetweenShuffles) {
       Promise.all(shufflePromises).then(() => {
         setTimeout(() => {
           resolve('shuffleComplete');
-        }, 250); //default 2100 7 shuffles
+        }, 300); //default 2100 7 shuffles  (3 shuffles = 850, etc)
       });
     });
   }
@@ -264,6 +281,7 @@ async function startPromise() {
     return myPromise;
 }
 
+//after round ends, adds all played cards into finished deck and animates them as well
 async function finishDeckAnimation(gameDeck, finishedDeck) {
     return new Promise(async function (resolve, reject) {
         let finishedDeckDiv = document.getElementById("finishedDeck");
@@ -279,7 +297,7 @@ async function finishDeckAnimation(gameDeck, finishedDeck) {
                         delay: 0,
                         duration: 50,
                         ease: 'linear',
-                        rot: 0,
+                        rot: 90,
                         x: 240 - finishedDeck.cards.length * 0.25, //stagger the cards when they pile up, imitates original deck styling
                         y: -150 - finishedDeck.cards.length * 0.25,
                         onComplete: function () {
@@ -365,29 +383,28 @@ const gameLoop = async _ => {
                 }
             }
 
-            //if turn == 0
+            //if player 1's turn
             if(turn == 0){
-                playedHand = await players[turn].playCard(gameDeck, lastValidHand, wonRound, turn); //resolve hand.length, function also validates hand 
+                playedHand = await players[turn].playCard(gameDeck, lastValidHand, wonRound, playersFinished); //resolve hand.length, function also validates hand 
             }
             //else if turn !=0 its oppponent cpu TO DO: pass gamestate object in to keep track of combo, score, etc
             else{
                 playedHand = await players[turn].playCard(gameDeck, turn, lastValidHand, wonRound, players);
-                console.log("opponent playhand: " + playedHand);
             }
 
-            if(playedHand >= 1 && playedHand <= 5){ //if player played a valid hand
+            //if player played a valid hand
+            if(playedHand >= 1 && playedHand <= 5){
                 console.log("played hand debug: " + playedHand);
                 passTracker = 0; //reset passTracker if hand has been played
-                //update gamedeck (unmount all cards in gameDeck OR animate them to another empty deck that is mounted in a div 
 
-
+                // do a new function here input current turn, instead so theres only one animation per turn instead of all cards being sorted after each turn
                 //if player or ai play a valid hand, sort their cards
-                let resolve = await sortHands(players);
+                let resolve = await sortPlayerHandAfterTurn(players,turn);
                 
-                if(resolve == 'sortComplete'){
+                if(resolve == 'sortAfterTurnComplete'){
                     lastValidHand = playedHand; //store last played hand length, even after a player passes (so I dont pass 0 into the card validate function in player class)
     
-                    //if finishedDeck has 52 cards, game is
+                    //check if current player has 0 cards, add player number to playersFinished array
                     if (players[turn].numberOfCards == 0){
                         playersFinished.push(turn);
                         console.log(playersFinished);
@@ -399,8 +416,11 @@ const gameLoop = async _ => {
                         }
                     }
 
-                    turn += 1; 
-                    if (turn > 3) turn = 0; //go back to player 1's turn after player 4's turn
+                    //go to next player's turn
+                    turn += 1;
+
+                    //go back to player 1's turn after player 4's turn
+                    if (turn > 3) turn = 0; 
                 }
             }
             else if(playedHand == 0){ //else if player passed

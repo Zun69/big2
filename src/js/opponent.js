@@ -557,15 +557,9 @@ export default class Opponent extends Player {
             if(cardMap.get(doubles[0][1]) > cardMap.get(lastPlayedHand[1]) && doubles[0][1].slice(2,3) == 2 ){
               //if player will have 2 cards left and they are a double, play the 2s OR if player will have one card left play the 2s
               if(this.numberOfCards == 4 && doubles.length == 2 || this.numberOfCards == 3){
-                console.log("PUSHED DOUBLE 2s")
                 hand.push(...doubles[0]);
                 return hand;
               }
-            }
-            else{
-              console.log("pass");
-              hand.length = 0;
-              return hand;
             }
           }
           else{
@@ -600,7 +594,6 @@ export default class Opponent extends Player {
               if(cardMap.get(doubles[i][1]) > cardMap.get(lastPlayedHand[1]) && doubles[i][1].slice(2,3) == 2 ){
                 //if player will have 2 cards left and they are a double, play the 2s OR if player will have one card left play the 2s
                 if(this.numberOfCards == 4 && doubles.length == 2 || this.numberOfCards == 3){
-                  console.log("PUSHED DOUBLE 2s")
                   hand.push(...doubles[i]);
                   return hand;
                 }
@@ -640,10 +633,12 @@ export default class Opponent extends Player {
               hand.push(...triples[0]);
               return hand;
             }
-            else{
-              console.log("pass");
-              hand.length = 0;
-              return hand;
+            if(cardMap.get(triples[0][2]) > cardMap.get(lastPlayedHand[2]) && triples[0][2].slice(2,3) == 2 ){
+              //if player will have 2 cards left and they are a double, play the 2s OR if player will have one card left play the 2s
+              if(this.numberOfCards == 5 && doubles.length == 1 || this.numberOfCards == 6 && triples.length == 2 || this.numberOfCards == 4){
+                hand.push(...triples[i]);
+                return hand;
+              }
             }
           }
           else{
@@ -674,6 +669,13 @@ export default class Opponent extends Player {
                 console.log("PUSHED TRIPLES")
                 hand.push(...triples[i]);
                 return hand;
+              }
+              if(cardMap.get(triples[i][2]) > cardMap.get(lastPlayedHand[2]) && triples[i][2].slice(2,3) == 2 ){
+                //if player will have 2 cards left and they are a double, play the 2s OR if player will have one card left play the 2s
+                if(this.numberOfCards == 5 && doubles.length == 1 || this.numberOfCards == 6 && triples.length == 2 || this.numberOfCards == 4){
+                  hand.push(...triples[i]);
+                  return hand;
+                }
               }
             }
           }

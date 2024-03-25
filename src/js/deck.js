@@ -239,7 +239,7 @@ var Deck = (function () {
 
         // Conditional rotation based on 'rotateSideways'
         if (rotateSideways) {
-          self.rot = 1.5708; // 90 degrees in radians (sideways)
+          self.rot = 90; // 90 degrees 
         }
 
         $el.style[transform] = translate(self.x + 'px', self.y + 'px') + (diffRot ? 'rotate(' + self.rot + 'deg)' : '');

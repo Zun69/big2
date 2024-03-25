@@ -61,7 +61,7 @@ export default class Player{
         console.log("currrent hand: " + hand);
     }
 
-    newPositionY(index, playerNum){
+    sortingAnimationY(index, playerNum){
         switch(playerNum){
             //player 1 Y coordinates (began sorting cards at this Y coordinate)
             case 0:
@@ -75,7 +75,7 @@ export default class Player{
         }
     }
 
-    newPositionX(index, playerNum) {
+    sortingAnimationX(index, playerNum) {
         // Calculate the new X position based on the index
         switch(playerNum){
             //player 1 X coordinates (began sorting cards at this X coordinate)
@@ -88,10 +88,9 @@ export default class Player{
             case 3:
                 return 440;
         }
-        
     }
       
-    newPositionZ(index, playerNum) {
+    sortingAnimationZ(index, playerNum) {
         // Calculate the new z-index based on the index
         switch (playerNum) {
             case 0:
@@ -105,21 +104,37 @@ export default class Player{
         }
     }
 
-    newRotation(playerNum) {
+    sortingAnimationRotation(playerNum) {
         // Calculate the new z-index based on the index
         switch(playerNum){
             //player 1 card rotation when sorting
             case 0:
                 return 0;
             case 1:
-                return 0;
+                return 270;
             case 2:
                 return 0; 
             case 3:
-                return 0; 
+                return 270; 
         }
     }
 
+    //return rotateSideways boolean based on player number
+    sortingAnimationAfterTurnRotation(playerNum) {
+        switch(playerNum){
+            //player 1 card rotation when sorting
+            case 0:
+                return false;
+            case 1:
+                return true;
+            case 2:
+                return false; 
+            case 3:
+                return true; 
+        }
+    }
+
+    //function for sorting animation, extends into opponent class (no need to reimplement in opponent class)
     sortingAnimation(playerNum) {
         // Create an array to store all the animation promises
         const animationPromises = [];
@@ -130,13 +145,13 @@ export default class Player{
                 card.animateTo({
                     delay: 0,
                     duration: 200,
-                    rot: this.newRotation(playerNum),
+                    rot: this.sortingAnimationRotation(playerNum),
                     ease: 'linear',
-                    x: this.newPositionX(i, playerNum),  // Calculate the new X position based on index
-                    y: this.newPositionY(i, playerNum),
+                    x: this.sortingAnimationX(i, playerNum),  // Calculate the new X position based on index
+                    y: this.sortingAnimationY(i, playerNum),
         
                     onComplete: () => {
-                        card.$el.style.zIndex = this.newPositionZ(i, playerNum);
+                        card.$el.style.zIndex = this.sortingAnimationZ(i, playerNum);
                         resolve(); // Resolve the promise when this animation is completed
                       },
                 });
@@ -147,10 +162,38 @@ export default class Player{
         // Use Promise.all to wait for all animation promises to resolve
         return Promise.all(animationPromises);
     }
-      
-    //playingCard animation
-    
 
+    //function for sorting animation, extends into opponent class (no need to reimplement in opponent class)
+    sortingAnimationAfterTurn(playerNum) {
+        // Create an array to store all the animation promises
+        const animationPromises = [];
+        
+        // Update the cards' positions and z-index
+        this.cards.forEach((card, i) => {
+            const animationPromise = new Promise((resolve) => {
+                card.animateTo({
+                    delay: 0,
+                    duration: 200,
+                    rotateSideways: this.sortingAnimationAfterTurnRotation(playerNum), // Set to true to rotate the card sideways
+                    rot: 0,
+                    ease: 'linear',
+                    x: this.sortingAnimationX(i, playerNum),  // Calculate the new X position based on index
+                    y: this.sortingAnimationY(i, playerNum),
+        
+                    onComplete: () => {
+                        card.$el.style.zIndex = this.sortingAnimationZ(i, playerNum);
+                        console.log("rotate after turn") //why does it remove the rotate property after two turns wtf?
+                        resolve(); // Resolve the promise when this animation is completed
+                      },
+                });
+            });
+            animationPromises.push(animationPromise);
+        });
+
+        // Use Promise.all to wait for all animation promises to resolve
+        return Promise.all(animationPromises);
+    }
+    
     //return combo string based on hand array
     validateCombo(hand, wonRound){
         if(hand.length == 0 || hand.length == 1 || hand.length == 2 || hand.length == 3){
@@ -299,7 +342,7 @@ export default class Player{
     }
 
     //return true if played card || combo is valid, else return false
-    cardLogic(gameDeck, hand, lastValidHand, wonRound){ 
+    cardLogic(gameDeck, hand, lastValidHand, wonRound, playersFinished){ 
         let deck = new Deck();
         deck.sort(); //sort in big 2 ascending order
         var cardMap = deck.cardHash();
@@ -328,7 +371,11 @@ export default class Player{
                     //if player has won the previous hand, allow them to place any single card down 
                     else if(wonRound){ 
                         return true;
-                    } 
+                    }
+                    //else if opponent/s have won already and game deck is empty
+                    else if(playersFinished.length > 0){
+                        return true;
+                    }
                     else {
                         return false;
                     }
@@ -359,7 +406,12 @@ export default class Player{
                     //else if player has won previous round and hand contains a valid double, return true 
                     else if(wonRound && splitCard1[1] == splitCard2[1]) { 
                         return true;
-                    } else {
+                    }
+                    else if(playersFinished.length > 0 && splitCard1[1] == splitCard2[1]){
+                        return true;
+                    }
+                    else 
+                    {
                         return false;
                     }
                 }
@@ -394,7 +446,10 @@ export default class Player{
                     //else if player has won previous round and hand contains a valid triple, return true
                     else if(wonRound && splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard1[1] == splitCard3[1]) { 
                         return true;
-                    } 
+                    }
+                    else if(playersFinished.length > 0 && splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard1[1] == splitCard3[1]){
+                        return true;
+                    }
                     else {
                         return false;
                     }
@@ -464,6 +519,13 @@ export default class Player{
                     }
                     //else if player won round and hand contains a straight flush
                     else if(combo == "straightFlushWonRound"){
+                        return true;
+                    }
+                    else if(playersFinished.length > 0 && combo == "straight" || playersFinished.length > 0 && combo == "straightWonRound"
+                    || playersFinished.length > 0 && combo == "flush" || playersFinished.length > 0 && combo == "flushWonRound"
+                    || playersFinished.length > 0 && combo == "fullHouse" || playersFinished.length > 0 && combo == "fullHouseWonRound"
+                    || playersFinished.length > 0 && combo == "fok" || playersFinished.length > 0 && combo == "fokWonRound"
+                    || playersFinished.length > 0 && combo == "straightFlush" || playersFinished.length > 0 && combo == "straightFlushWonRound"){
                         return true;
                     }
                     else {
@@ -546,7 +608,7 @@ export default class Player{
     }
 
     //function takes care of selecting cards and inserting cards into hand, sorting the hand, validating move and inserting the hand onto the game deck, and returning promise
-    async playCard(gameDeck, lastValidHand, wonRound, turn){
+    async playCard(gameDeck, lastValidHand, wonRound, playersFinished){
         var playButton = document.getElementById("play"); //set player class to active if its their turn
         var passButton = document.getElementById("pass");
         var placeCardAudio = new Audio("audio/flipcard.mp3");
@@ -601,7 +663,7 @@ export default class Player{
             }
 
             self.sortHandArray(hand);
-            cardValidate = self.cardLogic(gameDeck, hand, lastValidHand, wonRound); //return valid if played card meets requirements
+            cardValidate = self.cardLogic(gameDeck, hand, lastValidHand, wonRound, playersFinished); //return valid if played card meets requirements
             console.log("card validation: " + cardValidate);
 
             //if current hand is validated, enable play button, else disable it because its an invalid move
