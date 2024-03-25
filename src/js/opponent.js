@@ -412,6 +412,7 @@ export default class Opponent extends Player {
         else if(spareCards.length > 0){
           //if spare card is J or higher dont play it, play a low double (if it exists) instead
           if(cardRankLookupTable[spareCards[0].split(' ')[1]] >= 9){
+            console.log("BUG HERE")
             //if double exists and is 10 or below, play it
             if(doubles.length > 0 && cardRankLookupTable[doubles[0][1].split(' ')[1]] <= 8){
               console.log("low doubles found: " + doubles[0][1].split(' ')[1])

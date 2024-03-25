@@ -26,21 +26,6 @@ const suitLookup = {
     3: '♠', // Spades
 };
 
-const Player1 = new Player();
-const Player2 = new Opponent(); //ai player
-const Player3 = new Opponent();
-const Player4 = new Opponent();
-const players = [ Player1, Player2, Player3, Player4 ];
-const gameDeck = []; //playing deck will be empty array, will be filled with card objects
-const deck = Deck();
-const finishedDeck = Deck(); //store post round cards
-
-// Empty the finished deck of all its cards
-finishedDeck.cards.forEach(function (card) {
-    card.unmount();
-});
-finishedDeck.cards = [];
-
 //create card Map that maps each card to a value (1-52) for sorting (deck has to be sorted already)
 var cardHashModule = {
     deck: function (_deck) {
@@ -61,6 +46,47 @@ var cardHashModule = {
   };
 Deck.modules.cardHash = cardHashModule; //add cardHash function to deck library
 
+//GameModule object encapsulate players, deck, gameDeck, finishedDeck 
+const GameModule = (function() {
+    // Initial values
+    let initialPlayer1 = new Player();
+    let initialPlayer2 = new Opponent(); //ai player
+    let initialPlayer3 = new Opponent();
+    let initialPlayer4 = new Opponent();
+    let initialPlayers = [initialPlayer1, initialPlayer2, initialPlayer3, initialPlayer4];
+    let initialGameDeck = []; //playing deck will be empty array, will be filled with card objects
+    let initialDeck = Deck();
+    let initialFinishedDeck = Deck(); //store post round cards
+    
+    // Current values
+    let players = [...initialPlayers];
+    let gameDeck = [...initialGameDeck];
+    let deck = initialDeck;
+    let finishedDeck = initialFinishedDeck;
+
+    // Reset function
+    function reset() {
+        players = [...initialPlayers];
+        gameDeck = [...initialGameDeck];
+        deck = initialDeck;
+        finishedDeck = initialFinishedDeck;
+    }
+
+    //return GameModule properties
+    return {
+        players,
+        gameDeck,
+        deck,
+        finishedDeck,
+        reset
+    };
+})();
+
+// Empty the finished deck of all its cards, so it can store post round cards
+GameModule.finishedDeck.cards.forEach(function (card) {
+    card.unmount();
+});
+GameModule.finishedDeck.cards = [];
 
 async function sortPlayerHandAfterTurn(players,turn){
     const animationPromises = [];
@@ -185,7 +211,7 @@ async function dealCards(deck, players) {
                                         delay: 0 , // wait 1 second + i * 2 ms
                                         duration: 100,
                                         ease: 'linear',
-                                        rot: 0,
+                                        rot: 90,
                                         x: -425,
                                         y: -250 + (i * 10),
                                         onComplete: function () {
@@ -229,7 +255,7 @@ async function dealCards(deck, players) {
                                         delay: 0 , // wait 1 second + i * 2 ms
                                         duration: 100,
                                         ease: 'linear',
-                                        rot: 0,
+                                        rot: 90,
                                         x: 440,
                                         y: 272 - (i * 10),
                                         onComplete: function () {
@@ -247,6 +273,11 @@ async function dealCards(deck, players) {
                     })
                 // Wait for all card animations to complete
                 Promise.all(animationPromises).then(() => {
+                    //Unmount the deck from the DOM
+                    deck.unmount();
+
+                    //Remove reference to the deck instance
+                    deck = null; 
                     resolve('dealingComplete');
                 });
             }
@@ -280,13 +311,76 @@ async function startPromise() {
 
     return myPromise;
 }
-
-//after round ends, adds all played cards into finished deck and animates them as well
-async function finishDeckAnimation(gameDeck, finishedDeck) {
+async function finishGameAnimation(gameDeck, finishedDeck, players, losingPlayer){
     return new Promise(async function (resolve, reject) {
         let finishedDeckDiv = document.getElementById("finishedDeck");
 
         for (let i = 0; i < gameDeck.length; i++) {
+            //loop through all game deck cards
+            let card = gameDeck[i];
+            card.setSide('back');
+            
+            //wait until each card is finished animating
+            await new Promise((cardResolve) => {
+                setTimeout(function () {
+                    card.animateTo({
+                        delay: 0,
+                        duration: 80,
+                        ease: 'linear',
+                        rot: 0,
+                        x: 240 - GameModule.finishedDeck.cards.length * 0.25, //stagger the cards when they pile up, imitates original deck styling
+                        y: -150 - GameModule.finishedDeck.cards.length * 0.25,
+                        onComplete: function () {
+                            GameModule.finishedDeck.cards.push(card); //push gameDeck card into finshedDeck
+                            card.$el.style.zIndex = GameModule.finishedDeck.cards.length; //change z index of card to the length of finished deck
+                            GameModule.finishedDeck.mount(finishedDeckDiv); //mount finishedDeck to div
+                            card.mount(GameModule.finishedDeck.$el);  //mount card to the finishedDeck div
+                            cardResolve(); //resolve, so next card can animate
+                        }
+                    });
+                }, 80);
+            });
+        }
+
+        //loop through losing player's cards
+        for (let i = 0; i < players[losingPlayer].numberOfCards; i++){
+            let losingCard = players[losingPlayer].cards[i];
+            losingCard.setSide('back');
+            
+            //wait until each card is finished animating
+            await new Promise((losingCardResolve) => {
+                setTimeout(function () {
+                    losingCard.animateTo({
+                        delay: 0,
+                        duration: 80,
+                        ease: 'linear',
+                        rot: 0,
+                        x: 240 - GameModule.finishedDeck.cards.length * 0.25, //stagger the cards when they pile up, imitates original deck styling
+                        y: -150 - GameModule.finishedDeck.cards.length * 0.25,
+                        onComplete: function () {
+                            GameModule.finishedDeck.cards.push(losingCard); //push gameDeck card into finshedDeck
+                            losingCard.$el.style.zIndex = GameModule.finishedDeck.cards.length; //change z index of card to the length of finished deck
+                            GameModule.finishedDeck.mount(finishedDeckDiv); //mount finishedDeck to div
+                            losingCard.mount(GameModule.finishedDeck.$el);  //mount card to the finishedDeck div
+                            losingCardResolve(); //resolve, so next card can animate
+                        }
+                    });
+                }, 80);
+            });
+        }
+
+        // All card animations are complete, mount finishedDeck to finish deck div and return resolve
+        resolve('finishGameComplete');
+    });
+}
+
+//after round ends, adds all played cards into finished deck and animates them as well
+async function finishDeckAnimation(gameDeck) {
+    return new Promise(async function (resolve, reject) {
+        let finishedDeckDiv = document.getElementById("finishedDeck");
+
+        for (let i = 0; i < gameDeck.length; i++) {
+            //loop through all game deck cards
             let card = gameDeck[i];
             card.setSide('back');
             
@@ -297,14 +391,14 @@ async function finishDeckAnimation(gameDeck, finishedDeck) {
                         delay: 0,
                         duration: 50,
                         ease: 'linear',
-                        rot: 90,
-                        x: 240 - finishedDeck.cards.length * 0.25, //stagger the cards when they pile up, imitates original deck styling
-                        y: -150 - finishedDeck.cards.length * 0.25,
+                        rot: 0,
+                        x: 240 - GameModule.finishedDeck.cards.length * 0.25, //stagger the cards when they pile up, imitates original deck styling
+                        y: -150 - GameModule.finishedDeck.cards.length * 0.25,
                         onComplete: function () {
-                            finishedDeck.cards.push(card); //push gameDeck card into finshedDeck
-                            card.$el.style.zIndex = finishedDeck.cards.length; //change z index of card to the length of finished deck
-                            finishedDeck.mount(finishedDeckDiv); //mount finishedDeck to div
-                            card.mount(finishedDeck.$el);  //mount card to the finishedDeck div
+                            GameModule.finishedDeck.cards.push(card); //push gameDeck card into finshedDeck
+                            card.$el.style.zIndex = GameModule.finishedDeck.cards.length; //change z index of card to the length of finished deck
+                            GameModule.finishedDeck.mount(finishedDeckDiv); //mount finishedDeck to div
+                            card.mount(GameModule.finishedDeck.$el);  //mount card to the finishedDeck div
                             cardResolve(); //resolve, so next card can animate
                         }
                     });
@@ -335,10 +429,27 @@ function findLastPlayedHand(gameDeck, lastValidHand){
     return lastPlayedHand;
 }
 
+function findMissingPlayer(playersFinished) {
+    // Create an array to hold all players from 0 to 3
+    let allPlayers = [0, 1, 2, 3];
+
+    // Loop through the playersFinished array to remove players who have finished
+    for (let i = 0; i < playersFinished.length; i++) {
+        let index = allPlayers.indexOf(playersFinished[i]);
+        if (index !== -1) {
+            allPlayers.splice(index, 1); // Remove the player who has finished
+        }
+    }
+
+    // Return the missing player
+    return allPlayers[0];
+}
+
+
 window.onload = async function() {
     // Instanciate a deck with all cards
+    let dealResolve = await dealCards(GameModule.deck, GameModule.players);
 
-    let dealResolve = await dealCards(deck, players);
     if(dealResolve === 'dealingComplete'){
         // Cards have been dealt and animations are complete
         console.log('Dealing complete');
@@ -349,15 +460,14 @@ window.onload = async function() {
     //let winner = await gameLoop();
 };
 
-
 const gameLoop = async _ => {
-    let sortResolve = await sortHands(players); //sort all player's cards
+    let sortResolve = await sortHands(GameModule.players); //sort all player's cards
     if(sortResolve === 'sortComplete'){
         let playedHand = 0;
         let lastValidHand;
         let passTracker = 0;
         let wonRound = false;
-        let turn = await determineTurn(players); //player with 3 of diamonds has first turn
+        let turn = await determineTurn(GameModule.players); //player with 3 of diamonds has first turn
         let gameInfoDiv = document.getElementById("gameInfo");
         let playersFinished = [];
         console.log("turn: " + turn)
@@ -365,7 +475,7 @@ const gameLoop = async _ => {
         //GAME LOOP, each loop represents a single turn
         for(let i = 0; i < 100; i++){
             //used for displaying last played hand with actual suit icons 
-            let lastHand = findLastPlayedHand(gameDeck, lastValidHand);
+            let lastHand = findLastPlayedHand(GameModule.gameDeck, lastValidHand);
 
             gameInfoDiv.innerHTML = "Last Played - " + lastHand + "<br>Current Turn - Player " + (turn + 1);
             wonRound = false; //reset wonRound to false, its only true if 3 players have passed
@@ -373,23 +483,23 @@ const gameLoop = async _ => {
             //if 3 players pass, flag wonRound, reset gameDeck and passTracker
             if(passTracker == 3){
                 // (deal the finished card into the deck, then I can use the finishedDeck.length to determine the end of the game))
-                let finishDeckResolve = await finishDeckAnimation(gameDeck, finishedDeck);
+                let finishDeckResolve = await finishDeckAnimation(GameModule.gameDeck, finishedDeck);
 
                 if(finishDeckResolve == "finishDeckComplete"){
                     wonRound = true; 
                     console.log("Player " + turn + " has won the round, has a free turn");
-                    gameDeck.length = 0; //clear the game deck because player has won round, like in real life TODO: record the gameDeck before resetting (to show card's played)
+                    GameModule.gameDeck.length = 0; //clear the game deck because player has won round, like in real life TODO: record the gameDeck before resetting (to show card's played)
                     passTracker = 0;
                 }
             }
 
             //if player 1's turn
             if(turn == 0){
-                playedHand = await players[turn].playCard(gameDeck, lastValidHand, wonRound, playersFinished); //resolve hand.length, function also validates hand 
+                playedHand = await GameModule.players[turn].playCard(GameModule.gameDeck, lastValidHand, wonRound, playersFinished); //resolve hand.length, function also validates hand 
             }
             //else if turn !=0 its oppponent cpu TO DO: pass gamestate object in to keep track of combo, score, etc
             else{
-                playedHand = await players[turn].playCard(gameDeck, turn, lastValidHand, wonRound, players);
+                playedHand = await GameModule.players[turn].playCard(GameModule.gameDeck, turn, lastValidHand, wonRound, GameModule.players);
             }
 
             //if player played a valid hand
@@ -399,20 +509,33 @@ const gameLoop = async _ => {
 
                 // do a new function here input current turn, instead so theres only one animation per turn instead of all cards being sorted after each turn
                 //if player or ai play a valid hand, sort their cards
-                let resolve = await sortPlayerHandAfterTurn(players,turn);
+                let resolve = await sortPlayerHandAfterTurn(GameModule.players,turn);
                 
                 if(resolve == 'sortAfterTurnComplete'){
                     lastValidHand = playedHand; //store last played hand length, even after a player passes (so I dont pass 0 into the card validate function in player class)
     
-                    //check if current player has 0 cards, add player number to playersFinished array
-                    if (players[turn].numberOfCards == 0){
+                    //check if current player has 0 cards
+                    if (GameModule.players[turn].numberOfCards == 0){
+                        //add player number to playersFinished array
                         playersFinished.push(turn);
                         console.log(playersFinished);
                     
                         if(playersFinished.length == 3){
-                            return new Promise(resolve => {
-                                resolve(playersFinished);
-                            });
+                            //TO DO animate all remaining cards into gameDeck, and then unmount gameDeck, 
+                            //resolve finished game, show scoreboard, allow user to quit or continue to next game
+                            // Assuming you have already declared the playersFinished array and have added player numbers to it
+                            let losingPlayer = findMissingPlayer(playersFinished);
+
+                            let finishGameResolve = await finishGameAnimation(GameModule.gameDeck, finishedDeck, GameModule.players, losingPlayer);
+                            
+                            if(finishGameResolve == "finishGameComplete")
+                            {
+                                return new Promise(resolve => {
+                                    GameModule.finishedDeck.unmount();
+                                    
+                                    resolve(playersFinished);
+                                });
+                            }   
                         }
                     }
 
@@ -441,7 +564,7 @@ async function startGame() {
 
     if(res == "START"){
         audio.play();
-        dealCards(deck, players);
+        dealCards(GameModule.deck, GameModule.players);
         var winner = await gameLoop();
         window.alert(winner); //replace this with a popup menu allowing players to restart maybe also show winner and loser, if i make game ending condition every player running out of cards
     }
