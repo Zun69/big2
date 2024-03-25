@@ -120,7 +120,7 @@ export default class Player{
     }
 
     //return rotateSideways boolean based on player number
-    sortingAnimationAfterTurnRotation(playerNum) {
+    sortingRotateSidewaysBoolean(playerNum) {
         switch(playerNum){
             //player 1 card rotation when sorting
             case 0:
@@ -174,7 +174,7 @@ export default class Player{
                 card.animateTo({
                     delay: 0,
                     duration: 200,
-                    rotateSideways: this.sortingAnimationAfterTurnRotation(playerNum), // Set to true to rotate the card sideways
+                    rotateSideways: this.sortingRotateSidewaysBoolean(playerNum), // Set to true to rotate the card sideways
                     rot: 0,
                     ease: 'linear',
                     x: this.sortingAnimationX(i, playerNum),  // Calculate the new X position based on index
