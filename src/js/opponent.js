@@ -21,6 +21,7 @@ const cardRankLookupTable = {
 export default class Opponent extends Player {
     constructor(cards = []) {
       super(cards);
+      this.isOpponent = true;
     }
 
     findTwos() {

@@ -50,7 +50,8 @@ Deck.modules.cardHash = cardHashModule; //add cardHash function to deck library
 //GameModule object encapsulate players, deck, gameDeck, finishedDeck 
 const GameModule = (function() {
     // Initial values
-    let initialPlayer1 = new Player();
+    //let initialPlayer1 = new Player();
+    let initialPlayer1 = new Opponent();
     let initialPlayer2 = new Opponent(); //ai player
     let initialPlayer3 = new Opponent();
     let initialPlayer4 = new Opponent();
@@ -483,12 +484,14 @@ const gameLoop = async _ => {
             gameState.lastHand = lastHand;
             gameState.lastValidHand = lastValidHand;
             gameState.turn = turn;
+            gameState.passTracker = passTracker;
 
             //log gameState values
             console.log("GameState Players:", gameState.players);
             console.log("GameState Game Deck:", gameState.gameDeck);
             console.log("GameState Last Hand:", gameState.lastHand);
             console.log("GameState Turn:", gameState.turn);
+            console.log("GameState passTracker:", gameState.passTracker);
             console.log("GameState Finished Deck:", gameState.finishedDeck);
             console.log("GameState Players Finished:", gameState.playersFinished);
 
@@ -512,13 +515,17 @@ const gameLoop = async _ => {
                 }
             }
 
-            //if player 1's turn
-            if(turn == 0){
-                playedHand = await GameModule.players[turn].playCard(GameModule.gameDeck, lastValidHand, playersFinished); //resolve hand.length, function also validates hand 
-            }
-            //else if turn !=0 its oppponent cpu TO DO: pass gamestate object in to keep track of combo, score, etc
-            else{
+            // Log the type of the current player object
+            console.log("Current player type:", typeof GameModule.players[turn]);
+
+            //if opponent's turn
+            if(GameModule.players[turn].isOpponent){
+                //playedHand = resolved hand.length, function also validates hand
                 playedHand = await GameModule.players[turn].playCard(GameModule.gameDeck, turn, lastValidHand, GameModule.players);
+            }
+            //else if user's turn
+            else{
+                playedHand = await GameModule.players[turn].playCard(GameModule.gameDeck, lastValidHand, playersFinished);
             }
 
             //if player played a valid hand
