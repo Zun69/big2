@@ -1,5 +1,6 @@
 import Player from "./player.js"
 import Opponent from "./opponent.js"
+import GameState from "./gameState.js"
 
 // Lookup table for printing actual rank in last played hand
 const rankLookup = {
@@ -55,7 +56,7 @@ const GameModule = (function() {
     let initialPlayer4 = new Opponent();
     let initialPlayers = [initialPlayer1, initialPlayer2, initialPlayer3, initialPlayer4];
     let initialGameDeck = []; //playing deck will be empty array, will be filled with card objects
-    let initialDeck = Deck();
+    let initialDeck = Deck(); //using deck class from deck.js (no need to import)
     let initialFinishedDeck = Deck(); //store post round cards
     
     // Current values
@@ -81,12 +82,6 @@ const GameModule = (function() {
         reset
     };
 })();
-
-// Empty the finished deck of all its cards, so it can store post round cards
-GameModule.finishedDeck.cards.forEach(function (card) {
-    card.unmount();
-});
-GameModule.finishedDeck.cards = [];
 
 async function sortPlayerHandAfterTurn(players,turn){
     const animationPromises = [];
@@ -411,7 +406,8 @@ async function finishDeckAnimation(gameDeck) {
     });
 }
 
-function findLastPlayedHand(gameDeck, lastValidHand){
+//return last played hand as an array of card rank + suit
+function printLastPlayedHand(gameDeck, lastValidHand){
     const lastPlayedHand = []; //card array holds the hand that we will use to validate
     const lastPlayedHandIndex = gameDeck.length - lastValidHand;
     console.log("last played hand index: " + lastPlayedHandIndex);
@@ -447,7 +443,7 @@ function findMissingPlayer(playersFinished) {
 
 
 window.onload = async function() {
-    // Instanciate a deck with all cards
+    // deal cards to all players and return resolve when animations are complete
     let dealResolve = await dealCards(GameModule.deck, GameModule.players);
 
     if(dealResolve === 'dealingComplete'){
@@ -456,26 +452,49 @@ window.onload = async function() {
         let results = await gameLoop();
         //TODO add post game screen (score, positions, continue to next game option)
     }
-    
-    //let winner = await gameLoop();
 };
 
+//Actual game loop
 const gameLoop = async _ => {
+    // Empty the finished deck of all its cards, so it can store post round cards
+    GameModule.finishedDeck.cards.forEach(function (card) {
+        card.unmount();
+    });
+    GameModule.finishedDeck.cards = [];
+
     let sortResolve = await sortHands(GameModule.players); //sort all player's cards
     if(sortResolve === 'sortComplete'){
-        let playedHand = 0;
-        let lastValidHand;
-        let passTracker = 0;
-        let wonRound = false;
-        let turn = await determineTurn(GameModule.players); //player with 3 of diamonds has first turn
+        let playedHand = 0; //stores returned hand length from playCard function
+        let lastValidHand; //stores a number that lets program know if last turn was a pass or turn
+        let passTracker = 0; //keeps track of passes
+        let wonRound = false; //keeps track if the last round has been won or not
+        let turn = await determineTurn(GameModule.players); //return player number of player who has 3d
         let gameInfoDiv = document.getElementById("gameInfo");
-        let playersFinished = [];
-        console.log("turn: " + turn)
+        let playersFinished = []; //stores finishing order
+        let lastHand = []; //stores last hand played
+
+        const gameState = new GameState(GameModule.players, GameModule.gameDeck, lastHand, turn, lastValidHand, passTracker, wonRound, GameModule.finishedDeck, playersFinished);
 
         //GAME LOOP, each loop represents a single turn
         for(let i = 0; i < 100; i++){
             //used for displaying last played hand with actual suit icons 
-            let lastHand = findLastPlayedHand(GameModule.gameDeck, lastValidHand);
+            lastHand = printLastPlayedHand(GameModule.gameDeck, lastValidHand);
+
+            // Update gameState properties with new values
+            gameState.lastHand = lastHand;
+            gameState.lastValidHand = lastValidHand;
+
+            //log gameState values
+            console.log("Players:", gameState.players[0].cards);
+            console.log("Players:", gameState.players[1].cards);
+            console.log("Players:", gameState.players[2].cards);
+            console.log("Players:", gameState.players[3].cards);
+            console.log("Game Deck:", gameState.gameDeck);
+            console.log("Last Hand:", gameState.lastHand);
+            console.log("Turn:", gameState.turn);
+            console.log("Won Round:", gameState.wonRound);
+            console.log("Finished Deck:", gameState.finishedDeck);
+            console.log("Players Finished:", gameState.playersFinished);
 
             gameInfoDiv.innerHTML = "Last Played - " + lastHand + "<br>Current Turn - Player " + (turn + 1);
             wonRound = false; //reset wonRound to false, its only true if 3 players have passed
@@ -487,7 +506,7 @@ const gameLoop = async _ => {
 
                 if(finishDeckResolve == "finishDeckComplete"){
                     wonRound = true; 
-                    console.log("Player " + turn + " has won the round, has a free turn");
+                    console.log("Player " + gameState.turn + " has won the round, has a free turn");
                     GameModule.gameDeck.length = 0; //clear the game deck because player has won round, like in real life TODO: record the gameDeck before resetting (to show card's played)
                     passTracker = 0;
                 }
@@ -538,7 +557,6 @@ const gameLoop = async _ => {
                             }   
                         }
                     }
-
                     //go to next player's turn
                     turn += 1;
 
@@ -569,8 +587,4 @@ async function startGame() {
         window.alert(winner); //replace this with a popup menu allowing players to restart maybe also show winner and loser, if i make game ending condition every player running out of cards
     }
 }
-
-
-//main program starts here
-//restartGame
 

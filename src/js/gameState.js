@@ -1,12 +1,14 @@
 class GameState {
-    constructor(players, gameDeck, playedCards, turn, lastValidHand, passTracker, wonRound) {
+    constructor(players, gameDeck, lastHand, turn, lastValidHand, passTracker, wonRound, finishedDeck, playersFinished) {
       this.players = players;
       this.gameDeck = gameDeck;
-      this.playedCards = playedCards;
+      this.lastHand = lastHand;
       this.turn = turn;
       this.lastValidHand = lastValidHand;
       this.passTracker = passTracker;
       this.wonRound = wonRound;
+      this.finishedDeck = finishedDeck;
+      this.playersFinished = playersFinished;
     }
   
     updatePlayers() {
@@ -49,3 +51,4 @@ class GameState {
       // Play the specified hand of cards and update the game state accordingly
     }
   }
+  export default GameState;
