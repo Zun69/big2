@@ -472,9 +472,8 @@ const gameLoop = async _ => {
         let playersFinished = []; //stores finishing order
         let lastHand = []; //stores last hand played
         let playedHistory = [] //stores played card history
-        let passedFlags = [false, false, false, false];
 
-        const gameState = new GameState(GameModule.players, GameModule.gameDeck, lastHand, turn, lastValidHand, GameModule.finishedDeck, playersFinished, playedHistory);
+        const gameState = new GameState(GameModule.players, GameModule.gameDeck, lastHand, turn, lastValidHand, GameModule.finishedDeck, playersFinished, playedHistory, playedHand);
 
         //GAME LOOP, each loop represents a single turn
         for(let i = 0; i < 100; i++){
@@ -486,6 +485,7 @@ const gameLoop = async _ => {
             gameState.lastValidHand = lastValidHand;
             gameState.turn = turn;
             gameState.playedHistory = playedHistory;
+            gameState.playedHand = playedHand;
 
             //log gameState values
             console.log("GameState Players:", gameState.players);
@@ -494,20 +494,23 @@ const gameLoop = async _ => {
             console.log("GameState Turn:", gameState.turn);
             console.log("GameState Finished Deck:", gameState.finishedDeck);
             console.log("GameState Players Finished:", gameState.playersFinished);
+            console.log("GameState playedHand:", gameState.playedHand);
 
-            gameInfoDiv.innerHTML = "Last Played - " + lastHand + "<br>Current Turn - Player " + (turn + 1);
+            gameInfoDiv.innerHTML = "Last Played: " + lastHand + "<br>Current Turn: Player " + (turn + 1);
 
             //reset all player's wonRound status
             for(let i = 0; i < GameModule.players.length; i++) {
                 GameModule.players[i].wonRound = false;
             }
 
-            //if all players pass, flag the matching flag in passedFlags array 
-            if(passedFlags.every(flag => flag)) {
-                // All players have passed, reset flags and take appropriate action
-                console.log("All players have passed. Resetting flags:", passedFlags);
-                passedFlags.fill(false); // Reset all flags to false
-                
+            // All players have passed, perform necessary actions
+            if (GameModule.players.filter(player => player.passed).length === 3) {
+                console.log("Three players have passed. Resetting properties:");
+                // Reset all players' passed properties to false
+                GameModule.players.forEach(player => {
+                    player.passed = false;
+                });
+
                 //wait for finish deck animations
                 let finishDeckResolve = await finishDeckAnimation(GameModule.gameDeck, finishedDeck);
 
@@ -533,7 +536,7 @@ const gameLoop = async _ => {
                 playedHistory.push(lastHand); //push last valid hand into playedHistory array
 
                 console.log("played hand debug: " + playedHand);
-                passedFlags[turn] = false;
+                GameModule.players[turn].passed = false;
 
                 // do a new function here input current turn, instead so theres only one animation per turn instead of all cards being sorted after each turn
                 //if player or ai play a valid hand, sort their cards
@@ -574,11 +577,9 @@ const gameLoop = async _ => {
                 }
             }
             else if(playedHand == 0){ //else if player passed
-                passedFlags[turn] = true; // Set the corresponding flag to true
-                 // Log the reset passedFlags
+                GameModule.players[turn].passed = true; //if player passes, set passed property to true
                 turn += 1;
                 console.log("Player passed");
-                console.log("flags:", passedFlags);
                 if (turn > 3) turn = 0;
             }
         }

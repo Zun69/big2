@@ -3,6 +3,7 @@ export default class Player{
         this.cards = cards;
         this.wonRound = false;
         this.wonGame = false;
+        this.passed = false;
     }
 
     get numberOfCards() { 
