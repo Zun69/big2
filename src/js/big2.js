@@ -467,13 +467,12 @@ const gameLoop = async _ => {
         let playedHand = 0; //stores returned hand length from playCard function
         let lastValidHand; //stores a number that lets program know if last turn was a pass or turn
         let passTracker = 0; //keeps track of passes
-        let wonRound = false; //keeps track if the last round has been won or not
         let turn = await determineTurn(GameModule.players); //return player number of player who has 3d
         let gameInfoDiv = document.getElementById("gameInfo");
         let playersFinished = []; //stores finishing order
         let lastHand = []; //stores last hand played
 
-        const gameState = new GameState(GameModule.players, GameModule.gameDeck, lastHand, turn, lastValidHand, passTracker, wonRound, GameModule.finishedDeck, playersFinished);
+        const gameState = new GameState(GameModule.players, GameModule.gameDeck, lastHand, turn, lastValidHand, passTracker, GameModule.finishedDeck, playersFinished);
 
         //GAME LOOP, each loop represents a single turn
         for(let i = 0; i < 100; i++){
@@ -483,21 +482,22 @@ const gameLoop = async _ => {
             // Update gameState properties with new values
             gameState.lastHand = lastHand;
             gameState.lastValidHand = lastValidHand;
+            gameState.turn = turn;
 
             //log gameState values
-            console.log("Players:", gameState.players[0].cards);
-            console.log("Players:", gameState.players[1].cards);
-            console.log("Players:", gameState.players[2].cards);
-            console.log("Players:", gameState.players[3].cards);
-            console.log("Game Deck:", gameState.gameDeck);
-            console.log("Last Hand:", gameState.lastHand);
-            console.log("Turn:", gameState.turn);
-            console.log("Won Round:", gameState.wonRound);
-            console.log("Finished Deck:", gameState.finishedDeck);
-            console.log("Players Finished:", gameState.playersFinished);
+            console.log("GameState Players:", gameState.players);
+            console.log("GameState Game Deck:", gameState.gameDeck);
+            console.log("GameState Last Hand:", gameState.lastHand);
+            console.log("GameState Turn:", gameState.turn);
+            console.log("GameState Finished Deck:", gameState.finishedDeck);
+            console.log("GameState Players Finished:", gameState.playersFinished);
 
             gameInfoDiv.innerHTML = "Last Played - " + lastHand + "<br>Current Turn - Player " + (turn + 1);
-            wonRound = false; //reset wonRound to false, its only true if 3 players have passed
+
+            //reset all player's wonRound status
+            for(let i = 0; i < GameModule.players.length; i++) {
+                GameModule.players[i].wonRound = false;
+            }
 
             //if 3 players pass, flag wonRound, reset gameDeck and passTracker
             if(passTracker == 3){
@@ -505,7 +505,7 @@ const gameLoop = async _ => {
                 let finishDeckResolve = await finishDeckAnimation(GameModule.gameDeck, finishedDeck);
 
                 if(finishDeckResolve == "finishDeckComplete"){
-                    wonRound = true; 
+                    GameModule.players[turn].wonRound = true; //if player has won the round, make wonRound property true
                     console.log("Player " + gameState.turn + " has won the round, has a free turn");
                     GameModule.gameDeck.length = 0; //clear the game deck because player has won round, like in real life TODO: record the gameDeck before resetting (to show card's played)
                     passTracker = 0;
@@ -514,11 +514,11 @@ const gameLoop = async _ => {
 
             //if player 1's turn
             if(turn == 0){
-                playedHand = await GameModule.players[turn].playCard(GameModule.gameDeck, lastValidHand, wonRound, playersFinished); //resolve hand.length, function also validates hand 
+                playedHand = await GameModule.players[turn].playCard(GameModule.gameDeck, lastValidHand, playersFinished); //resolve hand.length, function also validates hand 
             }
             //else if turn !=0 its oppponent cpu TO DO: pass gamestate object in to keep track of combo, score, etc
             else{
-                playedHand = await GameModule.players[turn].playCard(GameModule.gameDeck, turn, lastValidHand, wonRound, GameModule.players);
+                playedHand = await GameModule.players[turn].playCard(GameModule.gameDeck, turn, lastValidHand, GameModule.players);
             }
 
             //if player played a valid hand
@@ -536,8 +536,8 @@ const gameLoop = async _ => {
                     //check if current player has 0 cards
                     if (GameModule.players[turn].numberOfCards == 0){
                         //add player number to playersFinished array
+                        GameModule.players[turn].wonGame = true;
                         playersFinished.push(turn);
-                        console.log(playersFinished);
                     
                         if(playersFinished.length == 3){
                             //TO DO animate all remaining cards into gameDeck, and then unmount gameDeck, 

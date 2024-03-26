@@ -1,6 +1,8 @@
 export default class Player{ 
     constructor(cards = []){ //initialise player with an empty array of cards, will fill array with card objects
         this.cards = cards;
+        this.wonRound = false;
+        this.wonGame = false;
     }
 
     get numberOfCards() { 
@@ -195,7 +197,7 @@ export default class Player{
     }
     
     //return combo string based on hand array
-    validateCombo(hand, wonRound){
+    validateCombo(hand){
         if(hand.length == 0 || hand.length == 1 || hand.length == 2 || hand.length == 3){
             return "N/A";
         }
@@ -246,7 +248,7 @@ export default class Player{
             }
         }
         //if player has won previous round and plays a straight flush
-        if(wonRound && straight && hand.every(card => card.slice(0, 1) === hand[0].slice(0,1))){
+        if(this.wonRound && straight && hand.every(card => card.slice(0, 1) === hand[0].slice(0,1))){
             return "straightFlushWonRound";
         }
         if(straight && hand.every(card => card.slice(0, 1) === hand[0].slice(0,1))){
@@ -259,7 +261,7 @@ export default class Player{
             }
         }
         //if player won round and hand contains a straight 
-        if(wonRound && straight){
+        if(this.wonRound && straight){
             return "straightWonRound";
         }
         //if hand contains straight
@@ -271,7 +273,7 @@ export default class Player{
             return "flush3d";
         }
         //if player has won previous round and plays flush
-        if(wonRound && hand.every(card => card.slice(0, 1) === hand[0].slice(0,1))){
+        if(this.wonRound && hand.every(card => card.slice(0, 1) === hand[0].slice(0,1))){
             return "flushWonRound";
         }
         //if hand contains flush
@@ -284,8 +286,8 @@ export default class Player{
             return "fullHouse3d";
         }
         //if player has won previous round and plays fullhouse(in either 44 222 or 333 22 format) 
-        if((wonRound && splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard1[1] == splitCard3[1] && splitCard4[1] == splitCard5[1] 
-            || wonRound && splitCard1[1] == splitCard2[1] && splitCard3[1] == splitCard4[1] && splitCard3[1] == splitCard5[1] && splitCard4[1] == splitCard5[1])) { 
+        if((this.wonRound && splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard1[1] == splitCard3[1] && splitCard4[1] == splitCard5[1] 
+            || this.wonRound && splitCard1[1] == splitCard2[1] && splitCard3[1] == splitCard4[1] && splitCard3[1] == splitCard5[1] && splitCard4[1] == splitCard5[1])) { 
             return "fullHouseWonRound";
         }
         //if hand contains full house
@@ -298,8 +300,8 @@ export default class Player{
             return "fok3d";
         }
         //if prev round won and fok
-        if(wonRound && splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard3[1] == splitCard4[1]
-            || wonRound && splitCard2[1] == splitCard3[1] && splitCard3[1] == splitCard4[1] && splitCard4[1] == splitCard5[1]){
+        if(this.wonRound && splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard3[1] == splitCard4[1]
+            || this.wonRound && splitCard2[1] == splitCard3[1] && splitCard3[1] == splitCard4[1] && splitCard4[1] == splitCard5[1]){
             return "fokWonRound";
         }
         //if hand contains fok
@@ -342,7 +344,7 @@ export default class Player{
     }
 
     //return true if played card || combo is valid, else return false
-    cardLogic(gameDeck, hand, lastValidHand, wonRound, playersFinished){ 
+    cardLogic(gameDeck, hand, lastValidHand, playersFinished){ 
         let deck = new Deck();
         deck.sort(); //sort in big 2 ascending order
         var cardMap = deck.cardHash();
@@ -369,7 +371,7 @@ export default class Player{
                         return true;
                     }
                     //if player has won the previous hand, allow them to place any single card down 
-                    else if(wonRound){ 
+                    else if(this.wonRound){ 
                         return true;
                     }
                     //else if opponent/s have won already and game deck is empty
@@ -404,7 +406,7 @@ export default class Player{
                         return true;
                     }
                     //else if player has won previous round and hand contains a valid double, return true 
-                    else if(wonRound && splitCard1[1] == splitCard2[1]) { 
+                    else if(this.wonRound && splitCard1[1] == splitCard2[1]) { 
                         return true;
                     }
                     else if(playersFinished.length > 0 && splitCard1[1] == splitCard2[1]){
@@ -444,7 +446,7 @@ export default class Player{
                         return true;
                     } 
                     //else if player has won previous round and hand contains a valid triple, return true
-                    else if(wonRound && splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard1[1] == splitCard3[1]) { 
+                    else if(this.wonRound && splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard1[1] == splitCard3[1]) { 
                         return true;
                     }
                     else if(playersFinished.length > 0 && splitCard1[1] == splitCard2[1] && splitCard2[1] == splitCard3[1] && splitCard1[1] == splitCard3[1]){
@@ -475,7 +477,7 @@ export default class Player{
                 //if hand contains a unique straight(3 4 5 A 2 || 3 4 5 6 2) change it to ascending order, else do nothing to hand
                 this.detectUniqueStraights(hand);
                 //return player's current combo
-                var combo = this.validateCombo(hand, wonRound);
+                var combo = this.validateCombo(hand);
                 console.log("current combo: " + combo);
 
                 //TODO clean this up
@@ -536,7 +538,7 @@ export default class Player{
                 //return true if combo played meets conditions
                 if(gameDeck.length > 0){
                     if(lastPlayedHand.length == 5){
-                        var lastPlayedCombo = this.validateCombo(lastPlayedHand, wonRound);
+                        var lastPlayedCombo = this.validateCombo(lastPlayedHand);
                         console.log("last played combo: " + lastPlayedCombo);
                         //console.log(" 3 4 5 6 2 combo: " + lastPlayedHand[3].slice(-1) + " " + lastPlayedHand[4].slice(-1))
         
@@ -608,7 +610,7 @@ export default class Player{
     }
 
     //function takes care of selecting cards and inserting cards into hand, sorting the hand, validating move and inserting the hand onto the game deck, and returning promise
-    async playCard(gameDeck, lastValidHand, wonRound, playersFinished){
+    async playCard(gameDeck, lastValidHand, playersFinished){
         var playButton = document.getElementById("play"); //set player class to active if its their turn
         var passButton = document.getElementById("pass");
         var placeCardAudio = new Audio("audio/flipcard.mp3");
@@ -663,7 +665,7 @@ export default class Player{
             }
 
             self.sortHandArray(hand);
-            cardValidate = self.cardLogic(gameDeck, hand, lastValidHand, wonRound, playersFinished); //return valid if played card meets requirements
+            cardValidate = self.cardLogic(gameDeck, hand, lastValidHand, playersFinished); //return valid if played card meets requirements
             console.log("card validation: " + cardValidate);
 
             //if current hand is validated, enable play button, else disable it because its an invalid move

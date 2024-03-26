@@ -338,11 +338,11 @@ export default class Opponent extends Player {
     }
 
     //select correct hand on free turn
-    freeHandSelector(hand, doubles, triples, spareCards, straights, flushes, fullHouses, foks, straightFlushes, gameDeck, wonRound){
+    freeHandSelector(hand, doubles, triples, spareCards, straights, flushes, fullHouses, foks, straightFlushes, gameDeck){
       const individualCombos = this.findIndividualCombos(straights, flushes, fullHouses, foks, straightFlushes);
 
       //if player has 3 of diamonds
-      if(gameDeck.length == 0 && wonRound == false){
+      if(gameDeck.length == 0 && this.wonRound == false){
         //search for 3 of diamond combos, doubles, and triples
         let straightFlushes3d = this.findSubarrayBySuitAndRank(straightFlushes, 0, 3);
         let fok3d = this.findSubarrayBySuitAndRank(foks, 0, 3);
@@ -382,7 +382,7 @@ export default class Opponent extends Player {
         }
       }
       //if opponent has won round, check if i have combos that dont intersect, play lower one, else just play a combo, triple, double, and finally single
-      else if(gameDeck.length == 0 && wonRound == true){
+      else if(gameDeck.length == 0 && this.wonRound == true){
         console.log("opponent won round")
         if(this.numberOfCards == 0){
           hand.length = 0;
@@ -687,8 +687,8 @@ export default class Opponent extends Player {
     }
 
     //compare all the combos with each other and return the best combo to play depending on the game situation
-    comboSelector(hand, lastPlayedHand, straights, flushes, foks, straightFlushes, fullHouses, cardMap, wonRound) {
-      const lastPlayedCombo = this.validateCombo(lastPlayedHand, wonRound);
+    comboSelector(hand, lastPlayedHand, straights, flushes, foks, straightFlushes, fullHouses, cardMap, ) {
+      const lastPlayedCombo = this.validateCombo(lastPlayedHand, this.wonRound);
       console.log("LAST PLAYED COMBO: " + lastPlayedCombo);
 
       //strategy depending on last played combo
@@ -847,7 +847,7 @@ export default class Opponent extends Player {
     }
 
     //this function takes into account previously played card/s and returns a hand array to the playCard function
-    selectCard(lastValidHand, gameDeck, wonRound){
+    selectCard(lastValidHand, gameDeck){
       const lastPlayedHandIndex = gameDeck.length - lastValidHand;
       const lastPlayedHand = [];
       let hand = []; // hand array holds selected cards
@@ -882,7 +882,7 @@ export default class Opponent extends Player {
       switch(lastPlayedHand.length){
         //FIRST TURN / FREE TURN LOGIC
         case 0:
-          hand = this.freeHandSelector(hand, doubles, triples, spareCards, straights, flushes, fullHouses, foks, straightFlushes, gameDeck, wonRound);
+          hand = this.freeHandSelector(hand, doubles, triples, spareCards, straights, flushes, fullHouses, foks, straightFlushes, gameDeck);
           console.log("Value of hand before returning:", hand);
           console.log("Length of hand before returning:", hand.length);
           return hand;
@@ -903,12 +903,12 @@ export default class Opponent extends Player {
           return hand;
         //COMBO LOGIC
         case 5:
-          hand = this.comboSelector(hand, lastPlayedHand, straights, flushes, foks, straightFlushes, fullHouses, cardMap, wonRound);
+          hand = this.comboSelector(hand, lastPlayedHand, straights, flushes, foks, straightFlushes, fullHouses, cardMap);
           return hand;
       }
     }
 
-    async playCard(gameDeck, turn, lastValidHand, wonRound, players) {
+    async playCard(gameDeck, turn, lastValidHand, players) {
         var placeCardAudio = new Audio("audio/flipcard.mp3");
         var passAudio = new Audio("audio/pass.mp3");
         var self = this; //assign player to self
@@ -916,7 +916,7 @@ export default class Opponent extends Player {
         //function to find all possible combos, find outlier cards
         //if lowest card in ai hand(thats not part of a combo) is larger than last played card(only single for now)
         //select cpu hand function based on previous played cards, current combos, etc, insert cards into hand, then play the animation
-        const hand = this.selectCard(lastValidHand, gameDeck, wonRound);
+        const hand = this.selectCard(lastValidHand, gameDeck);
         
         var myPromise = new Promise(async (resolve) => {
           let rotationOffset = Math.random() * 7 + -7; // Calculate a new rotation offset for each card

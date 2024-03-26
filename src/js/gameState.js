@@ -1,12 +1,11 @@
 class GameState {
-    constructor(players, gameDeck, lastHand, turn, lastValidHand, passTracker, wonRound, finishedDeck, playersFinished) {
+    constructor(players, gameDeck, lastHand, turn, lastValidHand, passTracker, finishedDeck, playersFinished) {
       this.players = players;
       this.gameDeck = gameDeck;
       this.lastHand = lastHand;
       this.turn = turn;
       this.lastValidHand = lastValidHand;
       this.passTracker = passTracker;
-      this.wonRound = wonRound;
       this.finishedDeck = finishedDeck;
       this.playersFinished = playersFinished;
     }
