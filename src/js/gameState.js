@@ -1,13 +1,13 @@
 class GameState {
-    constructor(players, gameDeck, lastHand, turn, lastValidHand, passTracker, finishedDeck, playersFinished) {
+    constructor(players, gameDeck, lastHand, turn, lastValidHand, finishedDeck, playersFinished, playedHistory) {
       this.players = players;
       this.gameDeck = gameDeck;
       this.lastHand = lastHand;
       this.turn = turn;
       this.lastValidHand = lastValidHand;
-      this.passTracker = passTracker;
       this.finishedDeck = finishedDeck;
       this.playersFinished = playersFinished;
+      this.playedHistory = playedHistory;
     }
   
     updatePlayers() {

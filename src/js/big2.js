@@ -417,7 +417,7 @@ function printLastPlayedHand(gameDeck, lastValidHand){
     for(let i = lastPlayedHandIndex; i < gameDeck.length; i++){
         //if i less than 0 (happens after user wins a round, because gamedeck length is 0 and lastValidHand stores length of winning hand)
         if(i < 0){
-            continue; //don't insert cards into last played hand and continue out of loop
+            continue; //no cards played
         }
         //make a lookup table that converts the suit to icon and rank to actual rank (eg [0, 13] will turn to [♦, K]) because this function is just for printing no validating
         lastPlayedHand.push(rankLookup[gameDeck[i].rank] + suitLookup[gameDeck[i].suit]); 
@@ -467,31 +467,31 @@ const gameLoop = async _ => {
     if(sortResolve === 'sortComplete'){
         let playedHand = 0; //stores returned hand length from playCard function
         let lastValidHand; //stores a number that lets program know if last turn was a pass or turn
-        let passTracker = 0; //keeps track of passes
         let turn = await determineTurn(GameModule.players); //return player number of player who has 3d
         let gameInfoDiv = document.getElementById("gameInfo");
         let playersFinished = []; //stores finishing order
         let lastHand = []; //stores last hand played
+        let playedHistory = [] //stores played card history
+        let passedFlags = [false, false, false, false];
 
-        const gameState = new GameState(GameModule.players, GameModule.gameDeck, lastHand, turn, lastValidHand, passTracker, GameModule.finishedDeck, playersFinished);
+        const gameState = new GameState(GameModule.players, GameModule.gameDeck, lastHand, turn, lastValidHand, GameModule.finishedDeck, playersFinished, playedHistory);
 
         //GAME LOOP, each loop represents a single turn
         for(let i = 0; i < 100; i++){
             //used for displaying last played hand with actual suit icons 
             lastHand = printLastPlayedHand(GameModule.gameDeck, lastValidHand);
-
+            
             // Update gameState properties with new values
             gameState.lastHand = lastHand;
             gameState.lastValidHand = lastValidHand;
             gameState.turn = turn;
-            gameState.passTracker = passTracker;
+            gameState.playedHistory = playedHistory;
 
             //log gameState values
             console.log("GameState Players:", gameState.players);
             console.log("GameState Game Deck:", gameState.gameDeck);
             console.log("GameState Last Hand:", gameState.lastHand);
             console.log("GameState Turn:", gameState.turn);
-            console.log("GameState passTracker:", gameState.passTracker);
             console.log("GameState Finished Deck:", gameState.finishedDeck);
             console.log("GameState Players Finished:", gameState.playersFinished);
 
@@ -502,22 +502,22 @@ const gameLoop = async _ => {
                 GameModule.players[i].wonRound = false;
             }
 
-            //if 3 players pass, flag wonRound, reset gameDeck and passTracker
-            if(passTracker == 3){
-                // (deal the finished card into the deck, then I can use the finishedDeck.length to determine the end of the game))
+            //if all players pass, flag the matching flag in passedFlags array 
+            if(passedFlags.every(flag => flag)) {
+                // All players have passed, reset flags and take appropriate action
+                console.log("All players have passed. Resetting flags:", passedFlags);
+                passedFlags.fill(false); // Reset all flags to false
+                
+                //wait for finish deck animations
                 let finishDeckResolve = await finishDeckAnimation(GameModule.gameDeck, finishedDeck);
 
                 if(finishDeckResolve == "finishDeckComplete"){
                     GameModule.players[turn].wonRound = true; //if player has won the round, make wonRound property true
                     console.log("Player " + gameState.turn + " has won the round, has a free turn");
                     GameModule.gameDeck.length = 0; //clear the game deck because player has won round, like in real life TODO: record the gameDeck before resetting (to show card's played)
-                    passTracker = 0;
                 }
             }
-
-            // Log the type of the current player object
-            console.log("Current player type:", typeof GameModule.players[turn]);
-
+            
             //if opponent's turn
             if(GameModule.players[turn].isOpponent){
                 //playedHand = resolved hand.length, function also validates hand
@@ -530,8 +530,10 @@ const gameLoop = async _ => {
 
             //if player played a valid hand
             if(playedHand >= 1 && playedHand <= 5){
+                playedHistory.push(lastHand); //push last valid hand into playedHistory array
+
                 console.log("played hand debug: " + playedHand);
-                passTracker = 0; //reset passTracker if hand has been played
+                passedFlags[turn] = false;
 
                 // do a new function here input current turn, instead so theres only one animation per turn instead of all cards being sorted after each turn
                 //if player or ai play a valid hand, sort their cards
@@ -572,10 +574,11 @@ const gameLoop = async _ => {
                 }
             }
             else if(playedHand == 0){ //else if player passed
+                passedFlags[turn] = true; // Set the corresponding flag to true
+                 // Log the reset passedFlags
                 turn += 1;
-                passTracker += 1; //keeps track of number of passes to track if anyone has won round
-                console.log("pass tracker: " + passTracker);
-                console.log("player passed");
+                console.log("Player passed");
+                console.log("flags:", passedFlags);
                 if (turn > 3) turn = 0;
             }
         }

@@ -341,6 +341,11 @@ export default class Opponent extends Player {
     //select correct hand on free turn
     freeHandSelector(hand, doubles, triples, spareCards, straights, flushes, fullHouses, foks, straightFlushes, gameDeck){
       const individualCombos = this.findIndividualCombos(straights, flushes, fullHouses, foks, straightFlushes);
+      //
+      if(this.numberOfCards == 0){
+        hand.length = 0;
+        return hand;
+      }
 
       //if player has 3 of diamonds
       if(gameDeck.length == 0 && this.wonRound == false){
