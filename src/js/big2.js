@@ -2,6 +2,7 @@ import Player from "./player.js"
 import Opponent from "./opponent.js"
 import GameState from "./gameState.js"
 
+
 // Lookup table for printing actual rank in last played hand
 const rankLookup = {
     1: 'A',
