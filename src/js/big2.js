@@ -2,7 +2,6 @@ import Player from "./player.js"
 import Opponent from "./opponent.js"
 import GameState from "./gameState.js"
 
-
 // Lookup table for printing actual rank in last played hand
 const rankLookup = {
     1: 'A',
@@ -296,18 +295,6 @@ async function determineTurn(players) {
     return await promise;
 }
 
-
-async function startPromise() {
-    let startGame = document.getElementById("startGame");
-
-    let myPromise = new Promise(function(myResolve, myReject) {
-        startGame.addEventListener("click", function(){
-            myResolve("START");
-        }.bind(this), false)
-    });
-
-    return myPromise;
-}
 async function finishGameAnimation(gameDeck, finishedDeck, players, losingPlayer){
     return new Promise(async function (resolve, reject) {
         let finishedDeckDiv = document.getElementById("finishedDeck");
@@ -442,19 +429,6 @@ function findMissingPlayer(playersFinished) {
     // Return the missing player
     return allPlayers[0];
 }
-
-
-window.onload = async function() {
-    // deal cards to all players and return resolve when animations are complete
-    let dealResolve = await dealCards(GameModule.deck, GameModule.players);
-
-    if(dealResolve === 'dealingComplete'){
-        // Cards have been dealt and animations are complete
-        console.log('Dealing complete');
-        let results = await gameLoop();
-        //TODO add post game screen (score, positions, continue to next game option)
-    }
-};
 
 //Actual game loop
 const gameLoop = async _ => {
@@ -591,16 +565,42 @@ const gameLoop = async _ => {
     }
 }
 
-//TO DO: make start menu that allows player to start game
-async function startGame() {
-    var res = await startPromise();
-    var audio = new Audio('audio/shuffling-cards-1.wav');
+async function startMenu() {
+    const menu = document.getElementById("menu");
+    const startButton = document.getElementById("startButton");
 
-    if(res == "START"){
-        audio.play();
-        dealCards(GameModule.deck, GameModule.players);
-        var winner = await gameLoop();
-        window.alert(winner); //replace this with a popup menu allowing players to restart maybe also show winner and loser, if i make game ending condition every player running out of cards
-    }
+    menu.style.display = "block";
+
+    return new Promise((resolve) => {
+        // Define the click event listener function
+        function handleClick() {
+            // Remove the click event listener
+            startButton.removeEventListener("click", handleClick);
+            // Hide the menu
+            menu.style.display = "none";
+            // Resolve the promise with the value "startGame"
+            resolve("startGame");
+        }
+
+        // Add a click event listener to the start button
+        startButton.addEventListener("click", handleClick);
+    });
 }
+
+window.onload = async function() {
+    let startMenuResolve = await startMenu();
+
+    if(startMenuResolve == "startGame"){
+        // deal cards to all players and return resolve when animations are complete
+        let dealResolve = await dealCards(GameModule.deck, GameModule.players);
+        console.log("reached here")
+
+        if(dealResolve === 'dealingComplete'){
+            // Cards have been dealt and animations are complete
+            console.log('Dealing complete');
+            let results = await gameLoop();
+            //TODO add post game screen (score, positions, continue to next game option)
+        }
+    }
+};
 
