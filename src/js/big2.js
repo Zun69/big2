@@ -52,7 +52,7 @@ Deck.modules.cardHash = cardHashModule; //add cardHash function to deck library
 const GameModule = (function() {
     // Initial values
     //let initialPlayer1 = new Player();
-    let initialPlayer1 = new Opponent();
+    let initialPlayer1 = new Player();
     let initialPlayer2 = new Opponent(); //ai player
     let initialPlayer3 = new Opponent();
     let initialPlayer4 = new Opponent();
@@ -537,7 +537,11 @@ const gameLoop = async _ => {
                 playedHistory.push(lastHand); //push last valid hand into playedHistory array
 
                 console.log("played hand debug: " + playedHand);
-                GameModule.players[turn].passed = false;
+
+                //once a player plays a valid hand, pass tracker should be reset to 0, so all players pass property should reset to false
+                GameModule.players.forEach(player => {
+                    player.passed = false;
+                });
 
                 // do a new function here input current turn, instead so theres only one animation per turn instead of all cards being sorted after each turn
                 //if player or ai play a valid hand, sort their cards
