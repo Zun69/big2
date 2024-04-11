@@ -23,8 +23,8 @@
         margin: 0 auto; /* Center game container horizontally */
     }
 
-    /*start menu*/
-    #menu {
+    /*menu styling*/
+    #startMenu, #endMenu {
         position: absolute;
         top: 50%;
         left: 50%;
@@ -41,6 +41,7 @@
     }
     
     #startButton {
+        margin-top: 120px;
         width: 300px;
         height: 30px;
         transition-duration: 0.4s;
@@ -50,9 +51,36 @@
         border-radius: 4px;
     }
 
-    #startButton:hover {
+    #startButton:hover, #nextGameButton:hover, #play:hover, #pass:hover {
         background-color: #d2b48c;
         color: white;
+    }
+
+    #quitGameButton:hover {
+        background-color: #f04034;
+        color: white;
+    }
+
+    #nextGameButton {
+        margin-top: 80px;
+        width: 300px;
+        height: 30px;
+        transition-duration: 0.4s;
+        font-size: 15px;
+        font-family: Helvetica, Arial, sans-serif;
+        font-weight: 200;
+        border-radius: 4px;
+    }
+
+    #quitGameButton {
+        margin-top: 10px;
+        width: 300px;
+        height: 30px;
+        transition-duration: 0.4s;
+        font-size: 15px;
+        font-family: Helvetica, Arial, sans-serif;
+        font-weight: 200;
+        border-radius: 4px;
     }
     
     h3 {
@@ -114,6 +142,7 @@
         padding: 10px;
         backdrop-filter: blur(1px); /* Adjust the blur value as needed */
         border-radius: 10px; /* Adjust the border-radius value as needed */
+        display: none;
     }
     
     .button {
@@ -124,25 +153,20 @@
         padding: 4px 8px; /* Adjust padding to increase button size */
         border-radius: 4px;
     }
-      
-    .button:hover {
-        background-color: #d2b48c;
-        color: white;
-    }
     
-    
+    /* play hand, and pass buttons*/
     #pass {
         position: absolute;
         bottom: 10px; /* Adjust this value to set the distance from the bottom */
         left: 52%;
-        /* Add other styles for your buttons */
+        display: none;
     }
     
     #play{
         position: absolute;
         bottom: 10px; /* Adjust this value to set the distance from the bottom */
         left: 42.5%;
-        /* Add other styles for your buttons */
+        display: none;
     }
     
     #turn{

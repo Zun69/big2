@@ -51,34 +51,33 @@ Deck.modules.cardHash = cardHashModule; //add cardHash function to deck library
 const GameModule = (function() {
     // Initial values
     //let initialPlayer1 = new Player();
-    let initialPlayer1 = new Player();
-    let initialPlayer2 = new Opponent(); //ai player
-    let initialPlayer3 = new Opponent();
-    let initialPlayer4 = new Opponent();
-    let initialPlayers = [initialPlayer1, initialPlayer2, initialPlayer3, initialPlayer4];
-    let initialGameDeck = []; //playing deck will be empty array, will be filled with card objects
-    let initialDeck = Deck(); //using deck class from deck.js (no need to import)
-    let initialFinishedDeck = Deck(); //store post round cards
+    let player1 = new Opponent();
+    let player2 = new Opponent(); //ai player
+    let player3 = new Opponent();
+    let player4 = new Opponent();
     
     // Current values
-    let players = [...initialPlayers];
-    let gameDeck = [...initialGameDeck];
-    let deck = initialDeck;
-    let finishedDeck = initialFinishedDeck;
+    let players = [player1, player2, player3, player4];
+    let gameDeck = [];
+    let finishedDeck = Deck();
 
     // Reset function
     function reset() {
-        players = [...initialPlayers];
-        gameDeck = [...initialGameDeck];
-        deck = initialDeck;
-        finishedDeck = initialFinishedDeck;
+        players.forEach(player => {
+            // Reset player properties
+            player.cards = [];
+            player.wonRound = false;
+            player.wonGame = false;
+            player.passed = false;
+        });
+        gameDeck.length = 0;
+        finishedDeck = Deck();
     }
 
     //return GameModule properties
     return {
         players,
         gameDeck,
-        deck,
         finishedDeck,
         reset
     };
@@ -145,22 +144,27 @@ function shuffleDeckAsync(deck, times, delayBetweenShuffles) {
         }, 300); //default 2100 7 shuffles  (3 shuffles = 850, etc)
       });
     });
-  }
+}
 
-async function dealCards(deck, players) {
+async function dealCards(players) {
     return new Promise(function (resolve, reject) {
+        //assign each player's div's so cards can be mounted to them
         var p1Div = document.getElementById('0');
         var p2Div = document.getElementById('1');
         var p3Div = document.getElementById('2');
         var p4Div = document.getElementById('3');
+
+        //hold each player's animation promises
         let p1Promise;
         let p2Promise;
         let p3Promise;
         let p4Promise;
 
         // Display the deck in an HTML container
+        let deck = Deck();
         let $container = document.getElementById('gameDeck');
         deck.mount($container);
+        console.log("deck mounted")
 
         let shufflePromise = shuffleDeckAsync(deck, 1, 0);
 
@@ -170,6 +174,7 @@ async function dealCards(deck, players) {
         shufflePromise.then(function(value) {
             if(value == "shuffleComplete"){
                 const animationPromises = []; // Array to store animation promises
+
                 deck.cards.reverse().forEach(function (card, i) {
                     if (playerIndex == 4) {
                         playerIndex = 0;
@@ -430,7 +435,7 @@ function findMissingPlayer(playersFinished) {
     return allPlayers[0];
 }
 
-//Actual game loop
+//Actual game loop, 1 loop represents a turn
 const gameLoop = async _ => {
     // Empty the finished deck of all its cards, so it can store post round cards
     GameModule.finishedDeck.cards.forEach(function (card) {
@@ -531,18 +536,20 @@ const gameLoop = async _ => {
                         playersFinished.push(turn);
                     
                         if(playersFinished.length == 3){
-                            //TO DO animate all remaining cards into gameDeck, and then unmount gameDeck, 
-                            //resolve finished game, show scoreboard, allow user to quit or continue to next game
-                            // Assuming you have already declared the playersFinished array and have added player numbers to it
+                            //find the player that came last (0-3)
                             let losingPlayer = findMissingPlayer(playersFinished);
+                            //push losing player to playersFinished array (used for leaderboard)
+                            playersFinished.push(losingPlayer);
 
                             let finishGameResolve = await finishGameAnimation(GameModule.gameDeck, finishedDeck, GameModule.players, losingPlayer);
                             
                             if(finishGameResolve == "finishGameComplete")
                             {
                                 return new Promise(resolve => {
+                                    //unmount finishedDeck
                                     GameModule.finishedDeck.unmount();
                                     
+                                    //return results of game in playersFinished array e.g [0, 2, 1, 3] (player 1, player 3, player 2, player 4)
                                     resolve(playersFinished);
                                 });
                             }   
@@ -566,7 +573,7 @@ const gameLoop = async _ => {
 }
 
 async function startMenu() {
-    const menu = document.getElementById("menu");
+    const menu = document.getElementById("startMenu");
     const startButton = document.getElementById("startButton");
 
     menu.style.display = "block";
@@ -587,20 +594,91 @@ async function startMenu() {
     });
 }
 
-window.onload = async function() {
-    let startMenuResolve = await startMenu();
+async function endMenu() {
+    const endMenu = document.getElementById("endMenu");
+    const nextGameButton = document.getElementById("nextGameButton");
+    const quitGameButton = document.getElementById("quitGameButton");
 
+    //hide buttons and gameInfo divs
+    const playButton = document.getElementById("play");
+    const passButton = document.getElementById("pass");
+    const gameInfo = document.getElementById("gameInfo");
+
+    playButton.style.display = "none";
+    passButton.style.display = "none";
+    gameInfo.style.display = "none";
+
+    endMenu.style.display = "block";
+
+    return new Promise((resolve) => {
+         // Define the click event listener function for nextGameButton
+         function handleNextGameClick() {
+            // Remove the click event listener for nextGameButton
+            nextGameButton.removeEventListener("click", handleNextGameClick);
+            // Hide the menu
+            endMenu.style.display = "none";
+            // Resolve the promise with the value "nextGame"
+            resolve("nextGame");
+        }
+
+        // Define the click event listener function for quitGameButton
+        function handleQuitGameClick() {
+            // Remove the click event listener for quitGameButton
+            quitGameButton.removeEventListener("click", handleQuitGameClick);
+            // Hide the menu
+            endMenu.style.display = "none";
+            // Resolve the promise with the value "quitGame"
+            resolve("quitGame");
+        }
+
+        // Add click event listeners to the buttons
+        nextGameButton.addEventListener("click", handleNextGameClick);
+        quitGameButton.addEventListener("click", handleQuitGameClick);
+    });
+}
+
+async function startGame(startMenuResolve){
     if(startMenuResolve == "startGame"){
+        //unhide buttons and gameInfo divs
+        const playButton = document.getElementById("play");
+        const passButton = document.getElementById("pass");
+        const gameInfo = document.getElementById("gameInfo");
+
+        playButton.style.display = "block";
+        passButton.style.display = "block";
+        gameInfo.style.display = "block";
+
         // deal cards to all players and return resolve when animations are complete
-        let dealResolve = await dealCards(GameModule.deck, GameModule.players);
-        console.log("reached here")
+        let dealResolve = await dealCards(GameModule.players);
 
         if(dealResolve === 'dealingComplete'){
             // Cards have been dealt and animations are complete
             console.log('Dealing complete');
             let results = await gameLoop();
-            //TODO add post game screen (score, positions, continue to next game option)
+            return results; //return results
         }
     }
+}
+
+window.onload = async function() {
+    let endMenuResolve = "nextGame";
+    let startMenuResolve = await startMenu();
+
+    while(endMenuResolve!="quitGame"){
+        let results = await startGame(startMenuResolve);
+
+        if(results.length == 4){
+            console.log('Game complete!');
+            console.log(results);
+
+            endMenuResolve = await endMenu();
+
+            if(endMenuResolve == "nextGame"){
+                GameModule.reset();
+                console.log("Game Reset")
+            }
+        }
+    }
+    
 };
 

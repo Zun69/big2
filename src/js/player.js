@@ -16,6 +16,11 @@ export default class Player{
         this.cards.push(card);
     }
 
+    // Function to remove all cards from player
+    removeAllCards() {
+        this.cards = [];
+    }
+
     //return card from given card id
     searchCard(cardId){
         for(let i = 0; i < this.numberOfCards; i++){
