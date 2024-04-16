@@ -4,6 +4,7 @@ export default class Player{
         this.wonRound = false;
         this.wonGame = false;
         this.passed = false;
+        this.points = 0;
     }
 
     get numberOfCards() { 

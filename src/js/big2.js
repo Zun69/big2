@@ -61,7 +61,7 @@ const GameModule = (function() {
     let gameDeck = [];
     let finishedDeck = Deck();
 
-    // Reset function
+    // reset everything except points
     function reset() {
         players.forEach(player => {
             // Reset player properties
@@ -74,12 +74,27 @@ const GameModule = (function() {
         finishedDeck = Deck();
     }
 
+    // reset everything
+    function resetAll() {
+        players.forEach(player => {
+            // Reset player properties
+            player.cards = [];
+            player.wonRound = false;
+            player.wonGame = false;
+            player.passed = false;
+            player.points = 0;
+        });
+        gameDeck.length = 0;
+        finishedDeck = Deck();
+    }
+
     //return GameModule properties
     return {
         players,
         gameDeck,
         finishedDeck,
-        reset
+        reset,
+        resetAll
     };
 })();
 
@@ -660,16 +675,45 @@ async function startGame(startMenuResolve){
     }
 }
 
+//take in results array and assign points to each player
+function calculatePoints(results) {
+    //1st - 3 points, 2nd - 2 points, 3rd - 1 points, 4th - 0 points
+
+    GameModule.players[results[0]].points += 3;
+    GameModule.players[results[1]].points += 2;
+    GameModule.players[results[2]].points += 1;
+    GameModule.players[results[3]].points += 0;
+
+    GameModule.players.forEach((player, index) => {
+        console.log(`Player ${index + 1}: ${player.points} points`);
+    });
+}
+
 window.onload = async function() {
-    let endMenuResolve = "nextGame";
+    let endMenuResolve;
+
+    // Return user choice from main menu
     let startMenuResolve = await startMenu();
 
-    while(endMenuResolve!="quitGame"){
+    while(true){
+
+        //if user quits game
+        if(endMenuResolve=="quitGame"){
+            //reset everything including player points
+            console.log('Game quit');
+            GameModule.resetAll();
+            //return to main menu
+            startMenuResolve = await startMenu();
+        }
+
+        // start the game and return results of game
         let results = await startGame(startMenuResolve);
 
         if(results.length == 4){
             console.log('Game complete!');
             console.log(results);
+            //calculate points based on results
+            calculatePoints(results);
 
             endMenuResolve = await endMenu();
 
