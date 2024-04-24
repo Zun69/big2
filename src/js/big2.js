@@ -51,10 +51,10 @@ Deck.modules.cardHash = cardHashModule; //add cardHash function to deck library
 const GameModule = (function() {
     // Initial values
     //let initialPlayer1 = new Player();
-    let player1 = new Opponent();
-    let player2 = new Opponent(); //ai player
-    let player3 = new Opponent();
-    let player4 = new Opponent();
+    let player1 = new Opponent("Kulin");
+    let player2 = new Opponent("Zheng"); //ai player
+    let player3 = new Opponent("Jason");
+    let player4 = new Opponent("Wong");
     
     // Current values
     let players = [player1, player2, player3, player4];
@@ -491,7 +491,7 @@ const gameLoop = async _ => {
             console.log("GameState Players Finished:", gameState.playersFinished);
             console.log("GameState playedHand:", gameState.playedHand);
 
-            gameInfoDiv.innerHTML = "Last Played: " + lastHand + "<br>Current Turn: Player " + (turn + 1);
+            gameInfoDiv.innerHTML = "Last Played: " + lastHand + "<br>Current Turn: " + GameModule.players[turn].name;
 
             //reset all player's wonRound status
             for(let i = 0; i < GameModule.players.length; i++) {
@@ -679,13 +679,61 @@ async function startGame(startMenuResolve){
 function calculatePoints(results) {
     //1st - 3 points, 2nd - 2 points, 3rd - 1 points, 4th - 0 points
 
+    //increment points and win property for player who came first
     GameModule.players[results[0]].points += 3;
-    GameModule.players[results[1]].points += 2;
-    GameModule.players[results[2]].points += 1;
-    GameModule.players[results[3]].points += 0;
+    GameModule.players[results[0]].wins += 1;
 
-    GameModule.players.forEach((player, index) => {
-        console.log(`Player ${index + 1}: ${player.points} points`);
+    GameModule.players[results[1]].points += 2;
+    GameModule.players[results[1]].seconds += 1;
+
+    GameModule.players[results[2]].points += 1;
+    GameModule.players[results[2]].thirds += 1;
+
+    GameModule.players[results[3]].points += 0;
+    GameModule.players[results[3]].losses += 1;
+}
+
+//update leaderboard standings based on points (maybe add a picture, wins, seconds, thirds, losses columns)
+function updateLeaderboard() {
+    const leaderboardBody = document.getElementById("leaderboard-body");
+
+    // Clear existing leaderboard rows
+    leaderboardBody.innerHTML = "";
+
+    // Sort players array by points (descending order)
+    const sortedPlayers = GameModule.players.slice().sort((a, b) => b.points - a.points);
+
+    // Create a leaderboard row for each player
+    sortedPlayers.forEach((player) => {
+        //create new row for each player (each row will contain name, points, wins, seconds, etc)
+        const row = document.createElement("tr");
+
+        const playerNameCell = document.createElement("td");
+        playerNameCell.textContent = player.name;
+        row.appendChild(playerNameCell);
+
+        const playerPointsCell = document.createElement("td");
+        playerPointsCell.textContent = player.points;
+        row.appendChild(playerPointsCell);
+
+        const playerWinsCell = document.createElement("td");
+        playerWinsCell.textContent = player.wins;
+        row.appendChild(playerWinsCell);
+
+        const playerSecondsCell = document.createElement("td");
+        playerSecondsCell.textContent = player.seconds;
+        row.appendChild(playerSecondsCell);
+
+        const playerThirdsCell = document.createElement("td");
+        playerThirdsCell.textContent = player.thirds;
+        row.appendChild(playerThirdsCell);
+
+        const playerLossesCell = document.createElement("td");
+        playerLossesCell.textContent = player.losses;
+        row.appendChild(playerLossesCell);
+
+        //append row to leaderboard body
+        leaderboardBody.appendChild(row);
     });
 }
 
@@ -714,6 +762,8 @@ window.onload = async function() {
             console.log(results);
             //calculate points based on results
             calculatePoints(results);
+            // Call updateLeaderboard function whenever needed, such as after calculating points
+            updateLeaderboard();
 
             endMenuResolve = await endMenu();
 

@@ -1,10 +1,15 @@
 export default class Player{ 
-    constructor(cards = []){ //initialise player with an empty array of cards, will fill array with card objects
+    constructor(name, cards = []){ // Player object, which will contain name, cards, wonRound & wonGame & pass status, point tally 
+        this.name = name;
         this.cards = cards;
         this.wonRound = false;
         this.wonGame = false;
         this.passed = false;
         this.points = 0;
+        this.wins = 0;
+        this.seconds = 0;
+        this.thirds = 0;
+        this.losses = 0;
     }
 
     get numberOfCards() { 

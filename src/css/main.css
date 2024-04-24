@@ -24,13 +24,29 @@
     }
 
     /*menu styling*/
-    #startMenu, #endMenu {
+    #startMenu {
         position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
         width: 360px; /* Adjust as needed */
         height: 260px; /* Adjust as needed */
+        background-color: #ffffff; /* White background */
+        border: 1px solid #000; /* Add border with 2px width and black color */
+        border-radius: 10px; /* Rounded corners */
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #endMenu{
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 700px; /* Adjust as needed */
+        height: 450px; /* Adjust as needed */
         background-color: #ffffff; /* White background */
         border: 1px solid #000; /* Add border with 2px width and black color */
         border-radius: 10px; /* Rounded corners */
@@ -62,7 +78,9 @@
     }
 
     #nextGameButton {
-        margin-top: 80px;
+        display: block;
+        margin: 0 auto; /* Center horizontally with 10px top and bottom margin */
+        margin-top: 100px;
         width: 300px;
         height: 30px;
         transition-duration: 0.4s;
@@ -73,7 +91,9 @@
     }
 
     #quitGameButton {
-        margin-top: 10px;
+        display: block;
+        margin: 0 auto; /* Center horizontally with 10px top and bottom margin */
+        margin-top: 15px;
         width: 300px;
         height: 30px;
         transition-duration: 0.4s;
@@ -81,6 +101,33 @@
         font-family: Helvetica, Arial, sans-serif;
         font-weight: 200;
         border-radius: 4px;
+    }
+
+    /*leaderboard styling*/
+    #leaderboard {
+        padding: 0 20px; /* Add padding to create a gap on both sides */
+        margin-top: 20px;
+    }
+    
+    #leaderboard table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    #leaderboard th,
+    #leaderboard td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    
+    #leaderboard th {
+        background-color: #f2f2f2;
+    }
+    
+    #leaderboard th:first-child,
+    #leaderboard td:first-child {
+        width: 70%; /* Adjust as needed */
     }
     
     h3 {

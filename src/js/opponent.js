@@ -925,7 +925,7 @@ export default class Opponent extends Player {
         const hand = this.selectCard(lastValidHand, gameDeck);
         
         var myPromise = new Promise(async (resolve) => {
-          let rotationOffset = Math.random() * 7 + -7; // Calculate a new rotation offset for each card
+          let rotationOffset = Math.random() * 4 - 2; // Calculate a new rotation offset for each card to create a random rotation
           console.log("ROTATIONAL OFFSET: " + rotationOffset)
           var animationPromises = []; //holds all animation promises
           var cardsToRemove = []; //holds indexes of cards to be removed
@@ -943,42 +943,71 @@ export default class Opponent extends Player {
             let cardIndex = self.cards.findIndex(card => card.suit + " " + card.rank == cardId);
             let card = self.findCardObject(cardId); //return card object using cardId to search
 
-            //animations are different, depending on current opponent
-            if(turn == 1){
-              //animate card object to gameDeck position (//can use turn to slightly stagger the cards like uno on ios)
-              let p2Promise = new Promise((cardResolve) => {
-                card.animateTo({
-                    delay: 0, // wait 1 second + i * 2 ms
-                    duration: 100,
-                    ease: 'linear',
-                    rot: 0 + rotationOffset,
-                    x: 12 + (i * 15),
-                    y: 0,
-                    onComplete: function () {
-                      if (cardIndex !== -1) {
-                        card.setSide('front');
-                        card.$el.style.zIndex = gameDeck.length; //make it equal gameDeck.length
-                        gameDeck.push(self.cards[cardIndex]); //insert player's card that matches cardId into game deck
-                        console.log("card inserted: " + self.cards[cardIndex].suit + self.cards[cardIndex].rank);
-                        //add card index into cardsToRemove array, so I can remove all cards at same time after animations are finished
-                        //insert cardIndex at beginning so that when im sorting the array in reverse the higher index will be processed first
-                        cardsToRemove.unshift(self.cards[cardIndex].suit + " " + self.cards[cardIndex].rank);
-                        console.log("Cards to remove: " + cardsToRemove);
-                        placeCardAudio.play();
-                      }
-                      
-                      cardResolve(); //only resolve promise when animation is complete
-                    } 
-                })                                 
-              }); 
-              animationPromises.push(p2Promise); //add animation promise to promise array 
+            //animations are different, depending on current opponent (TO DO: This is probably redundant since player 4 animations work for player 1)
+              if(turn == 0){
+                //animate card object to gameDeck position (//can use turn to slightly stagger the cards like uno on ios)
+                let p1Promise = new Promise((cardResolve) => {
+                  card.animateTo({
+                      delay: 0, // wait 1 second + i * 2 ms
+                      duration: 25,
+                      ease: 'linear',
+                      rot: 0 + rotationOffset,
+                      x: 26 + (i * 15),
+                      y: 0,
+                      onComplete: function () {
+                        if (cardIndex !== -1) {
+                          card.setSide('front');
+                          card.$el.style.zIndex = gameDeck.length; //make it equal gameDeck.length
+                          gameDeck.push(self.cards[cardIndex]); //insert player's card that matches cardId into game deck
+                          console.log("card inserted: " + self.cards[cardIndex].suit + self.cards[cardIndex].rank);
+                          //add card index into cardsToRemove array, so I can remove all cards at same time after animations are finished
+                          //insert cardIndex at beginning so that when im sorting the array in reverse the higher index will be processed first
+                          cardsToRemove.unshift(self.cards[cardIndex].suit + " " + self.cards[cardIndex].rank);
+                          console.log("Cards to remove: " + cardsToRemove);
+                          placeCardAudio.play();
+                        }
+                        
+                        cardResolve(); //only resolve promise when animation is complete
+                      } 
+                  })                                 
+                }); 
+                animationPromises.push(p1Promise); //add animation promise to promise array 
+              }
+              else if(turn == 1){
+                //animate card object to gameDeck position (//can use turn to slightly stagger the cards like uno on ios)
+                let p2Promise = new Promise((cardResolve) => {
+                  card.animateTo({
+                      delay: 0, // wait 1 second + i * 2 ms
+                      duration: 25,
+                      ease: 'linear',
+                      rot: 0 + rotationOffset,
+                      x: 12 + (i * 15),
+                      y: 0,
+                      onComplete: function () {
+                        if (cardIndex !== -1) {
+                          card.setSide('front');
+                          card.$el.style.zIndex = gameDeck.length; //make it equal gameDeck.length
+                          gameDeck.push(self.cards[cardIndex]); //insert player's card that matches cardId into game deck
+                          console.log("card inserted: " + self.cards[cardIndex].suit + self.cards[cardIndex].rank);
+                          //add card index into cardsToRemove array, so I can remove all cards at same time after animations are finished
+                          //insert cardIndex at beginning so that when im sorting the array in reverse the higher index will be processed first
+                          cardsToRemove.unshift(self.cards[cardIndex].suit + " " + self.cards[cardIndex].rank);
+                          console.log("Cards to remove: " + cardsToRemove);
+                          placeCardAudio.play();
+                        }
+                        
+                        cardResolve(); //only resolve promise when animation is complete
+                      } 
+                  })                                 
+                }); 
+                animationPromises.push(p2Promise); //add animation promise to promise array 
               }
               //else if player 3
               else if(turn == 2){
                 let p3Promise = new Promise((cardResolve) => {
                   card.animateTo({
                       delay: 0, 
-                      duration: 100,
+                      duration: 25,
                       ease: 'linear',
                       rot: 0 + rotationOffset,
                       x: 12 + (i * 15),
@@ -1004,7 +1033,7 @@ export default class Opponent extends Player {
                 let p4Promise = new Promise((cardResolve) => {
                   card.animateTo({
                       delay: 0, // wait 1 second + i * 2 ms
-                      duration: 100,
+                      duration: 25,
                       ease: 'linear',
                       rot: 0 + rotationOffset,
                       x: 12 + (i * 15),
