@@ -68,7 +68,7 @@
     }
 
     #startButton:hover, #nextGameButton:hover, #play:hover, #pass:hover {
-        background-color: #d2b48c;
+        background-color: #008000;
         color: white;
     }
 
@@ -190,6 +190,21 @@
         backdrop-filter: blur(1px); /* Adjust the blur value as needed */
         border-radius: 10px; /* Adjust the border-radius value as needed */
         display: none;
+    }
+
+    #arrow {
+        position: absolute;
+        top: calc(67.8% - 110px); /* Adjust the value to position it above gameInfo */
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    #arrow img {
+        width: 40px;
+        height: 40px;
+        margin-bottom: -65px;
+        position: relative; /* Make the image position relative to its parent */
+        transition: transform 0.20s ease; /* Smooth transition for transform property */
     }
     
     .button {

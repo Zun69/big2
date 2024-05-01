@@ -936,7 +936,7 @@ export default class Opponent extends Player {
           console.log('Value of hand:', hand + "hand length: " + hand.length)
           if(hand.length == 0){
             resolve(hand.length);
-            passAudio.play();
+            //passAudio.play();
           }
           hand.forEach(cardId=> {
             //return index of player's card that matches card in hand (different than player class, because hand contains card object)

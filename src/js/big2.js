@@ -61,7 +61,7 @@ const GameModule = (function() {
     let gameDeck = [];
     let finishedDeck = Deck();
 
-    // reset everything except points
+    // reset everything except points, wins, seconds, etc (next game)
     function reset() {
         players.forEach(player => {
             // Reset player properties
@@ -74,7 +74,7 @@ const GameModule = (function() {
         finishedDeck = Deck();
     }
 
-    // reset everything
+    // reset everything (quit game)
     function resetAll() {
         players.forEach(player => {
             // Reset player properties
@@ -83,6 +83,10 @@ const GameModule = (function() {
             player.wonGame = false;
             player.passed = false;
             player.points = 0;
+            player.wins = 0;
+            player.seconds = 0;
+            player.thirds = 0;
+            player.losses = 0;
         });
         gameDeck.length = 0;
         finishedDeck = Deck();
@@ -450,6 +454,53 @@ function findMissingPlayer(playersFinished) {
     return allPlayers[0];
 }
 
+//point arrow at player with 3 of diamonds
+function initialAnimateArrow(playerIndex) {
+    const arrowImg = document.querySelector('#arrow img');
+    console.log("ROTATE TURN: " + playerIndex);
+
+    // store initial rotation based on turn
+    let initialRotation;
+    
+    // Adjust arrow rotation based on player index
+    switch (playerIndex) {
+      case 0: // Down
+        initialRotation = 90;
+        break;
+      case 1: // Left
+        initialRotation = 180;
+        break;
+      case 2: // Up
+        initialRotation = 270;
+        break;
+      case 3: // Right
+        initialRotation = 0;
+        break;
+    }
+    
+    //rotate arrow towards player with 3 of diamonds
+    arrowImg.style.transform = `rotate(${initialRotation}deg)`;
+
+    //return rotation so that the actual function that takes care of animating the arrow can increment on it by 90
+    return initialRotation;
+}
+
+function animateArrow(rotation){
+    // Set the new rotation angle
+    const arrowImg = document.querySelector('#arrow img');
+
+    //increase initial rotation by 90
+    rotation += 90;
+
+    console.log("ROTATE: " + rotation);
+    
+    //rotate arrow by 90 degrees
+    arrowImg.style.transform = `rotate(${rotation}deg)`;
+
+    //return rotation so I can feed it back into this function to keep increasing rotation by 90
+    return rotation;
+}
+
 //Actual game loop, 1 loop represents a turn
 const gameLoop = async _ => {
     // Empty the finished deck of all its cards, so it can store post round cards
@@ -463,6 +514,7 @@ const gameLoop = async _ => {
         let playedHand = 0; //stores returned hand length from playCard function
         let lastValidHand; //stores a number that lets program know if last turn was a pass or turn
         let turn = await determineTurn(GameModule.players); //return player number of player who has 3d
+        let rotation = initialAnimateArrow(turn); //return initial Rotation so I can use it to animate arrow
         let gameInfoDiv = document.getElementById("gameInfo");
         let playersFinished = []; //stores finishing order
         let lastHand = []; //stores last hand played
@@ -492,6 +544,9 @@ const gameLoop = async _ => {
             console.log("GameState playedHand:", gameState.playedHand);
 
             gameInfoDiv.innerHTML = "Last Played: " + lastHand + "<br>Current Turn: " + GameModule.players[turn].name;
+
+            //animate arrow by incrementing rotation found initially by 90
+            rotation = animateArrow(rotation);
 
             //reset all player's wonRound status
             for(let i = 0; i < GameModule.players.length; i++) {
@@ -550,6 +605,7 @@ const gameLoop = async _ => {
                         GameModule.players[turn].wonGame = true;
                         playersFinished.push(turn);
                     
+                        //if 3 players have no cards left, means game is over
                         if(playersFinished.length == 3){
                             //find the player that came last (0-3)
                             let losingPlayer = findMissingPlayer(playersFinished);
@@ -560,6 +616,10 @@ const gameLoop = async _ => {
                             
                             if(finishGameResolve == "finishGameComplete")
                             {
+                                //reset arrow image back to original rotation
+                                const arrowImg = document.querySelector('#arrow img');
+                                arrowImg.style.transform = 'rotate(0deg)';
+
                                 return new Promise(resolve => {
                                     //unmount finishedDeck
                                     GameModule.finishedDeck.unmount();
