@@ -27,26 +27,6 @@ const suitLookup = {
     3: '♠', // Spades
 };
 
-//create card Map that maps each card to a value (1-52) for sorting (deck has to be sorted already)
-var cardHashModule = {
-    deck: function (_deck) {
-      _deck.cardHash = function () {
-        let i = 0;
-        let cardValueMap = new Map();
-        let deck = _deck.cards;
-  
-        //loop through the deck(sorted already) and assign a key (card rank + suit) and value for use with sorting a player's hand
-        while (i < deck.length) {
-          cardValueMap.set(deck[i].suit + " " + deck[i].rank, i + 1);
-          i++;
-        }
-  
-        return cardValueMap;
-      };
-    },
-  };
-Deck.modules.cardHash = cardHashModule; //add cardHash function to deck library
-
 //GameModule object encapsulate players, deck, gameDeck, finishedDeck 
 const GameModule = (function() {
     // Initial values
